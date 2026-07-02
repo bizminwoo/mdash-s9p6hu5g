@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>구보 마케팅 BEP</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #181b22; --panel2: #1f232c; --line: #2a2f3a;
+    --text: #e7eaf0; --muted: #8b93a3; --up: #35d07f; --down: #ff5d5d; --money: #f4d35e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Pretendard","Malgun Gothic","Segoe UI",sans-serif; padding: 28px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  #sitetabs { display: flex; gap: 8px; margin: -8px 0 18px; }
+  #sitetabs a { color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 700;
+    padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); }
+  #sitetabs a:hover { color: var(--text); }
+  #sitetabs a.on { color: var(--text); background: var(--panel2); border-color: #3a4150; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 22px; }
+  .panel h2 { font-size: 15px; margin: 0 0 16px; }
+  .muted { color: var(--muted); }
+  .note { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.6; }
+  .empty { color: var(--muted); text-align: center; padding: 40px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: right; padding: 10px 10px; border-bottom: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  .pos { color: var(--up); font-weight: 700; }
+  .neg { color: var(--down); font-weight: 700; }
+  .money { color: var(--money); font-weight: 700; }
+  /* 계산기 */
+  .calcrow { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { color: var(--muted); font-size: 12px; }
+  .field input, .field select { background: var(--panel2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 10px; padding: 10px 12px; font-size: 15px; font-family: inherit; width: 160px; }
+  .bigout { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .card { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .card .label { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .card .value { font-size: 22px; font-weight: 700; }
+  tr.hl td { background: rgba(53,208,127,0.10); }
+  /* 캠페인 카드 */
+  .exp { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .exp h3 { margin: 0 0 4px; font-size: 16px; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-left: 8px; }
+  .badge.ok { background: rgba(53,208,127,.15); color: var(--up); }
+  .badge.no { background: rgba(255,93,93,.15); color: var(--down); }
+  .badge.wait { background: rgba(139,147,163,.15); color: var(--muted); }
+  .expgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 14px 0; }
+  .kv .k { color: var(--muted); font-size: 11.5px; }
+  .kv .v { font-size: 17px; font-weight: 700; margin-top: 2px; }
+  .chartbox { position: relative; height: 240px; }
+  @media (max-width: 720px) {
+    body { padding: 14px; }
+    .panel { padding: 14px; }
+    th, td { padding: 8px 6px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+  <div id="sitetabs">
+    <a href="index.html" id="tabDash">🎵 음원 대시보드</a>
+    <a href="bep.html" class="on">📈 구보 BEP</a>
+    <a href="funds.html">💼 자금 현황</a>
+  </div>
+  <h1>📈 구보 마케팅 손익분기(BEP) 분석</h1>
+  <div class="sub" id="updated"></div>
+
+  <div class="panel">
+    <h2>🧮 BEP 계산기 <span class="muted">— 하루 얼마를 쓰면, 하루 몇 회가 더 나와야 본전인가</span></h2>
+    <div class="calcrow">
+      <div class="field"><label>하루 지출 (원)</label><input type="number" id="cSpend" value="30000" step="10000" min="0"></div>
+      <div class="field"><label>수익 지분</label><select id="cShare"><option value="1">100% (단독)</option><option value="0.5">50% (공동제작)</option></select></div>
+    </div>
+    <div class="bigout" id="calcOut"></div>
+    <div style="margin-top:18px" id="levelTable"></div>
+    <div class="note">기준 단가: 하루 1,000회 스트리밍 ≈ 월 25만원 → 스트리밍 1회 ≈ 8.33원. BEP 필요 상승분 = 하루 지출 ÷ (8.33원 × 지분).<br>
+    예) 하루 3만원·지분 100% → 하루 +3,600회 이상 <b>추가로</b> 나와야 본전. 이 표를 보고 감당 가능한 구간을 고르세요.</div>
+  </div>
+
+  <div class="panel">
+    <h2>🔬 캠페인 실험 기록 <span class="muted">— 실제 데이터로 검증</span></h2>
+    <div id="expWrap"></div>
+    <div class="note">캠페인 시작 전 평균(기준선) 대비 캠페인 기간의 일별 상승분을 자동 계산합니다. 새 캠페인을 시작하면 곡·하루 지출·시작일을 알려주세요 (experiments.json 에 기록됩니다).</div>
+  </div>
+
+<script>
+const DATA = {"songs":{"tUcWwAO5zU8":{"title":"차가을 - 한참 지나서","url":"https://www.youtube.com/watch?v=tUcWwAO5zU8","share":0.5},"RsQDAygpF6k":{"title":"차가을 - 흔한 이별","url":"https://www.youtube.com/watch?v=RsQDAygpF6k","share":0},"grqTg6WOJII":{"title":"백예슬 - 0이 되는 이별은 없어","url":"https://www.youtube.com/watch?v=grqTg6WOJII","share":0.5},"THGi-LLhbxM":{"title":"교이 - 미안한 마음도","url":"https://www.youtube.com/watch?v=THGi-LLhbxM","share":1},"Jsm2uVtQhmY":{"title":"교이 - 내가 더 아프면","url":"https://www.youtube.com/watch?v=Jsm2uVtQhmY","share":1},"gTG9evSpuWg":{"url":"https://www.youtube.com/watch?v=gTG9evSpuWg","title":"도유카","marketing":true,"start":"2026-07-01"},"D7VsFDJx4zw":{"url":"https://www.youtube.com/watch?v=D7VsFDJx4zw","title":"컬리밴드","marketing":true,"start":"2026-07-01"}},"snapshots":[{"date":"2026-06-29","time":"2026-06-29 00:00","stats":{"gTG9evSpuWg":{"views":18474900,"likes":null}},"locked":true},{"date":"2026-06-30","time":"2026-06-30 00:00","stats":{"tUcWwAO5zU8":{"views":1041220,"likes":null},"RsQDAygpF6k":{"views":171915,"likes":null},"grqTg6WOJII":{"views":100814,"likes":null},"THGi-LLhbxM":{"views":72640,"likes":null},"Jsm2uVtQhmY":{"views":521,"likes":null},"gTG9evSpuWg":{"views":18492625,"likes":null}},"locked":true},{"date":"2026-07-01","time":"2026-07-01 00:00","stats":{"tUcWwAO5zU8":{"views":1046457,"likes":null},"RsQDAygpF6k":{"views":172960,"likes":null},"grqTg6WOJII":{"views":101627,"likes":null},"THGi-LLhbxM":{"views":73519,"likes":null},"Jsm2uVtQhmY":{"views":3294,"likes":null},"gTG9evSpuWg":{"views":18509779,"likes":null}},"locked":true},{"date":"2026-07-02","time":"2026-07-02 00:00","stats":{"tUcWwAO5zU8":{"views":1052068,"likes":2979},"RsQDAygpF6k":{"views":174097,"likes":489},"grqTg6WOJII":{"views":102377,"likes":226},"THGi-LLhbxM":{"views":74193,"likes":510},"Jsm2uVtQhmY":{"views":5718,"likes":50},"gTG9evSpuWg":{"views":18531351,"likes":68564},"D7VsFDJx4zw":{"views":59180,"likes":693}},"locked":true}],"current":{"time":"2026-07-02 19:00","stats":{"tUcWwAO5zU8":{"views":1055996,"likes":2981},"RsQDAygpF6k":{"views":174897,"likes":489},"grqTg6WOJII":{"views":102848,"likes":226},"THGi-LLhbxM":{"views":74731,"likes":510},"Jsm2uVtQhmY":{"views":9425,"likes":50},"gTG9evSpuWg":{"views":18547905,"likes":68575},"D7VsFDJx4zw":{"views":59287,"likes":695}}}};
+const EXPERIMENTS = [];
+
+const nf = new Intl.NumberFormat("ko-KR");
+const PER_STREAM = 250000 / (1000 * 30); // 스트리밍 1회당 원 (하루 1000회 ≈ 월 25만원)
+
+// 로컬(file://)에서 열면 대시보드 링크를 dashboard.html 로
+if (location.protocol === "file:") document.getElementById("tabDash").href = "dashboard.html";
+
+function byDate(a,b){ return a.date < b.date ? -1 : 1; }
+function mdShort(s){ const [,m,d] = s.split("-"); return Number(m)+"/"+Number(d); }
+function won(v){
+  if(v == null) return "—";
+  const sign = v < 0 ? "-" : "";
+  const a = Math.abs(v);
+  if(a >= 100000000) return sign + (a/100000000).toFixed(1).replace(/\.0$/,"") + "억원";
+  if(a >= 10000) return sign + Math.round(a/10000).toLocaleString("ko-KR") + "만원";
+  return sign + Math.round(a).toLocaleString("ko-KR") + "원";
+}
+
+// 일별 스트리밍 맵: id -> { "YYYY-MM-DD": 하루치 }
+const daily = {};
+(function(){
+  if(!DATA) return;
+  const snaps = [...DATA.snapshots].sort(byDate);
+  for(let i=1;i<snaps.length;i++){
+    const d = snaps[i-1].date;
+    for(const id of Object.keys(DATA.songs)){
+      const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
+      if(a && b && a.views!=null && b.views!=null){ (daily[id] = daily[id] || {})[d] = b.views - a.views; }
+    }
+  }
+  document.getElementById("updated").textContent =
+    "데이터 기준: " + (DATA.current?.time || snaps[snaps.length-1]?.date || "-") +
+    "  ·  일별 데이터는 매일 00시 확정";
+})();
+
+// ---------- 계산기 ----------
+function calc(){
+  const spend = Number(document.getElementById("cSpend").value) || 0;
+  const share = Number(document.getElementById("cShare").value) || 1;
+  const needDaily = spend / (PER_STREAM * share);
+  document.getElementById("calcOut").innerHTML = [
+    ["한 달 지출 (30일)", won(spend*30)],
+    ["BEP 필요 일일 추가 스트리밍", "+" + nf.format(Math.ceil(needDaily)) + " 회/일"],
+    ["BEP 필요 월간 추가 스트리밍", "+" + nf.format(Math.ceil(needDaily*30)) + " 회"],
+  ].map(c => `<div class="card"><div class="label">${c[0]}</div><div class="value">${c[1]}</div></div>`).join("");
+
+  // 금액대별 표 (1~10만원)
+  let rows = "";
+  for(let man=1; man<=10; man++){
+    const s = man*10000;
+    const need = Math.ceil(s / (PER_STREAM * share));
+    const hl = s === spend ? " class='hl'" : "";
+    rows += `<tr${hl}><td>하루 ${man}만원</td><td>${won(s*30)}</td><td class="pos">+${nf.format(need)}회/일</td><td>+${nf.format(need*30)}회/월</td></tr>`;
+  }
+  document.getElementById("levelTable").innerHTML =
+    `<table><thead><tr><th>지출 구간</th><th>월 지출</th><th>BEP 필요 상승분(일)</th><th>BEP 필요 상승분(월)</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+document.getElementById("cSpend").addEventListener("input", calc);
+document.getElementById("cShare").addEventListener("change", calc);
+calc();
+
+// ---------- 캠페인 실험 ----------
+function renderExperiments(){
+  const wrap = document.getElementById("expWrap");
+  if(!EXPERIMENTS || EXPERIMENTS.length === 0){
+    wrap.innerHTML = '<div class="empty">아직 기록된 캠페인이 없습니다.<br>구보를 시작하면 [곡 · 하루 지출 · 시작일]을 알려주세요 — 자동으로 여기서 추적됩니다.</div>';
+    return;
+  }
+  wrap.innerHTML = "";
+  for(const e of EXPERIMENTS){
+    const song = DATA.songs[e.song];
+    if(!song) continue;
+    const share = e.share != null ? e.share : (song.share == null ? 1 : song.share);
+    const d = daily[e.song] || {};
+    const dates = Object.keys(d).sort();
+
+    // 기준선: 시작 전 마지막 N일 평균 (수동 지정 시 e.baseline 우선)
+    const bDays = e.baselineDays || 7;
+    const preDates = dates.filter(x => x < e.start).slice(-bDays);
+    const baseline = e.baseline != null ? e.baseline
+      : preDates.length ? preDates.reduce((s,x)=>s+d[x],0) / preDates.length : null;
+
+    // 캠페인 기간 일별
+    const endCut = e.end || "9999-12-31";
+    const campDates = dates.filter(x => x >= e.start && x <= endCut);
+    const needDaily = e.dailySpend / (PER_STREAM * share);
+
+    let card = `<div class="exp"><h3>${song.title}`;
+    let body = "";
+
+    if(baseline == null){
+      card += `<span class="badge wait">기준선 수집 중</span></h3>`;
+      body = `<div class="muted" style="margin-top:8px">캠페인 시작(${mdShort(e.start)}) 전 데이터가 아직 부족합니다.</div>`;
+    } else if(campDates.length === 0){
+      card += `<span class="badge wait">시작 대기</span></h3>`;
+      body = `<div class="expgrid">
+        <div class="kv"><div class="k">하루 지출</div><div class="v">${won(e.dailySpend)}</div></div>
+        <div class="kv"><div class="k">시작일</div><div class="v">${mdShort(e.start)}</div></div>
+        <div class="kv"><div class="k">기준선 (시작 전 ${preDates.length}일 평균)</div><div class="v">${nf.format(Math.round(baseline))}회/일</div></div>
+        <div class="kv"><div class="k">BEP 필요 상승분</div><div class="v">+${nf.format(Math.ceil(needDaily))}회/일</div></div>
+      </div>`;
+    } else {
+      const ups = campDates.map(x => d[x] - baseline);
+      const avgUp = ups.reduce((s,v)=>s+v,0) / ups.length;
+      const revenue = ups.reduce((s,v)=>s+v,0) * PER_STREAM * share;
+      const spent = e.dailySpend * campDates.length;
+      const profit = revenue - spent;
+      const roi = spent > 0 ? revenue/spent*100 : 0;
+      const ok = profit >= 0;
+      card += ok ? `<span class="badge ok">✅ BEP 달성 중 (ROI ${roi.toFixed(0)}%)</span></h3>`
+                 : `<span class="badge no">❌ BEP 미달 (ROI ${roi.toFixed(0)}%)</span></h3>`;
+      body = `<div class="muted">${mdShort(e.start)} 시작 · 측정 ${campDates.length}일 · 하루 ${won(e.dailySpend)}${e.memo ? " · " + e.memo : ""}</div>
+      <div class="expgrid">
+        <div class="kv"><div class="k">기준선 (시작 전 평균)</div><div class="v">${nf.format(Math.round(baseline))}회/일</div></div>
+        <div class="kv"><div class="k">캠페인 평균 상승분</div><div class="v ${avgUp>=0?"pos":"neg"}">${avgUp>=0?"+":""}${nf.format(Math.round(avgUp))}회/일</div></div>
+        <div class="kv"><div class="k">BEP 필요 상승분</div><div class="v">+${nf.format(Math.ceil(needDaily))}회/일</div></div>
+        <div class="kv"><div class="k">달성률</div><div class="v ${avgUp>=needDaily?"pos":"neg"}">${needDaily>0 ? Math.round(avgUp/needDaily*100) : 0}%</div></div>
+        <div class="kv"><div class="k">누적 지출</div><div class="v">${won(spent)}</div></div>
+        <div class="kv"><div class="k">상승분 수익 환산${share!==1 ? ` (지분 ${share*100}%)` : ""}</div><div class="v money">${won(revenue)}</div></div>
+        <div class="kv"><div class="k">누적 손익</div><div class="v ${ok?"pos":"neg"}">${won(profit)}</div></div>
+      </div>
+      <div class="chartbox"><canvas id="c_${e.song}_${e.start}"></canvas></div>
+      <div class="note">막대 = 그날 상승분(기준선 대비), 노란 선 = BEP 필요 상승분. 막대가 선 위에 있는 날이 "돈 번 날".</div>`;
+    }
+    card += body + `</div>`;
+    wrap.insertAdjacentHTML("beforeend", card);
+
+    // 차트
+    if(baseline != null && campDates.length > 0){
+      const ups = campDates.map(x => Math.round(d[x] - baseline));
+      new Chart(document.getElementById(`c_${e.song}_${e.start}`), {
+        data: {
+          labels: campDates.map(mdShort),
+          datasets: [
+            { type: "bar", label: "일일 상승분", data: ups,
+              backgroundColor: ups.map(v => v >= needDaily ? "#35d07f" : "#5a6272") },
+            { type: "line", label: "BEP 필요선", data: campDates.map(()=>Math.ceil(needDaily)),
+              borderColor: "#f4d35e", borderWidth: 2, pointRadius: 0 },
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: "#8b93a3" } } },
+          scales: {
+            x: { ticks: { color: "#8b93a3" }, grid: { display: false } },
+            y: { ticks: { color: "#8b93a3", callback: v => nf.format(v) }, grid: { color: "#232833" } }
+          } }
+      });
+    }
+  }
+}
+renderExperiments();
+</script>
+</body>
+</html>
