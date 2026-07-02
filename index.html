@@ -220,7 +220,7 @@ function render(){
   const dayLabel = prev ? " ("+mdShort(prev.date)+")" : "";
   const curClock = cur?.time ? cur.time.slice(11) : "";
   const cards = [
-    ["오늘 현재까지"+(curClock ? ` (${curClock} 기준)` : ""), liveSum!=null ? nf.format(liveSum) : "—", "회"],
+    ["오늘 현재까지"+(curClock ? ` (${curClock} 수집 · <span id="ago"></span>)` : ""), liveSum!=null ? nf.format(liveSum) : "—", "회"],
     ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) : "—", "회"],
     [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
     ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
@@ -228,6 +228,19 @@ function render(){
   ];
   document.getElementById("cards").innerHTML = cards.map(c =>
     `<div class="card"><div class="label">${c[0]}</div><div class="value">${c[1]}<span class="unit">${c[2]}</span></div></div>`).join("");
+
+  // "몇 분 전 수집" 실시간 갱신
+  if(cur?.time){
+    const collected = new Date(cur.time.replace(" ", "T"));
+    const tick = () => {
+      const el = document.getElementById("ago");
+      if(!el) return;
+      const m = Math.floor((Date.now() - collected.getTime()) / 60000);
+      el.textContent = m < 1 ? "방금" : m < 60 ? `${m}분 전` : `${Math.floor(m/60)}시간 ${m%60}분 전`;
+    };
+    tick();
+    setInterval(tick, 30000);
+  }
 
   // 기간 라벨
   if(prev){
