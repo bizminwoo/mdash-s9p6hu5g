@@ -1,0 +1,1039 @@
+<!--
+  통합 자금 현황 — 1법인(음원·화장품·틱톡) + 개인 통합 대시보드
+  데이터는 브라우저에 자동 저장됩니다. 어느 기기에서 열어도 1~5월 데이터는 항상 보입니다.
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#EEF0F3; --surface:#FFFFFF; --surface-2:#F7F8FA;
+    --ink:#161A22; --ink-soft:#5B6472; --ink-faint:#9AA2AE;
+    --line:#E2E5EA; --line-soft:#EDEFF2;
+    --accent:#0E6E64; --pos:#1E8E5A; --neg:#C8453B; --warn:#B5790E;
+    --c-music:#4C5FD5; --c-cosme:#D2588C; --c-tiktok:#0FA3A3; --c-common:#8A93A0;
+    --radius:14px; --shadow:0 1px 2px rgba(20,24,34,.04),0 8px 24px rgba(20,24,34,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif;
+    -webkit-font-smoothing:antialiased; line-height:1.45;
+  }
+  .num{font-variant-numeric:tabular-nums; letter-spacing:-.01em}
+  .wrap{max-width:1080px; margin:0 auto; padding:22px 18px 80px}
+
+  /* header */
+  .top{display:flex; align-items:flex-end; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:18px}
+  .brand{display:flex; flex-direction:column; gap:2px}
+  .brand .eyebrow{font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); font-weight:700}
+  .brand h1{margin:0; font-size:21px; font-weight:800; letter-spacing:-.02em}
+  .monthsel{display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:6px 8px; box-shadow:var(--shadow)}
+  .monthsel button{border:0; background:transparent; cursor:pointer; width:30px; height:30px; border-radius:999px; font-size:16px; color:var(--ink-soft)}
+  .monthsel button:hover{background:var(--surface-2)}
+  .monthsel #yearBtn{width:auto; padding:0 12px; font-size:12.5px; font-weight:700}
+  .monthsel #yearBtn.on{background:var(--accent); color:#fff}
+  .monthsel .label{font-weight:700; font-size:14px; min-width:92px; text-align:center}
+
+  /* hero */
+  .hero{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px 24px; position:relative; overflow:hidden}
+  .hero::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--accent)}
+  .hero.loss::before{background:var(--neg)}
+  .hero .cap{font-size:12px; color:var(--ink-soft); font-weight:600; letter-spacing:.02em}
+  .hero .big{font-size:clamp(34px,7vw,52px); font-weight:800; letter-spacing:-.03em; margin:2px 0 0; color:var(--pos)}
+  .hero.loss .big{color:var(--neg)}
+  .hero .eq{display:flex; gap:22px; flex-wrap:wrap; margin-top:14px; padding-top:14px; border-top:1px solid var(--line-soft)}
+  .hero .eq div{display:flex; flex-direction:column; gap:2px}
+  .hero .eq .k{font-size:12px; color:var(--ink-soft)}
+  .hero .eq .v{font-size:18px; font-weight:700}
+  .v.income{color:var(--pos)} .v.expense{color:var(--neg)}
+
+  /* card grid */
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:12px}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow)}
+  .card .k{font-size:12px; color:var(--ink-soft); font-weight:600; display:flex; align-items:center; gap:6px}
+  .card .v{font-size:24px; font-weight:800; letter-spacing:-.02em; margin-top:6px}
+  .card .sub{font-size:12px; color:var(--ink-faint); margin-top:3px}
+  .dot{width:8px; height:8px; border-radius:2px; display:inline-block}
+
+  .section{margin-top:26px}
+  .section > h2{font-size:14px; font-weight:800; letter-spacing:-.01em; margin:0 0 12px; display:flex; align-items:center; gap:8px}
+  .section > h2 .rule{flex:1; height:1px; background:var(--line)}
+
+  /* P&L per line */
+  .pnl{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
+  .pnl table{width:100%; border-collapse:collapse}
+  .pnl th,.pnl td{padding:12px 16px; text-align:right; font-size:14px}
+  .pnl th{font-size:11px; color:var(--ink-soft); font-weight:700; text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--line)}
+  .pnl th:first-child,.pnl td:first-child{text-align:left}
+  .pnl tbody tr{border-bottom:1px solid var(--line-soft)}
+  .pnl tbody tr:last-child{border-bottom:0}
+  .pnl .name{display:flex; align-items:center; gap:9px; font-weight:700}
+  .pnl tfoot td{font-weight:800; border-top:2px solid var(--line); background:var(--surface-2)}
+
+  /* bars */
+  .bars{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:18px 20px}
+  .bar-row{display:grid; grid-template-columns:130px 1fr 110px; align-items:center; gap:12px; padding:7px 0}
+  .bar-row .lbl{font-size:13px; color:var(--ink); font-weight:600; line-height:1.25; word-break:keep-all}
+  .track{height:10px; background:var(--surface-2); border-radius:999px; overflow:hidden}
+  .fill{height:100%; border-radius:999px; transition:width .5s cubic-bezier(.2,.7,.2,1)}
+  .bar-row .amt{text-align:right; font-size:13px; font-weight:700}
+  .split{display:flex; height:14px; border-radius:8px; overflow:hidden; margin:4px 0 14px; border:1px solid var(--line)}
+  .split span{display:block; height:100%}
+  .splitkey{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--ink-soft)}
+  .splitkey b{color:var(--ink)}
+
+  /* insights */
+  .insights{display:flex; flex-direction:column; gap:10px}
+  .ins{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--warn); border-radius:10px; padding:12px 15px; box-shadow:var(--shadow); font-size:13.5px}
+  .ins.good{border-left-color:var(--pos)} .ins.bad{border-left-color:var(--neg)}
+  .ins b{font-weight:800}
+
+  /* tabs + input */
+  .panel{margin-top:26px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
+  .tabs{display:flex; border-bottom:1px solid var(--line)}
+  .tabs button{flex:1; border:0; background:transparent; padding:14px 10px; font-size:13.5px; font-weight:700; color:var(--ink-soft); cursor:pointer; position:relative}
+  .tabs button.on{color:var(--ink)}
+  .tabs button.on::after{content:""; position:absolute; left:14px; right:14px; bottom:-1px; height:2px; background:var(--accent)}
+  .tabpane{padding:18px 20px; display:none}
+  .tabpane.on{display:block}
+
+  .form{display:grid; grid-template-columns:repeat(6,1fr); gap:10px; align-items:end}
+  .field{display:flex; flex-direction:column; gap:5px}
+  .field label{font-size:11px; color:var(--ink-soft); font-weight:700}
+  .field input,.field select{font:inherit; font-size:14px; padding:9px 10px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); width:100%}
+  .field input:focus,.field select:focus{outline:2px solid color-mix(in srgb,var(--accent) 35%,transparent); border-color:var(--accent)}
+  .addbtn{grid-column:span 1; background:var(--accent); color:#fff; border:0; border-radius:9px; padding:10px; font:inherit; font-weight:800; font-size:14px; cursor:pointer; height:39px}
+  .addbtn:hover{filter:brightness(1.06)}
+
+  .list{margin-top:4px}
+  .li{display:grid; grid-template-columns:auto 1fr auto auto auto; gap:10px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line-soft); font-size:13.5px}
+  .li:last-child{border-bottom:0}
+  .li .tag{font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; white-space:nowrap}
+  .li .desc{font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .li .meta{font-size:12px; color:var(--ink-faint)}
+  .li .li-amt{font-weight:700; text-align:right}
+  .li .del{border:0; background:transparent; color:var(--ink-faint); cursor:pointer; font-size:16px; padding:2px 6px; border-radius:6px}
+  .li .del:hover{background:var(--surface-2); color:var(--neg)}
+  .fixrow{display:grid; grid-template-columns:1fr auto 130px auto; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid var(--line-soft)}
+  .fixrow input.fa{text-align:right; font-weight:700}
+  .empty{color:var(--ink-faint); font-size:13px; padding:18px 0; text-align:center}
+  .hint{font-size:12px; color:var(--ink-soft); margin:0 0 14px; line-height:1.6}
+  .foot{margin-top:24px; font-size:11.5px; color:var(--ink-faint); text-align:center; line-height:1.7}
+
+  @media(max-width:760px){
+    .grid{grid-template-columns:1fr}
+    .form{grid-template-columns:repeat(2,1fr)}
+    .addbtn{grid-column:span 2}
+    .bar-row{grid-template-columns:96px 1fr 92px}
+    .li{grid-template-columns:auto 1fr auto auto}
+    .li .meta{display:none}
+  }
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <span class="eyebrow">WM · 통합 자금 콘솔</span>
+      <h1>한눈에 보는 수입 · 지출 · 순이익</h1>
+    </div>
+    <div class="monthsel">
+      <button id="yearBtn" aria-label="연 단위 보기">2026 전체</button>
+      <button id="prevM" aria-label="이전 달">‹</button>
+      <span class="label num" id="monthLabel">—</span>
+      <button id="nextM" aria-label="다음 달">›</button>
+    </div>
+  </div>
+
+  <div class="hero" id="hero">
+    <div class="cap">이번 달 최종 현금흐름 (영업수입 − 영업비용 − 개인지출)</div>
+    <div class="big num" id="netVal">—</div>
+    <div class="eq">
+      <div><span class="k">사업 영업수입</span><span class="v income num" id="incVal">—</span></div>
+      <div><span class="k">− 사업 영업비용</span><span class="v expense num" id="expVal">—</span></div>
+      <div><span class="k">− 개인지출</span><span class="v num" id="fixRatio">—</span></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="k">🎬 엔터사업부 라인 손익</div>
+      <div class="v num" id="cardFixed">—</div>
+      <div class="sub" id="cardFixedSub">선투자형 — 회수는 발매 3개월 뒤부터</div>
+    </div>
+    <div class="card">
+      <div class="k">🙋 개인 지출 (법인통장)</div>
+      <div class="v num" id="cardBizNet">—</div>
+      <div class="sub" id="cardBizSub">법인통장에서 개인용도로 나간 돈</div>
+    </div>
+    <div class="card">
+      <div class="k">💵 실제 통장 증감 (현금)</div>
+      <div class="v num" id="cardPersonal">—</div>
+      <div class="sub" id="cardPersonalSub">투자금·차입금 제외</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>사업별 손익 <span class="rule"></span></h2>
+    <div class="pnl">
+      <table>
+        <thead><tr><th>사업 라인</th><th>수입</th><th>지출</th><th>손익</th></tr></thead>
+        <tbody id="pnlBody"></tbody>
+        <tfoot id="pnlFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>지출은 어디로 갔나 <span class="rule"></span></h2>
+    <div class="bars">
+      <div style="font-size:12px;color:var(--ink-soft);font-weight:700;margin-bottom:6px">사업 영업비용 · 음원 제작 선투자 · 개인 지출</div>
+      <div class="split" id="splitBar"></div>
+      <div class="splitkey" id="splitKey"></div>
+      <div style="height:1px;background:var(--line-soft);margin:6px 0 16px"></div>
+      <div style="font-size:12px;color:var(--accent);font-weight:800;margin-bottom:6px">🟢 사업 지출 (카테고리별)</div>
+      <div id="catBarsBiz"></div>
+      <div style="height:1px;background:var(--line-soft);margin:14px 0 16px"></div>
+      <div style="font-size:12px;color:var(--warn);font-weight:800;margin-bottom:6px">🙋 개인 지출 (카테고리별)</div>
+      <div id="catBarsPer"></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>줄일 포인트 <span class="rule"></span></h2>
+    <div class="insights" id="insights"></div>
+  </div>
+
+  <div class="section">
+    <h2>법인 인출 자금 추적 <span class="rule"></span></h2>
+    <div class="bars">
+      <div style="font-size:12px;color:var(--ink-soft);line-height:1.6;margin-bottom:12px">법인에서 빼낸 돈(대표 인출)이 <b>날짜순으로 어디 쓰였는지</b> 누적 추적해요. 월에 상관없이 전체 타임라인 — 1월에 뺀 돈이 3월에 쓰여도 잔액으로 따라가요. (월 선택과 무관하게 항상 전체 표시)</div>
+      <div class="pnl" style="box-shadow:none;border:0">
+        <table>
+          <thead><tr><th>법인 인출 → 사용처</th><th>금액</th><th>상태</th></tr></thead>
+          <tbody id="trailBody"></tbody>
+          <tfoot id="trailFoot"></tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>월별 흐름 추이 <span class="rule"></span></h2>
+    <div class="bars" id="trendBox"></div>
+  </div>
+
+  <div class="section">
+    <h2>고정비 레이더 · 구독 사냥 <span class="rule"></span></h2>
+    <div class="bars">
+      <div style="font-size:12px;color:var(--ink-soft);line-height:1.6;margin-bottom:10px">매달 자동으로 빠지는 돈. ⚠️는 곧 끝나거나 점검할 것.</div>
+      <div class="pnl" style="box-shadow:none;border:0"><table>
+        <thead><tr><th>고정비</th><th>월액</th><th>비고</th></tr></thead>
+        <tbody id="radarBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>미확정 처리함 <span class="rule"></span></h2>
+    <div class="bars">
+      <div style="font-size:12px;color:var(--ink-soft);line-height:1.6;margin-bottom:10px">카드앱·토스앱에서 확인하면 지워지는 것들. 확인되면 알려줘 → 제자리로 분류.</div>
+      <div class="pnl" style="box-shadow:none;border:0"><table>
+        <thead><tr><th>날짜</th><th>금액</th><th>내용</th></tr></thead>
+        <tbody id="unconfBody"></tbody>
+        <tfoot id="unconfFoot"></tfoot>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>부가세 적립 (나라에 낼 돈) <span class="rule"></span></h2>
+    <div class="bars">
+      <div style="font-size:12px;color:var(--ink-soft);line-height:1.6;margin-bottom:10px">국내 매출(레이벡스·음원정산·화장품)에서 떼어둔 매출 부가세. 실제 납부액은 매입세액 공제 후 더 적어져요. 틱톡(영세율)·음저협은 제외.</div>
+      <div class="pnl" style="box-shadow:none;border:0"><table>
+        <thead><tr><th>기간</th><th>매출 부가세</th><th></th></tr></thead>
+        <tbody id="vatBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="tabs">
+      <button class="on" data-tab="tx">＋ 거래 입력</button>
+      <button data-tab="fixed">고정비 관리</button>
+      <button data-tab="hist">내역</button>
+    </div>
+
+    <div class="tabpane on" id="pane-tx">
+      <p class="hint">수입·일회성 지출을 한 줄씩 넣어. 사업이면 어느 라인인지, 개인이면 어느 항목인지만 골라주면 자동으로 분류돼.</p>
+      <div class="form">
+        <div class="field"><label>날짜</label><input type="date" id="txDate"></div>
+        <div class="field"><label>유형</label>
+          <select id="txKind"><option value="지출">지출</option><option value="수입">수입</option><option value="투자">투자(제작 선투자)</option></select></div>
+        <div class="field"><label>구분</label>
+          <select id="txScope"><option value="사업">사업</option><option value="개인">개인</option><option value="통과성">통과성</option></select></div>
+        <div class="field"><label>항목 / 라인</label>
+          <select id="txArea"></select></div>
+        <div class="field"><label>금액 (원)</label><input type="number" id="txAmt" inputmode="numeric" placeholder="0"></div>
+        <button class="addbtn" id="txAdd">추가</button>
+      </div>
+      <div class="field" style="margin-top:10px"><label>메모 (선택)</label><input type="text" id="txMemo" placeholder="예: 멜론 정산 / 친구 저녁 / 원료 매입"></div>
+    </div>
+
+    <div class="tabpane" id="pane-fixed">
+      <p class="hint">매달 똑같이 나가는 돈. 한 번 넣으면 매달 자동 반영돼. 금액 칸은 바로 수정 가능 — 바뀌면 그 자리에서 고치면 저장돼.</p>
+      <div class="form" style="grid-template-columns:2fr 1fr 1fr 1fr auto">
+        <div class="field"><label>이름</label><input type="text" id="fxName" placeholder="예: 사무실 임대료"></div>
+        <div class="field"><label>구분</label>
+          <select id="fxScope"><option value="개인">개인</option><option value="사업">사업</option></select></div>
+        <div class="field"><label>분류</label><select id="fxArea"></select></div>
+        <div class="field"><label>금액 (원)</label><input type="number" id="fxAmt" inputmode="numeric" placeholder="0"></div>
+        <button class="addbtn" id="fxAdd">추가</button>
+      </div>
+      <div class="list" id="fixedList" style="margin-top:14px"></div>
+    </div>
+
+    <div class="tabpane" id="pane-hist">
+      <p class="hint">이번 달 입력한 거래 내역.</p>
+      <div class="list" id="txList"></div>
+    </div>
+  </div>
+
+  <p class="foot" id="storeNote">입력값은 이 브라우저에 자동 저장됩니다.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const KEY_TX="finance_transactions_v22", KEY_FIX="finance_fixedcosts_v22";
+  const won=n=>(n<0?"-":"")+"₩"+Math.abs(Math.round(n)).toLocaleString("ko-KR");
+  const man=n=>{const a=Math.abs(n); if(a>=100000000)return (n/100000000).toFixed(a%100000000?1:0)+"억"; if(a>=10000)return Math.round(n/10000).toLocaleString("ko-KR")+"만"; return Math.round(n).toLocaleString("ko-KR");};
+  const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const ym=d=>d.slice(0,7);
+  const todayISO=()=>new Date().toISOString().slice(0,10);
+
+  // 분류 옵션
+  const AREA={
+    사업:[["레이벡스","레이벡스 월급"],["엔터","엔터 수익(틱톡 해외정산)"],["음원IP","음원IP 수익(스트리밍)"],["음저협","음저협 저작권료"],["음원","엔터사업부(제작·광고 등)"],["틱톡","틱톡 에이전시"],["화장품","화장품"],["공통","사업 공통"]],
+    통과성:[["MOT","MOT 통과성"]],
+    개인:[["주거","주거(월세 등)"],["통신","통신(폰·인터넷)"],["상환","상환(개인회생·법무)"],["식비","식비(외식·술)"],["배민","배달-배민"],["쿠팡이츠","배달-쿠팡이츠"],["여친","데이트"],["가족","가족"],["여행","여행"],["내구재","내구재(가전 등)"],["의류","의류"],["의료","의료"],["교통","교통(택시·KTX)"],["보험","보험"],["미용","미용(머리)"],["헬스","헬스장"],["쇼핑","쇼핑(쿠팡·면세점)"],["구독","구독·멤버십"],["선물","선물"],["벌금","벌금·과태료"],["미확정","미확정(PG·송금)"],["생활","생활 잡비"],["문화","문화·여가"]]
+  };
+  const AREA_COLOR={레이벡스:"#7C5CD6",엔터:"#C0508A",음원IP:"#3E8E7E",음저협:"#9A7B4F",음원:"var(--c-music)",틱톡:"var(--c-tiktok)",화장품:"var(--c-cosme)",공통:"var(--c-common)"};
+  const isFixedPersonalCat=c=>["주거","통신","상환"].includes(c);
+
+  let tx=[], fixed=[], cursor=new Date(2026,0,15);
+  let storage=(typeof window!=="undefined"&&window.storage)?window.storage:
+  (typeof localStorage!=="undefined"?{
+    async get(k){const v=localStorage.getItem(k);return v?{value:v}:null;},
+    async set(k,v){localStorage.setItem(k,v);return{value:v};},
+  }:null);
+
+  async function load(){
+    if(!storage){
+      document.getElementById("storeNote").textContent="⚠ 저장소를 못 찾았어요(claude.ai 밖에서 열린 경우). 입력은 새로고침 전까지만 유지됩니다.";
+      seedIfEmpty(); return;
+    }
+    try{const r=await storage.get(KEY_TX,false); tx=r&&r.value?JSON.parse(r.value):[];}catch(e){tx=[];}
+    try{const r=await storage.get(KEY_FIX,false); fixed=r&&r.value?JSON.parse(r.value):[];}catch(e){fixed=[];}
+    seedIfEmpty();
+  }
+  // 법인 인출 통합 타임라인 (월 무관, 날짜순 누적 추적)
+  const TRAIL_TL=[
+    ["2026-01-07","법인 인출 (대표 인출)","in",5950000],
+    ["2026-01-07","차 할부 (현대캐피탈)","out",1162135],
+    ["2026-01-07","친구·지인 빚 갚기 (박상진·황승률·최인구)","out",1416800],
+    ["2026-01-07","하이패스 충전","out",50000],
+    ["2026-02-02","롯데면세점 (향수 AVENTUS)","out",344192],
+    ["2026-02-09","법인 인출","in",360000],
+    ["2026-02-09","개인회생 변제금","out",564792],
+    ["2026-02-16","법인 인출","in",350000],
+    ["2026-02-24","빗썸 BTC 매수","out",500000],
+    ["2026-02-25","법인 인출","in",5450000],
+    ["2026-02-25","빗썸 BTC 매수","out",5000000],
+    ["2026-03-03","법인 인출","in",5500000],
+    ["2026-03-03","빗썸 BTC 매수","out",5000000],
+    ["2026-03-05","법인 인출","in",1000000],
+    ["2026-03-13","법인 인출","in",1000000],
+    ["2026-03-13","차 할부 (현대캐피탈)","out",1145525],
+    ["2026-03-13","개인회생 변제금","out",564792],
+    ["2026-03-17","법인 인출","in",2500000],
+    ["2026-03-17","빗썸 BTC 매수","out",2500000],
+    ["2026-03-21","법인 인출","in",1100000],
+    ["2026-03-21","최인구 술값 (통으로 산 술)","out",1100000],
+    ["2026-04-03","차 할부 (현대캐피탈)","out",1145525],
+    ["2026-04-08","법인 인출","in",830000],
+    ["2026-04-11","법인 인출 (109)","in",1400000],
+    ["2026-05-11","법인 인출 (109)","in",1700000],
+    ["2026-05-11","개인회생 변제금","out",564792],
+    ["2026-05-25","법인 인출","in",1300000],
+    ["2026-06-08","법인 인출","in",875000],
+    ["2026-06-08","법인 인출","in",250000],
+    ["2026-06-11","법인 인출","in",120000],
+    ["2026-06-12","황승률에게 빌려준 돈 (6/19 회수 예정)","out",1000000],
+    ["2026-06-14","법인 인출","in",100000],
+    ["2026-06-15","법인 인출 (109)","in",1100000],
+  ];
+  const BTC_NET={inAmt:13000000,outAmt:8056582};
+  const SEED_JAN=[
+    // ── 수입 ──
+    ["2026-01-16","수입","사업","레이벡스",5000000,"레이벡스 월급(용역료, 부가세 제외)"],
+    ["2026-01-08","수입","사업","화장품",658599,"화장품 매출(스마트스토어·toss·힙디크, 부가세 제외)"],
+    ["2026-01-30","수입","사업","음원",208861,"기타 음원정산((주)레이벡스, 부가세 제외)"],
+    ["2026-01-07","수입","사업","틱톡",3362419,"PIPO 12월 틱톡 수익"],
+    ["2026-01-31","수입","사업","공통",48750,"체크카드 캐시백"],
+    ["2026-01-29","수입","통과성","MOT",1100000,"MOT 제작/마케팅비 (2월 광고로 통과)"],
+    // ── 음원 제작비 (실제 비용, 적자로 잡힘 / 회수는 발매 3개월 뒤부터) ──
+    ["2026-01-07","지출","사업","음원",3025000,"백예슬 제작비(선투자형)"],
+    ["2026-01-20","지출","사업","음원",2901000,"흔한이별(차가을) 개작동의비(선투자형)"],
+    ["2026-01-16","지출","사업","음원",1934000,"차가을 가창비(선투자형)"],
+    // ── 사업 영업비용 ──
+    ["2026-01-31","지출","사업","음원",115000,"구글 광고(음원)"],
+    ["2026-01-07","지출","사업","화장품",313500,"언더어스 3PL 물류"],
+    ["2026-01-26","지출","사업","화장품",53800,"네이버 광고(화장품)"],
+    ["2026-01-21","지출","사업","틱톡",90554,"ByteDance+선물(틱톡)"],
+    ["2026-01-23","지출","사업","공통",1772140,"세금(부가세 등)"],
+    ["2026-01-15","지출","사업","공통",360330,"차량비(주유+정비)"],
+    ["2026-01-15","지출","사업","공통",291700,"접대/식대"],
+    ["2026-01-12","지출","사업","공통",399690,"4대보험[고정]"],
+    ["2026-01-26","지출","사업","공통",220000,"기장료[고정]"],
+    ["2026-01-28","지출","개인","구독",59490,"음원사이트 구독(멜론·지니)"],
+    ["2026-01-28","지출","사업","공통",182620,"사업잡비(선물·내구재·KCP)"],
+    ["2026-01-05","지출","사업","공통",23400,"수수료(미리디·인증서)"],
+    // ── 개인 지출(법인통장에서) ──
+    ["2026-01-28","지출","개인","여행",1958700,"가족여행 항공권"],
+    ["2026-01-27","지출","개인","내구재",616040,"삼탠바이미+필름카메라"],
+    ["2026-01-23","지출","개인","쇼핑",621120,"쿠팡·편의점 등 생활쇼핑"],
+    ["2026-01-20","지출","개인","식비",655911,"나 외식·술(카카오페이 술 15.85만 포함)"],
+    ["2026-01-07","지출","개인","배민",67990,"배민(주문+배민클럽)"],
+    ["2026-01-04","지출","개인","쿠팡이츠",194000,"쿠팡이츠"],
+    ["2026-01-15","지출","개인","상환",357400,"개인회생 법무비(법무법인)"],
+    ["2026-01-26","지출","개인","보험",126940,"보험(메리츠×2·KB손·휴대폰)"],
+    ["2026-01-08","지출","개인","생활",2400,"우체국 배달장소변경"],
+    ["2026-01-07","지출","사업","공통",1194135,"차 할부(현대캐피탈)"],
+    ["2026-01-12","지출","사업","공통",308000,"사무실 월세(플러스주택, 순액)"],
+    ["2026-01-07","지출","사업","공통",548590,"옛 사무실 관리비(한일미디어, 밀린분)"],
+    ["2026-01-25","지출","사업","공통",82640,"KT 통신(폰+유선)"],
+    ["2026-01-19","지출","개인","의류",342470,"옷(무신사·이니시스)"],
+    ["2026-01-24","지출","개인","가족",204670,"가족 소모품·애기옷"],
+    ["2026-01-25","지출","개인","여친",191500,"여친 외식(호우·하이디라오)"],
+    ["2026-01-27","지출","개인","교통",140500,"택시"],
+    ["2026-01-24","지출","개인","가족",101500,"가족 외식"],
+    ["2026-01-14","지출","개인","의료",74900,"병원·약국"],
+  ];
+  const SEED_FEB=[
+    // ── 수입 (부가세 제외) ──
+    ["2026-02-13","수입","사업","레이벡스",5000000,"레이벡스 월급(용역료, 부가세 제외)"],
+    ["2026-02-27","수입","사업","음원",198772,"기타 음원정산((주)레이벡스, 부가세 제외)"],
+    ["2026-02-06","수입","사업","틱톡",3368143,"PIPO 틱톡 수익"],
+    ["2026-02-28","수입","사업","화장품",668440,"화장품 매출(법인+109 정산, 부가세 제외)"],
+    // ── 음원 (광고·제작·구독) ──
+    ["2026-02-23","지출","사업","음원",6200000,"구글애드워즈 음원광고"],
+    ["2026-02-19","지출","사업","음원",1114327,"메타 광고(마스타해외)"],
+    ["2026-02-24","지출","사업","음원",1485000,"최석환 음원제작"],
+    ["2026-02-25","지출","사업","음원",386800,"김태양(기타세션)·이형은(보컬디렉)"],
+    ["2026-02-12","지출","개인","구독",12210,"음원사이트 구독(지니)"],
+    // ── 틱톡 ──
+    ["2026-02-11","지출","사업","틱톡",1122134,"틱톡(박지율·인코웍스·칠링 등)"],
+    // ── 화장품 ──
+    ["2026-02-09","지출","사업","화장품",161700,"화장품 물류(언더어스)"],
+    ["2026-02-25","지출","사업","화장품",135900,"화장품 광고(네이버파이낸셜)"],
+    // ── 사업 공통 ──
+    ["2026-02-02","지출","사업","공통",793120,"4대보험"],
+    ["2026-02-25","지출","사업","공통",220000,"기장료(인덕회계)"],
+    ["2026-02-23","지출","사업","공통",594590,"사무실 월세·관리비(플러스주택+한일미디어)"],
+    ["2026-02-09","지출","사업","공통",186470,"세금(국세·구청)"],
+    ["2026-02-09","지출","사업","공통",161900,"접대(서부청기와·대박포차·마장동)"],
+    ["2026-02-11","지출","사업","공통",130000,"주유(삼미·삼표·안국)"],
+    ["2026-02-24","지출","사업","공통",99000,"창업공간(김우용)"],
+    ["2026-02-09","지출","사업","공통",74020,"수노AI·VPN·비자(사업)"],
+    ["2026-02-11","지출","사업","공통",67720,"KT 통신"],
+    // ── 개인 지출 ──
+    ["2026-02-09","지출","개인","상환",564792,"개인회생 변제금"],
+    ["2026-02-18","지출","개인","식비",271740,"나 외식·술(친구술값 환급 상계)"],
+    ["2026-02-07","지출","개인","배민",73690,"배민(주문+배민클럽)"],
+    ["2026-02-10","지출","개인","쿠팡이츠",134200,"쿠팡이츠"],
+    ["2026-02-16","지출","개인","보험",401580,"보험(차 327.66k·KB손·메리츠)"],
+    ["2026-02-02","지출","개인","쇼핑",344192,"롯데면세점(향수 AVENTUS)"],
+    ["2026-02-11","지출","사업","음원",181500,"뮤즈플랫폼(이니시스, 음원제작)"],
+    ["2026-02-17","지출","개인","생활",122000,"헥토페이 결제(용처 불명, 개인처리)"],
+    ["2026-02-24","지출","개인","교통",179600,"택시(순액)"],
+    ["2026-02-16","지출","개인","여친",142400,"데이트(마포생갈비·등촌샤브·에이블리)"],
+    ["2026-02-13","지출","개인","선물",270800,"카카오선물하기 3건"],
+    ["2026-02-10","지출","개인","미용",77000,"머리(에이바이봄)"],
+    ["2026-02-03","지출","개인","여행",63980,"2월 여행(네이버페이)"],
+    ["2026-02-02","지출","개인","의료",47100,"병원·약국(서울삼성·푸른성모·자연약국)"],
+    ["2026-02-10","지출","개인","의류",25350,"무신사"],
+    ["2026-02-02","지출","개인","가족",12830,"가족(네이버페이)"],
+    ["2026-02-10","지출","개인","문화",10000,"동행복권"],
+  ];
+  const SEED_MAR=[
+    // ── 수입 (부가세 제외) ──
+    ["2026-03-13","수입","사업","레이벡스",5000000,"레이벡스 월급(용역료, 부가세 제외)"],
+    ["2026-03-31","수입","사업","음원",116604,"기타 음원정산((주)레이벡스, 부가세 제외)"],
+    ["2026-03-09","수입","사업","틱톡",3271290,"PIPO 틱톡"],
+    ["2026-03-05","수입","사업","엔터",1392285,"엔터 수익(PAYONEER 해외정산, 틱톡발)"],
+    ["2026-03-31","수입","사업","화장품",372471,"화장품 매출(부가세 제외)"],
+    ["2026-03-23","수입","사업","음원IP",18893,"음원IP(멜론 정산, 부가세 제외)"],
+    ["2026-03-31","수입","사업","음원IP",42482,"음원IP(지니뮤직 정산, 부가세 제외)"],
+    ["2026-03-23","수입","사업","음저협",37405,"음저협 저작권료"],
+    // ── 음원 ──
+    ["2026-03-13","지출","사업","음원",1934000,"차은경 음원제작"],
+    ["2026-03-13","지출","사업","음원",1925000,"베이크사운드 음원제작"],
+    ["2026-03-18","지출","사업","음원",1105164,"구글애드워즈 음원광고"],
+    ["2026-03-06","지출","사업","음원",443080,"유현경(아티스트)"],
+    ["2026-03-30","지출","사업","음원",290100,"김항규(가창)"],
+    ["2026-03-13","지출","사업","음원",220000,"821사운드"],
+    ["2026-03-30","지출","사업","음원",193400,"김태양(기타세션)"],
+    ["2026-03-15","지출","사업","음원",305357,"메타 광고"],
+    ["2026-03-18","지출","개인","구독",42350,"음원사이트 구독(벅스)"],
+    ["2026-03-02","지출","사업","음원",367821,"사업용 핸드폰(당근, 엔터)"],
+    // ── 틱톡 ──
+    ["2026-03-25","지출","사업","틱톡",1750464,"박지율 에이전트"],
+    ["2026-03-07","지출","사업","틱톡",140220,"함소빈(크리에이터 보너스)"],
+    // ── 화장품 ──
+    ["2026-03-30","지출","사업","화장품",435150,"이슬기(디자이너)"],
+    ["2026-03-10","지출","사업","화장품",138600,"언더어스 물류"],
+    // ── 사업 공통 ──
+    ["2026-03-17","지출","사업","공통",660000,"기장료(인덕회계)"],
+    ["2026-03-03","지출","사업","공통",756630,"세금(국세·지방세, 부대옥 제외)"],
+    ["2026-03-27","지출","사업","공통",544740,"사무실 월세·관리비(박은숙+한일미디어)"],
+    ["2026-03-10","지출","사업","공통",352680,"4대보험"],
+    ["2026-03-25","지출","사업","공통",257000,"엔터 접대(야상해·우곳간·을밀대)"],
+    ["2026-03-13","지출","사업","공통",1145525,"차 할부(현대캐피탈)"],
+    ["2026-03-19","지출","사업","공통",67750,"KT 통신"],
+    ["2026-03-29","지출","사업","공통",26000,"주유"],
+    // ── 개인 ──
+    ["2026-03-21","지출","개인","식비",1338600,"나 외식·술(최인구 통술 110만·부대옥 포함)"],
+    ["2026-03-05","지출","개인","배민",149790,"배민(주문+배민클럽)"],
+    ["2026-03-12","지출","개인","쿠팡이츠",9600,"쿠팡이츠"],
+    ["2026-03-13","지출","개인","상환",564792,"개인회생 변제금"],
+    ["2026-03-03","지출","개인","헬스",396000,"헬스장(스포벡)"],
+    ["2026-03-01","지출","개인","여친",273000,"데이트(모던샤브·서룡·왕손조개)"],
+    ["2026-03-04","지출","사업","틱톡",100000,"박성훈(틱톡 비용)"],
+    ["2026-03-27","지출","개인","생활",72000,"인터넷상거래(용처 불명, 개인처리)"],
+    ["2026-03-10","지출","개인","벌금",140000,"과태료(경찰청 2건)"],
+  ];
+  const SEED_APR=[
+    // ── 수입 (부가세 제외, 음저협·해외는 영세율/비과세) ──
+    ["2026-04-15","수입","사업","레이벡스",5000000,"레이벡스 월급(용역료, 부가세 제외)"],
+    ["2026-04-29","수입","사업","음원",160576,"기타 음원정산((주)레이벡스, 부가세 제외)"],
+    ["2026-04-06","수입","사업","틱톡",8168260,"PIPO 틱톡(영세율)"],
+    ["2026-04-30","수입","사업","음원IP",2401300,"음원IP(지니뮤직 정산, 부가세 제외)"],
+    ["2026-04-23","수입","사업","음저협",727010,"음저협 저작권료"],
+    ["2026-04-30","수입","사업","화장품",159151,"화장품 매출(스마트스토어, 부가세 제외)"],
+    // ── 음원 ──
+    ["2026-04-06","지출","사업","음원",1159638,"메타 광고(마스타·비자 사업분)"],
+    ["2026-04-06","지출","사업","음원",880000,"박광현 음원제작"],
+    ["2026-04-06","지출","사업","음원",220000,"821사운드"],
+    ["2026-04-01","지출","사업","음원",187000,"99메이저 음원제작"],
+    ["2026-04-07","지출","사업","음원",100000,"김소희 음원제작"],
+    ["2026-04-18","지출","개인","구독",22770,"음원사이트 구독(벅스)"],
+    // ── 틱톡 ──
+    ["2026-04-20","지출","사업","틱톡",460000,"문성혜(틱톡 에이전시)"],
+    ["2026-04-23","지출","사업","틱톡",121000,"오수빈(틱톡 에이전시)"],
+    ["2026-04-07","지출","사업","틱톡",123000,"틱톡(족발·별치킨)"],
+    // ── 화장품 ──
+    ["2026-04-09","지출","사업","화장품",118800,"언더어스 물류"],
+    // ── 공통 ──
+    ["2026-04-17","지출","사업","공통",1320000,"기장료+법인세 신고 수수료(인덕회계)"],
+    ["2026-04-03","지출","사업","공통",1145525,"차 할부(현대캐피탈)"],
+    ["2026-04-27","지출","사업","공통",509310,"사무실 월세·관리비(플러스주택·박은숙·한일미디어)"],
+    ["2026-04-10","지출","사업","공통",352680,"4대보험"],
+    ["2026-04-07","지출","사업","공통",180410,"세금(국세)"],
+    ["2026-04-27","지출","사업","공통",101600,"엔터 접대(야키토리)"],
+    ["2026-04-19","지출","사업","공통",67720,"KT 통신"],
+    ["2026-04-23","지출","사업","공통",50000,"주유(마포주유소)"],
+    // ── 개인 ──
+    ["2026-04-16","지출","개인","여행",3223900,"4월 여행 항공(진에어)"],
+    ["2026-04-14","지출","개인","여행",756987,"베트남(비자 해외결제)"],
+    ["2026-04-25","지출","개인","식비",455400,"친구 술값 순부담(긁은 281만−정산 236만)"],
+    ["2026-04-07","지출","개인","배민",13990,"배민클럽 멤버십"],
+    ["2026-04-12","지출","개인","쿠팡이츠",114300,"쿠팡이츠"],
+    ["2026-04-16","지출","사업","음원",176000,"뮤즈플랫폼(이니시스, 음원제작)"],
+    ["2026-04-06","지출","개인","생활",95000,"이니시스 결제(용처 불명, 개인처리)"],
+    ["2026-04-22","지출","개인","식비",238000,"나 개인(장수갈매기)"],
+    ["2026-04-05","지출","개인","여친",206000,"데이트(프로간장게장·장터삼겹살)"],
+    ["2026-04-16","지출","개인","보험",126940,"보험(메리츠·KB손)"],
+    ["2026-04-01","지출","개인","미용",88000,"머리(에이바이봄)"],
+    ["2026-04-01","지출","개인","구독",7890,"쿠팡와우 멤버십"],
+    ["2026-04-10","지출","개인","상환",564792,"개인회생 변제금"],
+  ];
+  const SEED_MAY=[
+    // ── 수입 (부가세 제외, 영세율/비과세 그대로) ──
+    ["2026-05-15","수입","사업","레이벡스",5000000,"레이벡스 월급(용역료, 부가세 제외)"],
+    ["2026-05-29","수입","사업","음원",464037,"기타 음원정산((주)레이벡스, 부가세 제외)"],
+    ["2026-05-07","수입","사업","틱톡",3031665,"PIPO 틱톡(영세율)"],
+    ["2026-05-26","수입","사업","엔터",1515207,"엔터 수익(PAYONEER 해외정산)"],
+    ["2026-05-29","수입","사업","음원IP",1517118,"음원IP(지니+CJ, 최석환 몫 256,903 차감 후)"],
+    ["2026-05-22","수입","사업","음저협",706081,"음저협 저작권료"],
+    ["2026-05-30","수입","사업","화장품",373304,"화장품 매출(스마트스토어, 부가세 제외)"],
+    // ── 음원 ──
+    ["2026-05-07","지출","사업","음원",344207,"메타 광고(마스타해외, 원장검산)"],
+    ["2026-05-01","지출","개인","여행",395958,"오키나와 가족여행(비자 해외 5/1 2건)"],
+    ["2026-05-06","지출","사업","음원",186000,"엔터 접대(호우양꼬치 5/6·골목대장 5/7)"],
+    ["2026-05-13","지출","개인","구독",34760,"음원사이트 구독(벅스)"],
+    // ── 화장품 ──
+    ["2026-05-13","지출","사업","화장품",102300,"언더어스 물류"],
+    // ── 공통 ──
+    ["2026-05-11","지출","사업","공통",1146153,"차 할부(현대캐피탈, 6/1 종료)"],
+    ["2026-05-25","지출","사업","공통",484000,"부동산 중개수수료(김민정/뉴신영지웰)"],
+    ["2026-05-27","지출","사업","공통",310410,"사무실 월세·관리비"],
+    ["2026-05-11","지출","사업","공통",261500,"4대보험"],
+    ["2026-05-26","지출","사업","공통",220000,"기장료(인덕회계)"],
+    ["2026-05-19","지출","사업","공통",69710,"KT 통신"],
+    ["2026-05-26","지출","사업","공통",83000,"접대(다가생구이)"],
+    // ── 개인 ──
+    ["2026-05-20","지출","개인","식비",211200,"친구 술값 순부담(디스트릭트·모소리·갓포우오·포차 102.3만−정산 81.2만)"],
+    ["2026-05-17","지출","개인","여친",242000,"데이트(향나무집 5/17·오륙도19호 5/23)"],
+    ["2026-05-15","지출","개인","배민",48190,"배민(주문+배민클럽)"],
+    ["2026-05-08","지출","개인","쿠팡이츠",87300,"쿠팡이츠"],
+    ["2026-05-24","지출","개인","쇼핑",708170,"쿠팡 쇼핑(5/24 3건)"],
+    ["2026-05-11","지출","개인","상환",564792,"개인회생 변제금"],
+    ["2026-05-29","지출","개인","의류",155000,"옷(이니시스)"],
+    ["2026-05-21","지출","사업","화장품",80000,"화장품 비용(이니시스)"],
+    ["2026-05-13","지출","사업","음원",80520,"VPN 연간결제(KCP, 엔터)"],
+    ["2026-05-03","지출","개인","교통",238400,"KTX(한국철도)"],
+    ["2026-05-01","지출","개인","구독",7890,"쿠팡와우 멤버십"],
+  ];
+  const SEED_JUN=[
+    // ※ 6월은 1~15일 절반 데이터 (부분 마감)
+    // ── 수입 (부가세 제외) ──
+    ["2026-06-15","수입","사업","레이벡스",5000000,"레이벡스 월급(용역료, 부가세 제외)"],
+    ["2026-06-08","수입","사업","틱톡",4949929,"PIPO 틱톡(영세율)"],
+    ["2026-06-05","수입","사업","엔터",1240557,"엔터 해외정산(더블유엠+TRN, 틱톡발)"],
+    ["2026-06-05","수입","사업","엔터",410000,"엔터 광고수익(모스트콘텐츠 66만−페이백 25만)"],
+    ["2026-06-11","수입","사업","화장품",74509,"화장품 매출(스마트스토어, 부가세 제외)"],
+    // ── 음원(엔터사업부 지출) ──
+    ["2026-06-05","지출","사업","음원",272229,"장유진(엔터 소속 아티스트 정산)"],
+    ["2026-06-05","지출","사업","음원",154621,"메타 광고(마스타)"],
+    ["2026-06-14","지출","개인","구독",7590,"음원사이트 구독(드림어스 FLO)"],
+    // ── 틱톡 ──
+    ["2026-06-01","지출","사업","틱톡",360000,"문성혜(틱톡 에이전시)"],
+    ["2026-06-04","지출","사업","틱톡",10965,"ByteDance(틱톡)"],
+    // ── 화장품 ──
+    ["2026-06-15","지출","사업","화장품",112200,"언더어스 물류"],
+    // ── 공통 ──
+    ["2026-06-15","지출","사업","공통",1100000,"법인세·기장료(인덕회계)"],
+    ["2026-06-08","지출","사업","공통",1140970,"차 할부(현대캐피탈, 마지막 납부 ✅)"],
+    ["2026-06-10","지출","사업","공통",339500,"4대보험"],
+    ["2026-06-11","지출","사업","공통",18700,"네이버 비즈(NBP)"],
+    ["2026-06-11","지출","사업","공통",5000,"마포 오피스텔 관리비(일부, 월 20만)"],
+    // ── 개인 ──
+    ["2026-06-12","지출","개인","식비",582900,"친구 술값 순부담(알로하·식당·임효일 − 정산 39만, 엔터회식 제외)"],
+    ["2026-06-12","지출","사업","공통",356000,"엔터 회식(효자막창 252,000·남산요이 104,000)"],
+    ["2026-06-09","지출","개인","내구재",361790,"⭐ 제습기 (쿠팡, 6/9 02:51)"],
+    ["2026-06-01","지출","개인","쿠팡이츠",78900,"쿠팡이츠 배달 5건(6/1·3·5·6·9)"],
+    ["2026-06-09","지출","개인","쇼핑",205840,"쿠팡 생활쇼핑(제습기·배달 제외)"],
+    ["2026-06-11","지출","개인","상환",564792,"개인회생 변제금"],
+    ["2026-06-15","지출","개인","의류",346850,"옷(무신사)"],
+    ["2026-06-02","지출","개인","의류",87000,"⭐ 옷 (네이버페이, 6/2 19:48)"],
+    ["2026-06-02","지출","개인","쇼핑",137790,"네이버페이 쇼핑(옷 제외)"],
+    ["2026-06-07","지출","개인","쇼핑",130740,"올리브영(개인 구매)"],
+    ["2026-06-03","지출","개인","미용",99000,"머리(에이바이봄)"],
+    ["2026-06-15","지출","개인","의류",89900,"옷(KCP 결제, 6/15)"],
+    ["2026-06-01","지출","개인","보험",42920,"보험(메리츠)"],
+    ["2026-06-07","지출","개인","배민",13990,"배민클럽+유튜브"],
+    ["2026-06-13","지출","개인","문화",12000,"동행복권·PC방"],
+    ["2026-06-14","지출","개인","구독",14090,"드림어스·네이버페이 구독"],
+  ];
+  function seedIfEmpty(){
+    if(tx.length===0){
+      tx=SEED_JAN.concat(SEED_FEB).concat(SEED_MAR).concat(SEED_APR).concat(SEED_MAY).concat(SEED_JUN).map(r=>({id:uid(),date:r[0],kind:r[1],scope:r[2],area:r[3],amount:r[4],memo:r[5]}));
+      saveTx();
+    }
+    // 고정비·이민우 본인 입출금은 개인계좌까지 모은 뒤 마지막에 세팅 (지금은 비워둠)
+  }
+  async function saveTx(){ if(storage){try{await storage.set(KEY_TX,JSON.stringify(tx),false);}catch(e){}} }
+  async function saveFixed(){ if(storage){try{await storage.set(KEY_FIX,JSON.stringify(fixed),false);}catch(e){}} }
+
+  const curYM=()=>cursor.toISOString().slice(0,7);
+  let yearMode=false;
+  const curYear=()=>cursor.getFullYear();
+  const monthTx=()=>yearMode
+    ? tx.filter(t=>new Date(t.date).getFullYear()===curYear())
+    : tx.filter(t=>ym(t.date)===curYM());
+
+  function fillAreaSelect(sel,scope){
+    sel.innerHTML="";
+    AREA[scope].forEach(([v,l])=>{const o=document.createElement("option");o.value=v;o.textContent=l;sel.appendChild(o);});
+  }
+
+  function compute(){
+    const m=monthTx();
+    const sum=(arr)=>arr.reduce((s,t)=>s+t.amount,0);
+    const bizIncome=sum(m.filter(t=>t.kind==="수입"&&t.scope==="사업"));
+    const bizExpense=sum(m.filter(t=>t.kind==="지출"&&t.scope==="사업"));   // 제작비 포함
+    const musicIncome=sum(m.filter(t=>t.kind==="수입"&&t.scope==="사업"&&["음원","음원IP","엔터","음저협"].includes(t.area)));
+    const musicExpense=sum(m.filter(t=>t.kind==="지출"&&t.scope==="사업"&&t.area==="음원"));
+    const musicPL=musicIncome-musicExpense;
+    const personal=sum(m.filter(t=>t.kind==="지출"&&t.scope==="개인"));
+    const passIn=sum(m.filter(t=>t.kind==="수입"&&t.scope==="통과성"));
+    const passOut=sum(m.filter(t=>t.kind==="지출"&&t.scope==="통과성"));
+    const operating=bizIncome-bizExpense;                                    // 사업 영업이익(제작비 포함)
+    const finalCF=operating-personal;                                        // 영업수입−영업비용−개인지출 (핵심)
+    const cashNet=bizIncome-bizExpense-personal+passIn-passOut;               // 실제 통장 증감(통과성 포함)
+    return {bizIncome,bizExpense,musicExpense,musicPL,personal,passIn,passOut,operating,finalCF,cashNet};
+  }
+
+  function render(){
+    const c=compute();
+    document.getElementById("monthLabel").textContent=yearMode?(curYear()+" 전체"):curYM().replace("-",". ");
+    const yb=document.getElementById("yearBtn"); if(yb) yb.classList.toggle("on",yearMode);
+
+    const hero=document.getElementById("hero");
+    hero.classList.toggle("loss",c.finalCF<0);
+    document.getElementById("netVal").textContent=won(c.finalCF);
+    document.getElementById("incVal").textContent=won(c.bizIncome);
+    document.getElementById("expVal").textContent=won(c.bizExpense);
+    document.getElementById("fixRatio").textContent=won(c.personal);
+
+    document.getElementById("cardFixed").style.color=c.musicPL<0?"var(--neg)":"var(--pos)";
+    document.getElementById("cardFixed").textContent=won(c.musicPL);
+    document.getElementById("cardBizNet").style.color="var(--neg)";
+    document.getElementById("cardBizNet").textContent=won(c.personal);
+    document.getElementById("cardPersonal").style.color=c.cashNet<0?"var(--neg)":"var(--pos)";
+    document.getElementById("cardPersonal").textContent=won(c.cashNet);
+
+    renderPnl(); renderSplit(c); renderCatBars(); renderInsights(c); renderTrail();
+    renderTrend(); renderRadar(); renderUnconf(); renderVat();
+    renderFixedList(); renderTxList();
+  }
+
+  function renderPnl(){
+    const m=monthTx();
+    const body=document.getElementById("pnlBody"); body.innerHTML="";
+    let tI=0,tE=0;
+    const sumIn=a=>m.filter(t=>t.kind==="수입"&&t.scope==="사업"&&t.area===a).reduce((s,t)=>s+t.amount,0);
+    const sumEx=a=>m.filter(t=>t.kind==="지출"&&t.scope==="사업"&&t.area===a).reduce((s,t)=>s+t.amount,0);
+    const row=(label,color,inc,exp,opts={})=>{
+      const pl=inc-exp;
+      const sub=opts.sub?'style="padding-left:26px"':'';
+      const dot=opts.sub?'':`<span class="dot" style="background:${color}"></span>`;
+      const note=opts.note?`<div style="font-size:11px;color:var(--ink-faint);margin-top:2px">${opts.note}</div>`:'';
+      const plCell=opts.sub?`<td class="num" style="color:var(--ink-faint)">${inc?won(inc):''}</td>`
+        :`<td class="num" style="color:${pl<0?'var(--neg)':'var(--pos)'};font-weight:700">${won(pl)}</td>`;
+      body.insertAdjacentHTML("beforeend",
+        `<tr><td ${sub}><span class="name">${dot}${label}</span>${note}</td>
+         <td class="num">${opts.sub?(inc?won(inc):'—'):(inc?won(inc):'—')}</td>
+         <td class="num">${exp?won(exp):'—'}</td>${plCell}</tr>`);
+    };
+    // 레이벡스
+    if(sumIn("레이벡스")||sumEx("레이벡스")){const i=sumIn("레이벡스"),e=sumEx("레이벡스");tI+=i;tE+=e;row("레이벡스 월급","#7C5CD6",i,e);}
+    // 엔터사업부 (부모) = 엔터+음원IP+음저협+음원 수입 / 음원 지출
+    const entInc=sumIn("엔터")+sumIn("음원IP")+sumIn("음저협")+sumIn("음원");
+    const entExp=sumEx("음원");
+    if(entInc||entExp){
+      tI+=entInc; tE+=entExp;
+      row("엔터사업부","var(--c-music)",entInc,entExp,{note:"선투자형 · 회수는 발매 3개월 뒤부터"});
+      row("↳ 엔터 (틱톡 해외정산)","",sumIn("엔터"),0,{sub:1});
+      row("↳ 음원IP (스트리밍 정산)","",sumIn("음원IP"),0,{sub:1});
+      row("↳ 음저협 저작권료","",sumIn("음저협"),0,{sub:1});
+      if(sumIn("음원")) row("↳ 기타 음원 정산","",sumIn("음원"),0,{sub:1});
+    }
+    // 틱톡
+    if(sumIn("틱톡")||sumEx("틱톡")){const i=sumIn("틱톡"),e=sumEx("틱톡");tI+=i;tE+=e;
+      row("틱톡 에이전시","var(--c-tiktok)",i,e);
+      subItems("틱톡");}
+    // 화장품
+    if(sumIn("화장품")||sumEx("화장품")){const i=sumIn("화장품"),e=sumEx("화장품");tI+=i;tE+=e;
+      row("화장품","var(--c-cosme)",i,e);
+      subItems("화장품");}
+    // 공통
+    const commonExp=sumEx("공통");
+    if(commonExp>0){tE+=commonExp;
+      row("사업 공통","var(--c-common)",0,commonExp);
+      subItems("공통");}
+    function subItems(area){
+      const items=m.filter(t=>t.kind==="지출"&&t.scope==="사업"&&t.area===area)
+        .sort((a,b)=>b.amount-a.amount);
+      items.forEach(t=>{
+        body.insertAdjacentHTML("beforeend",
+          `<tr><td style="padding-left:26px"><span class="name" style="font-size:12.5px;color:var(--ink-soft)">↳ ${t.memo}</span></td>
+           <td class="num">—</td><td class="num" style="font-size:12.5px;color:var(--ink-soft)">${won(t.amount)}</td>
+           <td class="num"></td></tr>`);
+      });
+    }
+    const foot=document.getElementById("pnlFoot");
+    foot.innerHTML=`<tr><td>영업이익 합계</td><td class="num">${won(tI)}</td><td class="num">${won(tE)}</td>
+      <td class="num" style="color:${tI-tE<0?'var(--neg)':'var(--pos)'}">${won(tI-tE)}</td></tr>`;
+  }
+
+  function renderSplit(c){
+    const bar=document.getElementById("splitBar"), key=document.getElementById("splitKey");
+    const segs=[["음원 제작·운영비",c.musicExpense,"var(--c-music)"],
+                ["그외 사업비용",c.bizExpense-c.musicExpense,"var(--accent)"],
+                ["개인 지출",c.personal,"#C77D11"]];
+    const tot=segs.reduce((s,x)=>s+x[1],0)||1;
+    bar.innerHTML=""; key.innerHTML="";
+    segs.forEach(([l,v,col])=>{
+      if(v<=0)return;
+      const s=document.createElement("span"); s.style.width=(v/tot*100)+"%"; s.style.background=col; s.title=l; bar.appendChild(s);
+      key.insertAdjacentHTML("beforeend",`<span><span class="dot" style="background:${col}"></span> ${l} <b>${man(v)}</b></span>`);
+    });
+    if(tot===1){bar.innerHTML='<span style="width:100%;background:var(--line)"></span>'; key.innerHTML='<span style="color:var(--ink-faint)">아직 지출 데이터 없음</span>';}
+  }
+
+  function renderCatBars(){
+    const m=monthTx();
+    const build=(scope,boxId)=>{
+      const map={};
+      m.filter(t=>t.kind==="지출"&&t.scope===scope).forEach(t=>{
+        const l=(AREA[scope].find(x=>x[0]===t.area)||[,t.area])[1];
+        map[l]=(map[l]||0)+t.amount;
+      });
+      const rows=Object.entries(map).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+      const max=rows.length?rows[0][1]:1;
+      const box=document.getElementById(boxId); box.innerHTML="";
+      if(!rows.length){box.innerHTML='<div class="empty">데이터 없음</div>';return;}
+      const col=scope==="사업"?"var(--accent)":"#C77D11";
+      rows.forEach(([k,v])=>{
+        box.insertAdjacentHTML("beforeend",
+          `<div class="bar-row"><div class="lbl">${k}</div>
+           <div class="track"><div class="fill" style="width:${Math.max(4,v/max*100)}%;background:${col}"></div></div>
+           <div class="amt num">${won(v)}</div></div>`);
+      });
+    };
+    build("사업","catBarsBiz");
+    build("개인","catBarsPer");
+  }
+
+  function renderInsights(c){
+    const box=document.getElementById("insights"); box.innerHTML="";
+    const add=(cls,html)=>box.insertAdjacentHTML("beforeend",`<div class="ins ${cls}">${html}</div>`);
+    if(c.bizIncome===0&&c.personal===0){add("","숫자를 넣으면 요약이 자동으로 떠요.");return;}
+    if(c.operating>=0) add("good",`사업 영업이익 <b>${won(c.operating)}</b> (제작비 포함).`);
+    else add("","사업 영업이익 <b>"+won(c.operating)+"</b>. 음원 제작비가 큰 달은 적자로 잡히는 게 정상이에요 — 회수는 발매 3개월 뒤부터 시작돼요.");
+    if(c.musicExpense>0){
+      add("",`이번 달 음원에 <b>${won(c.musicExpense)}</b> 들어갔고 정산수입은 <b>${won(c.musicExpense+c.musicPL)}</b>. 곡별 회수율은 정산이 쌓여야 보여요.`);
+    }
+    if(c.personal>0){
+      const m=monthTx(); const pm={};
+      m.filter(t=>t.kind==="지출"&&t.scope==="개인").forEach(t=>{const l=(AREA["개인"].find(x=>x[0]===t.area)||[,t.area])[1]; pm[l]=(pm[l]||0)+t.amount;});
+      const top=Object.entries(pm).sort((a,b)=>b[1]-a[1])[0];
+      add("",`법인통장에서 개인용도로 <b>${won(c.personal)}</b>.${top?` 1위 <b>${top[0]} ${won(top[1])}</b>.`:""}`);
+    }
+    if(c.cashNet<0) add("",`투자금·차입금 제외 시 실제 통장은 <b>${won(-c.cashNet)} 감소</b>.`);
+  }
+
+  function renderTrail(){
+    const body=document.getElementById("trailBody"), foot=document.getElementById("trailFoot");
+    if(!body)return;
+    body.innerHTML=""; foot.innerHTML="";
+    let bal=0, totIn=0, totOut=0;
+    const fmtD=d=>d.slice(5).replace("-",".");
+    TRAIL_TL.forEach(([date,label,type,amt])=>{
+      if(type==="in"){
+        bal+=amt; totIn+=amt;
+        body.insertAdjacentHTML("beforeend",
+          `<tr style="background:var(--surface-2)"><td style="font-weight:700">📤 ${fmtD(date)} · ${label}</td>
+           <td class="num" style="font-weight:700;color:var(--accent)">+${won(amt)}</td>
+           <td class="num" style="color:var(--ink-faint)">잔액 ${won(bal)}</td></tr>`);
+      }else{
+        bal-=amt; totOut+=amt;
+        const isBTC=label.indexOf("BTC")>=0;
+        body.insertAdjacentHTML("beforeend",
+          `<tr><td style="padding-left:16px">↳ ${fmtD(date)} ${label}</td>
+           <td class="num" style="color:${isBTC?'#5B45B8':'var(--neg)'}">−${won(amt)}</td>
+           <td class="num" style="color:var(--ink-faint)">잔액 ${won(bal)}</td></tr>`);
+      }
+    });
+    foot.innerHTML=`<tr><td>누적 인출 ${won(totIn)} · 추적된 사용 ${won(totOut)}</td>
+      <td class="num" style="font-weight:700">미추적 잔액 ${won(totIn-totOut)}</td>
+      <td class="num" style="color:var(--ink-faint)">생활비/통장잔액</td></tr>
+      <tr><td colspan="3" style="padding-top:14px;border-top:2px solid var(--line);font-size:12px;color:var(--ink-soft);line-height:1.6">
+      🪙 <b>빗썸(BTC) 누적</b> — 넣은 돈 ${won(BTC_NET.inAmt)} · 뺀 돈 ${won(BTC_NET.outAmt)} · <b style="color:var(--warn)">아직 묶인 돈 ${won(BTC_NET.inAmt-BTC_NET.outAmt)}</b> (평가액 별도, 투자로 보유 중)</td></tr>`;
+  }
+
+  const FIXED_RADAR=[
+    ["🏢 새 사무실 월세 (박영옥, 선불)",1000000,"보증금 1,000만 별도(자산)"],
+    ["⚖️ 개인회생 변제금",564792,"매달 (KB→토스)"],
+    ["4대보험",339500,"법인 (국민연금+건강)"],
+    ["기장료 (인덕회계)",220000,"월 기장 (결산·법인세는 별도)"],
+    ["🏠 마포 오피스텔 관리비",200000,"직원 숙소/창고"],
+    ["보험 3종 (메리츠·KB손·카카오손보)",84020,"42,920+31,000+10,100"],
+    ["KT 통신 (폰+유선)",68000,"109"],
+    ["🎬 음원사이트 구독 (멜론·지니·벅스·FLO)",45000,"사업 (모니터링용)"],
+    ["🛵 배민클럽+유튜브 프리미엄 결합",13990,"매달 7일"],
+    ["🛒 쿠팡와우",7890,"개인"],
+  ];
+  const FIXED_ENDED=[];
+  const VAT_MONTHLY={"2026-01":586746,"2026-02":586721,"2026-03":555045,"2026-04":772103,"2026-05":761136};
+
+  function renderTrend(){
+    const box=document.getElementById("trendBox"); if(!box)return;
+    const months=["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06"];
+    const data=months.map(mk=>{
+      const m=tx.filter(t=>ym(t.date)===mk);
+      const i=m.filter(t=>t.kind==="수입"&&t.scope==="사업").reduce((s,t)=>s+t.amount,0);
+      const e=m.filter(t=>t.kind==="지출"&&t.scope==="사업").reduce((s,t)=>s+t.amount,0);
+      const p=m.filter(t=>t.kind==="지출"&&t.scope==="개인").reduce((s,t)=>s+t.amount,0);
+      return {mk,net:i-e-p};
+    });
+    const max=Math.max(...data.map(d=>Math.abs(d.net)),1);
+    const W=760,H=260,mid=120,maxh=78,bw=64,gap=36;
+    let svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px"><line x1="10" y1="${mid}" x2="${W-10}" y2="${mid}" stroke="var(--line)" stroke-width="1.5"/>`;
+    data.forEach((d,i)=>{
+      const x=24+i*(bw+gap), h=Math.max(5,Math.abs(d.net)/max*maxh);
+      const pos=d.net>=0, y=pos?mid-h:mid;
+      const col=pos?"#2E8B6F":"#C0504D";
+      svg+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="6" fill="${col}" opacity="${d.mk==='2026-06'?0.5:0.9}"/>`;
+      const ly=pos?y-10:y+h+18;
+      svg+=`<text x="${x+bw/2}" y="${ly}" text-anchor="middle" font-size="12" font-weight="800" fill="${col}">${(d.net/10000).toFixed(0)}만</text>`;
+      const lbl=d.mk==='2026-06'?'6월*':`${parseInt(d.mk.slice(5))}월`;
+      svg+=`<text x="${x+bw/2}" y="${H-6}" text-anchor="middle" font-size="11.5" fill="var(--ink-soft)">${lbl}</text>`;
+    });
+    svg+=`</svg>`;
+    const tot=data.reduce((s,d)=>s+d.net,0);
+    box.innerHTML=svg+`<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">2026 누적 순현금흐름: <b style="color:${tot<0?'#C0504D':'#2E8B6F'}">${won(tot)}</b> · <b>6월*</b>은 1~15일 절반 데이터 — 1~3월 적자 → 4월~ 흑자 전환</div>`;
+  }
+
+  function renderRadar(){
+    const b=document.getElementById("radarBody"); if(!b)return;
+    b.innerHTML="";
+    let sum=0;
+    FIXED_RADAR.forEach(([n,a,note])=>{
+      sum+=a;
+      b.insertAdjacentHTML("beforeend",
+        `<tr><td>${n}</td><td class="num">${won(a)}</td><td style="font-size:12px;color:var(--ink-soft)">${note}</td></tr>`);
+    });
+    b.insertAdjacentHTML("beforeend",
+      `<tr style="background:var(--surface-2)"><td style="font-weight:800">💰 매달 고정비 합계</td><td class="num" style="font-weight:800;color:var(--accent)">${won(sum)}</td><td style="font-size:12px;color:var(--ink-soft)">월 약 ${(sum/10000).toFixed(0)}만 — 매출 무관 고정 유출</td></tr>`);
+    FIXED_ENDED.forEach(([n,a,note])=>{
+      b.insertAdjacentHTML("beforeend",
+        `<tr style="opacity:0.55"><td style="text-decoration:line-through">${n}</td><td class="num" style="color:var(--pos)">${a}</td><td style="font-size:12px;color:var(--pos)">${note}</td></tr>`);
+    });
+  }
+
+  function renderUnconf(){
+    const b=document.getElementById("unconfBody"), f=document.getElementById("unconfFoot"); if(!b)return;
+    b.innerHTML=""; f.innerHTML="";
+    const rows=tx.filter(t=>t.area==="미확정").sort((a,c)=>a.date<c.date?-1:1);
+    let tot=0;
+    rows.forEach(t=>{
+      tot+=t.amount;
+      b.insertAdjacentHTML("beforeend",
+        `<tr><td class="num">${t.date.slice(5).replace("-",".")}</td><td class="num">${won(t.amount)}</td><td style="font-size:12.5px">${t.memo}</td></tr>`);
+    });
+    if(!rows.length) b.innerHTML='<tr><td colspan="3" class="empty" style="text-align:center">미확정 없음 🎉</td></tr>';
+    else f.innerHTML=`<tr><td>합계</td><td class="num">${won(tot)}</td><td style="font-size:12px;color:var(--ink-soft)">+ 법인인출 미추적 잔액은 자금추적 섹션 참고</td></tr>`;
+  }
+
+  function renderVat(){
+    const b=document.getElementById("vatBody"); if(!b)return;
+    b.innerHTML="";
+    let q1=0,q2=0;
+    Object.entries(VAT_MONTHLY).forEach(([mk,v])=>{
+      const mo=parseInt(mk.slice(5));
+      if(mo<=3)q1+=v; else q2+=v;
+      b.insertAdjacentHTML("beforeend",`<tr><td>${mo}월</td><td class="num">${won(v)}</td><td></td></tr>`);
+    });
+    b.insertAdjacentHTML("beforeend",`<tr style="background:var(--surface-2)"><td style="font-weight:700">1분기(1~3월) 누적</td><td class="num" style="font-weight:700">${won(q1)}</td><td style="font-size:12px;color:var(--ink-soft)">4월 예정신고분</td></tr>`);
+    b.insertAdjacentHTML("beforeend",`<tr style="background:var(--surface-2)"><td style="font-weight:700">2분기(4~5월, 진행중)</td><td class="num" style="font-weight:700">${won(q2)}</td><td style="font-size:12px;color:var(--ink-soft)">6월분 추가 예정</td></tr>`);
+  }
+
+  function renderFixedList(){
+    const box=document.getElementById("fixedList"); box.innerHTML="";
+    if(!fixed.length){box.innerHTML='<div class="empty">고정비가 없어요. 위에서 추가하세요.</div>';return;}
+    fixed.forEach(f=>{
+      const areaL=(AREA[f.scope].find(x=>x[0]===f.area)||[,f.area])[1];
+      const row=document.createElement("div"); row.className="fixrow";
+      row.innerHTML=`<div class="desc" style="font-weight:600">${f.name}</div>
+        <div class="tag" style="background:${f.scope==='사업'?'#E3F0EE':'#FBF0DD'};color:${f.scope==='사업'?'var(--accent)':'var(--warn)'}">${f.scope} · ${areaL}</div>
+        <input class="fa field-like" type="number" inputmode="numeric" value="${+f.amount||0}" data-id="${f.id}" style="font:inherit;font-size:14px;text-align:right;font-weight:700;padding:8px 10px;border:1px solid var(--line);border-radius:9px">
+        <button class="del" data-del="${f.id}" title="삭제">✕</button>`;
+      box.appendChild(row);
+    });
+    box.querySelectorAll("input.fa").forEach(inp=>inp.addEventListener("change",e=>{
+      const f=fixed.find(x=>x.id===e.target.dataset.id); if(f){f.amount=+e.target.value||0; saveFixed(); render();}
+    }));
+    box.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",e=>{
+      fixed=fixed.filter(x=>x.id!==e.target.dataset.del); saveFixed(); render();
+    }));
+  }
+
+  function renderTxList(){
+    const box=document.getElementById("txList"); box.innerHTML="";
+    const m=monthTx().slice().sort((a,b)=>b.date.localeCompare(a.date));
+    if(!m.length){box.innerHTML='<div class="empty">이번 달 거래가 없어요.</div>';return;}
+    m.forEach(t=>{
+      const areaL=(AREA[t.scope].find(x=>x[0]===t.area)||[,t.area])[1];
+      const isInc=t.kind==="수입";
+      box.insertAdjacentHTML("beforeend",
+        `<div class="li">
+          <span class="tag" style="background:${t.scope==='사업'?'#E3F0EE':'#FBF0DD'};color:${t.scope==='사업'?'var(--accent)':'var(--warn)'}">${t.scope}·${areaL}</span>
+          <span class="desc">${t.memo||areaL}</span>
+          <span class="meta num">${t.date.slice(5)}</span>
+          <span class="li-amt num" style="color:${isInc?'var(--pos)':'var(--neg)'}">${isInc?'+':'-'}${won(t.amount).replace('₩','₩')}</span>
+          <button class="del" data-del="${t.id}" title="삭제">✕</button>
+        </div>`);
+    });
+    box.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",e=>{
+      tx=tx.filter(x=>x.id!==e.target.dataset.del); saveTx(); render();
+    }));
+  }
+
+  // 이벤트
+  function bind(){
+    document.getElementById("prevM").onclick=()=>{yearMode=false;cursor.setMonth(cursor.getMonth()-1);render();};
+    document.getElementById("nextM").onclick=()=>{yearMode=false;cursor.setMonth(cursor.getMonth()+1);render();};
+    document.getElementById("yearBtn").onclick=()=>{yearMode=!yearMode;render();};
+
+    const txScope=document.getElementById("txScope"), txArea=document.getElementById("txArea");
+    fillAreaSelect(txArea,txScope.value);
+    txScope.onchange=()=>fillAreaSelect(txArea,txScope.value);
+    document.getElementById("txDate").value=todayISO();
+    document.getElementById("txAdd").onclick=()=>{
+      const amt=+document.getElementById("txAmt").value;
+      if(!amt||amt<=0){document.getElementById("txAmt").focus();return;}
+      tx.push({id:uid(),date:document.getElementById("txDate").value||todayISO(),
+        kind:document.getElementById("txKind").value,scope:txScope.value,
+        area:txArea.value,amount:amt,memo:document.getElementById("txMemo").value.trim()});
+      saveTx();
+      document.getElementById("txAmt").value=""; document.getElementById("txMemo").value="";
+      render();
+    };
+
+    const fxScope=document.getElementById("fxScope"), fxArea=document.getElementById("fxArea");
+    fillAreaSelect(fxArea,fxScope.value);
+    fxScope.onchange=()=>fillAreaSelect(fxArea,fxScope.value);
+    document.getElementById("fxAdd").onclick=()=>{
+      const name=document.getElementById("fxName").value.trim();
+      const amt=+document.getElementById("fxAmt").value||0;
+      if(!name){document.getElementById("fxName").focus();return;}
+      fixed.push({id:uid(),name,scope:fxScope.value,area:fxArea.value,amount:amt});
+      saveFixed();
+      document.getElementById("fxName").value=""; document.getElementById("fxAmt").value="";
+      render();
+    };
+
+    document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+      document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("on"));
+      document.querySelectorAll(".tabpane").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on"); document.getElementById("pane-"+b.dataset.tab).classList.add("on");
+    });
+  }
+
+  load().then(()=>{bind();render();});
+})();
+</script>
+
+<!-- 사이트 탭 내비게이션 (자동 주입) -->
+<div id="sitetabs">
+  <a href="index.html">🎵 음원 대시보드</a>
+  <a href="funds.html" class="on">💼 자금 현황</a>
+</div>
+<style>
+  #sitetabs{display:flex;gap:8px;padding:12px 18px;background:#12151b;align-items:center}
+  #sitetabs a{color:#9aa2ae;text-decoration:none;font-size:13.5px;font-weight:700;
+    padding:8px 16px;border-radius:999px;border:1px solid #2a2f3a}
+  #sitetabs a:hover{color:#fff}
+  #sitetabs a.on{color:#fff;background:#242a35;border-color:#3a4150}
+</style>
+<script>
+  // 탭 바를 문서 맨 위로 이동 + 제목/검색엔진 차단 설정
+  document.body.prepend(document.getElementById("sitetabs"));
+  document.title = "자금 현황";
+  var m = document.createElement("meta");
+  m.name = "robots"; m.content = "noindex, nofollow";
+  document.head.appendChild(m);
+</script>
