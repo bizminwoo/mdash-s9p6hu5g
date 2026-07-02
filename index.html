@@ -210,7 +210,7 @@ function render(){
   const cards = [
     ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) : "—", "회"],
     [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
-    ["최근 하루 좋아요"+dayLabel, prev ? "+"+nf.format(sumDLikes) : "—", ""],
+    ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
     ["누적 총 조회수", nf.format(sumViews), "회"],
   ];
   document.getElementById("cards").innerHTML = cards.map(c =>
