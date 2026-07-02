@@ -79,8 +79,8 @@
     </div>
     <div class="bigout" id="calcOut"></div>
     <div style="margin-top:18px" id="levelTable"></div>
-    <div class="note">기준 단가: 하루 1,000회 스트리밍 ≈ 월 25만원 → 스트리밍 1회 ≈ 8.33원. BEP 필요 상승분 = 하루 지출 ÷ (8.33원 × 지분).<br>
-    예) 하루 3만원·지분 100% → 하루 +3,600회 이상 <b>추가로</b> 나와야 본전. 이 표를 보고 감당 가능한 구간을 고르세요.</div>
+    <div class="note">모든 수치는 <b>"8.33원 기준 / 10원 기준"</b> 두 단가로 병기됩니다 — 8.33원(하루 1,000회 ≈ 월 25만원, 보수적) / 10원(후한 추정). BEP 필요 상승분 = 하루 지출 ÷ (단가 × 지분).<br>
+    예) 하루 3만원·지분 100% → +3,600회/일 (8.33원 기준) 또는 +3,000회/일 (10원 기준) 이상 <b>추가로</b> 나와야 본전.</div>
   </div>
 
   <div class="panel">
@@ -94,7 +94,9 @@ const DATA = {"songs":{"tUcWwAO5zU8":{"title":"차가을 - 한참 지나서","ur
 const EXPERIMENTS = [{"song":"THGi-LLhbxM","title":"교이 - 미안한 마음도","dailySpend":20000,"start":"2026-07-03","end":null,"memo":"1차 테스트 (하루 2만원)"}];
 
 const nf = new Intl.NumberFormat("ko-KR");
-const PER_STREAM = 250000 / (1000 * 30); // 스트리밍 1회당 원 (하루 1000회 ≈ 월 25만원)
+// 스트리밍 1회당 단가 — 두 시나리오 병기 (표기: 8.33원 기준 / 10원 기준)
+const PS_A = 250000 / (1000 * 30); // 8.33원 (하루 1000회 ≈ 월 25만원)
+const PS_B = 10;                   // 10원
 
 // 로컬(file://)에서 열면 대시보드 링크를 dashboard.html 로
 if (location.protocol === "file:") document.getElementById("tabDash").href = "dashboard.html";
@@ -131,23 +133,24 @@ const daily = {};
 function calc(){
   const spend = Number(document.getElementById("cSpend").value) || 0;
   const share = Number(document.getElementById("cShare").value) || 1;
-  const needDaily = spend / (PER_STREAM * share);
+  const needA = Math.ceil(spend / (PS_A * share)); // 8.33원 기준
+  const needB = Math.ceil(spend / (PS_B * share)); // 10원 기준
   document.getElementById("calcOut").innerHTML = [
     ["한 달 지출 (30일)", won(spend*30)],
-    ["BEP 필요 일일 추가 스트리밍", "+" + nf.format(Math.ceil(needDaily)) + " 회/일"],
-    ["BEP 필요 월간 추가 스트리밍", "+" + nf.format(Math.ceil(needDaily*30)) + " 회"],
+    ["BEP 필요 일일 추가 스트리밍 <span class='muted'>(8.33원 / 10원)</span>", `+${nf.format(needA)} / +${nf.format(needB)} <span class='muted' style='font-size:13px'>회/일</span>`],
+    ["BEP 필요 월간 추가 스트리밍 <span class='muted'>(8.33원 / 10원)</span>", `+${nf.format(needA*30)} / +${nf.format(needB*30)} <span class='muted' style='font-size:13px'>회</span>`],
   ].map(c => `<div class="card"><div class="label">${c[0]}</div><div class="value">${c[1]}</div></div>`).join("");
 
   // 금액대별 표 (1~10만원)
   let rows = "";
   for(let man=1; man<=10; man++){
     const s = man*10000;
-    const need = Math.ceil(s / (PER_STREAM * share));
+    const nA = Math.ceil(s / (PS_A * share)), nB = Math.ceil(s / (PS_B * share));
     const hl = s === spend ? " class='hl'" : "";
-    rows += `<tr${hl}><td>하루 ${man}만원</td><td>${won(s*30)}</td><td class="pos">+${nf.format(need)}회/일</td><td>+${nf.format(need*30)}회/월</td></tr>`;
+    rows += `<tr${hl}><td>하루 ${man}만원</td><td>${won(s*30)}</td><td class="pos">+${nf.format(nA)} / +${nf.format(nB)}</td><td>+${nf.format(nA*30)} / +${nf.format(nB*30)}</td></tr>`;
   }
   document.getElementById("levelTable").innerHTML =
-    `<table><thead><tr><th>지출 구간</th><th>월 지출</th><th>BEP 필요 상승분(일)</th><th>BEP 필요 상승분(월)</th></tr></thead><tbody>${rows}</tbody></table>`;
+    `<table><thead><tr><th>지출 구간</th><th>월 지출</th><th>BEP 필요 상승분(일) <span class="muted">8.33원 / 10원</span></th><th>BEP 필요 상승분(월) <span class="muted">8.33원 / 10원</span></th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 document.getElementById("cSpend").addEventListener("input", calc);
 document.getElementById("cShare").addEventListener("change", calc);
@@ -177,7 +180,8 @@ function renderExperiments(){
     // 캠페인 기간 일별
     const endCut = e.end || "9999-12-31";
     const campDates = dates.filter(x => x >= e.start && x <= endCut);
-    const needDaily = e.dailySpend / (PER_STREAM * share);
+    const needA = e.dailySpend / (PS_A * share); // 8.33원 기준 필요 상승분
+    const needB = e.dailySpend / (PS_B * share); // 10원 기준 필요 상승분
 
     let card = `<div class="exp"><h3>${song.title}`;
     let body = "";
@@ -191,30 +195,32 @@ function renderExperiments(){
         <div class="kv"><div class="k">하루 지출</div><div class="v">${won(e.dailySpend)}</div></div>
         <div class="kv"><div class="k">시작일</div><div class="v">${mdShort(e.start)}</div></div>
         <div class="kv"><div class="k">기준선 (시작 전 ${preDates.length}일 평균)</div><div class="v">${nf.format(Math.round(baseline))}회/일</div></div>
-        <div class="kv"><div class="k">BEP 필요 상승분</div><div class="v">+${nf.format(Math.ceil(needDaily))}회/일</div></div>
+        <div class="kv"><div class="k">BEP 필요 상승분 <span class="muted">(8.33원 / 10원)</span></div><div class="v">+${nf.format(Math.ceil(needA))} / +${nf.format(Math.ceil(needB))}회/일</div></div>
       </div>`;
     } else {
       const ups = campDates.map(x => d[x] - baseline);
-      const avgUp = ups.reduce((s,v)=>s+v,0) / ups.length;
-      const revenue = ups.reduce((s,v)=>s+v,0) * PER_STREAM * share;
+      const sumUp = ups.reduce((s,v)=>s+v,0);
+      const avgUp = sumUp / ups.length;
+      const revA = sumUp * PS_A * share, revB = sumUp * PS_B * share;
       const spent = e.dailySpend * campDates.length;
-      const profit = revenue - spent;
-      const roi = spent > 0 ? revenue/spent*100 : 0;
-      const ok = profit >= 0;
-      card += ok ? `<span class="badge ok">✅ BEP 달성 중 (ROI ${roi.toFixed(0)}%)</span></h3>`
-                 : `<span class="badge no">❌ BEP 미달 (ROI ${roi.toFixed(0)}%)</span></h3>`;
-      body = `<div class="muted">${mdShort(e.start)} 시작 · 측정 ${campDates.length}일 · 하루 ${won(e.dailySpend)}${e.memo ? " · " + e.memo : ""}</div>
+      const profitA = revA - spent, profitB = revB - spent;
+      const roiA = spent > 0 ? revA/spent*100 : 0, roiB = spent > 0 ? revB/spent*100 : 0;
+      const ok = profitA >= 0; // 뱃지는 보수적(8.33원) 기준
+      card += ok ? `<span class="badge ok">✅ BEP 달성 중 (ROI ${roiA.toFixed(0)}% / ${roiB.toFixed(0)}%)</span></h3>`
+           : profitB >= 0 ? `<span class="badge wait">⚠️ 10원 기준만 달성 (ROI ${roiA.toFixed(0)}% / ${roiB.toFixed(0)}%)</span></h3>`
+           : `<span class="badge no">❌ BEP 미달 (ROI ${roiA.toFixed(0)}% / ${roiB.toFixed(0)}%)</span></h3>`;
+      body = `<div class="muted">${mdShort(e.start)} 시작 · 측정 ${campDates.length}일 · 하루 ${won(e.dailySpend)}${e.memo ? " · " + e.memo : ""} · 병기 표기는 <b>8.33원 / 10원</b> 단가 기준</div>
       <div class="expgrid">
         <div class="kv"><div class="k">기준선 (시작 전 평균)</div><div class="v">${nf.format(Math.round(baseline))}회/일</div></div>
         <div class="kv"><div class="k">캠페인 평균 상승분</div><div class="v ${avgUp>=0?"pos":"neg"}">${avgUp>=0?"+":""}${nf.format(Math.round(avgUp))}회/일</div></div>
-        <div class="kv"><div class="k">BEP 필요 상승분</div><div class="v">+${nf.format(Math.ceil(needDaily))}회/일</div></div>
-        <div class="kv"><div class="k">달성률</div><div class="v ${avgUp>=needDaily?"pos":"neg"}">${needDaily>0 ? Math.round(avgUp/needDaily*100) : 0}%</div></div>
+        <div class="kv"><div class="k">BEP 필요 상승분</div><div class="v">+${nf.format(Math.ceil(needA))} / +${nf.format(Math.ceil(needB))}회/일</div></div>
+        <div class="kv"><div class="k">달성률</div><div class="v ${avgUp>=needB?"pos":"neg"}">${needA>0 ? Math.round(avgUp/needA*100) : 0}% / ${needB>0 ? Math.round(avgUp/needB*100) : 0}%</div></div>
         <div class="kv"><div class="k">누적 지출</div><div class="v">${won(spent)}</div></div>
-        <div class="kv"><div class="k">상승분 수익 환산${share!==1 ? ` (지분 ${share*100}%)` : ""}</div><div class="v money">${won(revenue)}</div></div>
-        <div class="kv"><div class="k">누적 손익</div><div class="v ${ok?"pos":"neg"}">${won(profit)}</div></div>
+        <div class="kv"><div class="k">상승분 수익 환산${share!==1 ? ` (지분 ${share*100}%)` : ""}</div><div class="v money">${won(revA)} / ${won(revB)}</div></div>
+        <div class="kv"><div class="k">누적 손익</div><div class="v"><span class="${profitA>=0?"pos":"neg"}">${won(profitA)}</span> / <span class="${profitB>=0?"pos":"neg"}">${won(profitB)}</span></div></div>
       </div>
       <div class="chartbox"><canvas id="c_${e.song}_${e.start}"></canvas></div>
-      <div class="note">막대 = 그날 상승분(기준선 대비), 노란 선 = BEP 필요 상승분. 막대가 선 위에 있는 날이 "돈 번 날".</div>`;
+      <div class="note">막대 = 그날 상승분(기준선 대비). 노란 선 = 8.33원 기준 BEP선, 청록 선 = 10원 기준 BEP선. 막대가 선 위에 있는 날이 "돈 번 날".</div>`;
     }
     card += body + `</div>`;
     wrap.insertAdjacentHTML("beforeend", card);
@@ -227,9 +233,11 @@ function renderExperiments(){
           labels: campDates.map(mdShort),
           datasets: [
             { type: "bar", label: "일일 상승분", data: ups,
-              backgroundColor: ups.map(v => v >= needDaily ? "#35d07f" : "#5a6272") },
-            { type: "line", label: "BEP 필요선", data: campDates.map(()=>Math.ceil(needDaily)),
+              backgroundColor: ups.map(v => v >= needA ? "#35d07f" : v >= needB ? "#4de1c1" : "#5a6272") },
+            { type: "line", label: "BEP선 (8.33원)", data: campDates.map(()=>Math.ceil(needA)),
               borderColor: "#f4d35e", borderWidth: 2, pointRadius: 0 },
+            { type: "line", label: "BEP선 (10원)", data: campDates.map(()=>Math.ceil(needB)),
+              borderColor: "#4de1c1", borderWidth: 2, borderDash: [6,4], pointRadius: 0 },
           ]
         },
         options: { responsive: true, maintainAspectRatio: false,
