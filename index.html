@@ -21,7 +21,7 @@
   #sitetabs a:hover { color: var(--text); }
   #sitetabs a.on { color: var(--text); background: var(--panel2); border-color: #3a4150; }
   .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
-  .cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 24px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 24px; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
   .card .label { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
   .card .value { font-size: 26px; font-weight: 700; }
@@ -127,7 +127,7 @@
   </div>
 
 <script>
-const DATA = {"songs":{"tUcWwAO5zU8":{"title":"차가을 - 한참 지나서","url":"https://www.youtube.com/watch?v=tUcWwAO5zU8","share":0.5},"RsQDAygpF6k":{"title":"차가을 - 흔한 이별","url":"https://www.youtube.com/watch?v=RsQDAygpF6k","share":0},"grqTg6WOJII":{"title":"백예슬 - 0이 되는 이별은 없어","url":"https://www.youtube.com/watch?v=grqTg6WOJII","share":0.5},"THGi-LLhbxM":{"title":"교이 - 미안한 마음도","url":"https://www.youtube.com/watch?v=THGi-LLhbxM","share":1},"Jsm2uVtQhmY":{"title":"교이 - 내가 더 아프면","url":"https://www.youtube.com/watch?v=Jsm2uVtQhmY","share":1},"gTG9evSpuWg":{"url":"https://www.youtube.com/watch?v=gTG9evSpuWg","title":"도유카","marketing":true,"start":"2026-07-01"},"D7VsFDJx4zw":{"url":"https://www.youtube.com/watch?v=D7VsFDJx4zw","title":"컬리밴드","marketing":true,"start":"2026-07-01"}},"snapshots":[{"date":"2026-06-29","time":"2026-06-29 00:00","stats":{"gTG9evSpuWg":{"views":18474900,"likes":null}},"locked":true},{"date":"2026-06-30","time":"2026-06-30 00:00","stats":{"tUcWwAO5zU8":{"views":1041220,"likes":null},"RsQDAygpF6k":{"views":171915,"likes":null},"grqTg6WOJII":{"views":100814,"likes":null},"THGi-LLhbxM":{"views":72640,"likes":null},"Jsm2uVtQhmY":{"views":521,"likes":null},"gTG9evSpuWg":{"views":18492625,"likes":null}},"locked":true},{"date":"2026-07-01","time":"2026-07-01 00:00","stats":{"tUcWwAO5zU8":{"views":1046457,"likes":null},"RsQDAygpF6k":{"views":172960,"likes":null},"grqTg6WOJII":{"views":101627,"likes":null},"THGi-LLhbxM":{"views":73519,"likes":null},"Jsm2uVtQhmY":{"views":3294,"likes":null},"gTG9evSpuWg":{"views":18509779,"likes":null}},"locked":true},{"date":"2026-07-02","time":"2026-07-02 00:00","stats":{"tUcWwAO5zU8":{"views":1052068,"likes":2979},"RsQDAygpF6k":{"views":174097,"likes":489},"grqTg6WOJII":{"views":102377,"likes":226},"THGi-LLhbxM":{"views":74193,"likes":510},"Jsm2uVtQhmY":{"views":5718,"likes":50},"gTG9evSpuWg":{"views":18531351,"likes":68564},"D7VsFDJx4zw":{"views":59180,"likes":693}},"locked":true}]};
+const DATA = {"songs":{"tUcWwAO5zU8":{"title":"차가을 - 한참 지나서","url":"https://www.youtube.com/watch?v=tUcWwAO5zU8","share":0.5},"RsQDAygpF6k":{"title":"차가을 - 흔한 이별","url":"https://www.youtube.com/watch?v=RsQDAygpF6k","share":0},"grqTg6WOJII":{"title":"백예슬 - 0이 되는 이별은 없어","url":"https://www.youtube.com/watch?v=grqTg6WOJII","share":0.5},"THGi-LLhbxM":{"title":"교이 - 미안한 마음도","url":"https://www.youtube.com/watch?v=THGi-LLhbxM","share":1},"Jsm2uVtQhmY":{"title":"교이 - 내가 더 아프면","url":"https://www.youtube.com/watch?v=Jsm2uVtQhmY","share":1},"gTG9evSpuWg":{"url":"https://www.youtube.com/watch?v=gTG9evSpuWg","title":"도유카","marketing":true,"start":"2026-07-01"},"D7VsFDJx4zw":{"url":"https://www.youtube.com/watch?v=D7VsFDJx4zw","title":"컬리밴드","marketing":true,"start":"2026-07-01"}},"snapshots":[{"date":"2026-06-29","time":"2026-06-29 00:00","stats":{"gTG9evSpuWg":{"views":18474900,"likes":null}},"locked":true},{"date":"2026-06-30","time":"2026-06-30 00:00","stats":{"tUcWwAO5zU8":{"views":1041220,"likes":null},"RsQDAygpF6k":{"views":171915,"likes":null},"grqTg6WOJII":{"views":100814,"likes":null},"THGi-LLhbxM":{"views":72640,"likes":null},"Jsm2uVtQhmY":{"views":521,"likes":null},"gTG9evSpuWg":{"views":18492625,"likes":null}},"locked":true},{"date":"2026-07-01","time":"2026-07-01 00:00","stats":{"tUcWwAO5zU8":{"views":1046457,"likes":null},"RsQDAygpF6k":{"views":172960,"likes":null},"grqTg6WOJII":{"views":101627,"likes":null},"THGi-LLhbxM":{"views":73519,"likes":null},"Jsm2uVtQhmY":{"views":3294,"likes":null},"gTG9evSpuWg":{"views":18509779,"likes":null}},"locked":true},{"date":"2026-07-02","time":"2026-07-02 00:00","stats":{"tUcWwAO5zU8":{"views":1052068,"likes":2979},"RsQDAygpF6k":{"views":174097,"likes":489},"grqTg6WOJII":{"views":102377,"likes":226},"THGi-LLhbxM":{"views":74193,"likes":510},"Jsm2uVtQhmY":{"views":5718,"likes":50},"gTG9evSpuWg":{"views":18531351,"likes":68564},"D7VsFDJx4zw":{"views":59180,"likes":693}},"locked":true}],"current":{"time":"2026-07-02 18:42","stats":{"tUcWwAO5zU8":{"views":1055886,"likes":2981},"RsQDAygpF6k":{"views":174883,"likes":489},"grqTg6WOJII":{"views":102848,"likes":226},"THGi-LLhbxM":{"views":74731,"likes":510},"Jsm2uVtQhmY":{"views":9363,"likes":50},"gTG9evSpuWg":{"views":18547397,"likes":68571},"D7VsFDJx4zw":{"views":59276,"likes":695}}}};
 
 // 예상 수익 기준: 하루 1,000회 스트리밍 ≈ 한 달 250,000원
 const WON_PER_1000_DAILY = 250000;
@@ -162,10 +162,21 @@ function render(){
   const ids = allIds.filter(id => !songs[id].marketing);   // 내 곡 (수익/합계 포함)
   const mkIds = allIds.filter(id => songs[id].marketing);  // 마케팅 트래킹 (별도 섹션)
 
-  // 업데이트 시각
+  // 업데이트 시각 (6시간마다 갱신되는 현재값 기준)
+  const cur = DATA.current || null;
   document.getElementById("updated").textContent =
-    "마지막 수집: " + (latest.time || latest.date) + "  ·  추적 곡 " + ids.length + "곡"
+    "마지막 수집: " + (cur?.time || latest.time || latest.date) + "  ·  추적 곡 " + ids.length + "곡"
     + (mkIds.length ? "  ·  마케팅 " + mkIds.length + "트랙" : "");
+
+  // 오늘 현재까지 (오늘 00시 기준값 대비 현재값)
+  const liveBy = {};
+  let liveSum = null;
+  if(cur){
+    for(const id of ids){
+      const a = latest.stats[id]?.views, b = cur.stats[id]?.views;
+      if(a!=null && b!=null){ liveBy[id] = b - a; liveSum = (liveSum||0) + (b - a); }
+    }
+  }
 
   // 곡별 계산
   const rows = ids.map(id => {
@@ -207,7 +218,9 @@ function render(){
   const sumViews = rows.reduce((s,r)=> s + (r.views||0), 0);
   const sumRevenue = Math.round(rows.reduce((s,r)=> s + (r.revenue||0), 0));
   const dayLabel = prev ? " ("+mdShort(prev.date)+")" : "";
+  const curClock = cur?.time ? cur.time.slice(11) : "";
   const cards = [
+    ["오늘 현재까지"+(curClock ? ` (${curClock} 기준)` : ""), liveSum!=null ? nf.format(liveSum) : "—", "회"],
     ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) : "—", "회"],
     [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
     ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
@@ -227,10 +240,11 @@ function render(){
   const tw = document.getElementById("tableWrap");
   tw.innerHTML =
     `<table><thead><tr>
-      <th>곡</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
+      <th>곡</th><th>오늘 현재까지</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
     </tr></thead><tbody>` +
     rows.map(r => `<tr>
       <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a></td>
+      <td class="delta up">${liveBy[r.id]!=null ? "+"+nf.format(liveBy[r.id]) : "<span class='muted'>—</span>"}</td>
       <td class="delta up">${r.dViews!=null ? "+"+nf.format(r.dViews) : "<span class='muted'>—</span>"}</td>
       <td class="delta money">${
         r.share === 0 ? "<span class='muted'>선급 제외</span>"
