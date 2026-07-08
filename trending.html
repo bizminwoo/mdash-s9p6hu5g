@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>인기 급상승 · 유튜브 차트 한국</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #181b22; --panel2: #1f232c; --line: #2a2f3a;
+    --text: #e7eaf0; --muted: #8b93a3; --accent: #ff4d6d; --up: #35d07f; --down: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Pretendard","Malgun Gothic","Segoe UI",sans-serif; padding: 28px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  #sitetabs { display: flex; gap: 8px; margin: -8px 0 18px; flex-wrap: wrap; }
+  #sitetabs a { color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 700;
+    padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); }
+  #sitetabs a:hover { color: var(--text); }
+  #sitetabs a.on { color: var(--text); background: var(--panel2); border-color: #3a4150; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .sub a { color: var(--muted); }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 22px; }
+  .panel h2 { font-size: 15px; margin: 0 0 16px; }
+  .muted { color: var(--muted); font-weight: 400; font-size: 12px; }
+  .wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; white-space: nowrap; }
+  .wrap table { min-width: 860px; }
+  th, td { text-align: right; padding: 10px 10px; border-bottom: 1px solid var(--line); }
+  th.song, td.song { text-align: left; }
+  th.rank, td.rank { text-align: center; width: 64px; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  td.song { font-weight: 600; max-width: 340px; overflow: hidden; text-overflow: ellipsis; }
+  td.song a { color: var(--text); text-decoration: none; }
+  td.song a:hover { color: var(--accent); }
+  td.song .artist { display: block; color: var(--muted); font-size: 12px; font-weight: 400; margin-top: 2px; }
+  .rankmove { font-size: 11px; display: block; margin-top: 2px; }
+  .up { color: var(--up); } .down { color: var(--down); }
+  .new { color: var(--accent); font-weight: 700; }
+  .zero { color: var(--muted); }
+  tr.mine td { background: rgba(255, 77, 109, 0.07); }
+  tr.mine td.song::before { content: "★ "; color: var(--accent); }
+  .today { color: var(--up); font-weight: 700; }
+  .note { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.6; }
+  .empty { color: var(--muted); text-align: center; padding: 40px; }
+  @media (max-width: 640px) { body { padding: 14px; } }
+</style>
+</head>
+<body>
+  <div id="sitetabs">
+    <a href="index.html">🎵 음원 대시보드</a>
+    <a href="bep.html">📈 구보 BEP</a>
+    <a href="funds.html">💼 자금 현황</a>
+    <a href="#" class="on">🔥 인기 급상승</a>
+  </div>
+  <h1>🔥 인기 급상승 뮤직비디오 · 한국</h1>
+  <div class="sub" id="updated"></div>
+  <div class="panel">
+    <h2>현재 차트 <span class="muted">— 각 칸: 그날 하루 스트리밍(조회수 증가분)</span></h2>
+    <div class="wrap" id="chartWrap"></div>
+    <div class="note">순위 출처: <a href="https://charts.youtube.com/charts/TrendingVideos/kr" target="_blank">YouTube Charts 인기 급상승 뮤직비디오(한국)</a>. 매시간 수집하며, 하루 스트리밍 = 그날 00시 대비 다음날 00시 조회수 증가분. ★ 표시는 내 등록곡. 추적 시작일 이전 날짜는 데이터가 없어 "–"로 표시됩니다.</div>
+  </div>
+  <div class="panel" id="droppedPanel" style="display:none">
+    <h2>차트 아웃 후 추적 중 <span class="muted">— 차트에서 빠진 뒤 14일간 계속 수집</span></h2>
+    <div class="wrap" id="droppedWrap"></div>
+  </div>
+
+<script>
+const DB = {"videos":{"UOKLtaE2U90":{"title":"만찬가","artist":"태연 (TAEYEON)","release":"2026-06-29","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":1},"FFjDEkZg-54":{"title":"Gimme Dat Love","artist":" i-dle (아이들)","release":"2026-07-06","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":2},"BEPSc8q6Bd8":{"title":"Lemon Tang","artist":"Hearts2Hearts","release":"2026-06-22","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":3},"3F9jlnANW08":{"title":"BAD","artist":"ATEEZ","release":"2026-06-25","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":4},"EsU7ng0KIy0":{"title":"RUDE!","artist":"Hearts2Hearts","release":"2026-06-14","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":5},"Qi63-bxUdiA":{"title":"일말의 가능성","artist":"10CM","release":"2026-07-02","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":6},"VhmQ1GL66GI":{"title":"[성시경 노래] 68. 나와 같다면 (With.김장훈) l Sung Si Kyung Music","artist":"성시경","release":"2026-07-06","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":7},"MnPQxn20BRM":{"title":"Morning","artist":"i-dle (아이들)","release":"2026-07-06","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":8},"Bkqk196gGOc":{"title":"Love Is Pain","artist":"i-dle (아이들)","release":"2026-07-06","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":9},"G3o0vC-iqoU":{"title":"Forever","artist":"DK(디셈버)","release":"2026-06-28","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":10},"Jsm2uVtQhmY":{"title":"내가 더 아프면","artist":"교이","release":"2026-06-28","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":11},"ZaLSkvvzwro":{"title":"밤하늘의 별을 (2026 ver.)","artist":"송하예","release":"2026-06-25","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":12},"mnCKtu-cvjc":{"title":"기억속의 먼 그대에게","artist":"신예영","release":"2026-07-03","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":13},"Y9n-Cozs9nw":{"title":"때로는","artist":"아이보리","release":"2026-07-04","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":14},"XxOlPmuIJB0":{"title":"하필 비가 내려 (Why Does It Have to Rain)","artist":"지아 (Zia)","release":"2026-07-02","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":15},"nNgPxwyPDe0":{"title":"마음의 숲","artist":"조선힙합","release":"2026-07-01","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":16},"9cS2wv6AfHk":{"title":"BABYMONSTER - 'I LIKE IT' M/V","artist":"BABYMONSTER","release":"2026-07-05","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":17},"Gr6gLOYJzAA":{"title":"singasong","artist":"THE 8, Vernon","release":"2026-06-29","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":18},"rrWT4W07UHg":{"title":"Rain on me","artist":"권진아","release":"2026-06-23","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":19},"9m-awpn0BHU":{"title":"비가 와","artist":"웨이브 콜","release":"2026-06-28","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":20},"xJoq2AKxIQE":{"title":"Wait!","artist":"Chilloop","release":"2026-06-25","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":21},"s5iZnQvsus4":{"title":"허들 (Art. 교은)","artist":"Anonymous Artists (어나니머스 아티스트), 교은","release":"2026-07-04","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":22},"91PHp22qmlE":{"title":"파급효과2 (Ripple Effect2)","artist":"스윙스, 율음, shinjihang, 그냥노창, hyeminsong","release":"2026-07-04","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":23},"cRPDH72WP8c":{"title":"송가인 (Song Ga In) - ‘꽃이 아니면 어떤가’ Official MV","artist":" 송가인","release":"2026-07-02","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":24},"lnddnsEbjMM":{"title":"눈부신 눈물","artist":"디셈버","release":"2026-06-25","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":25},"M5xdvUGEuio":{"title":"들어봐","artist":"백아연","release":"2026-06-29","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":26},"phv2nE2kBPE":{"title":"어디쯤 가고 있을까","artist":"김건모","release":"2026-07-01","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":27},"aiHwTftMP1E":{"title":"BOY MEETS GIRL","artist":"NCT WISH","release":"2026-06-21","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":28},"3D5rg7Mk0FQ":{"title":"Sunset","artist":"너드커넥션 (Nerd Connection)","release":"2026-07-03","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":29},"vDKIheHefbE":{"title":"날 채워준 한 사람","artist":"서인국","release":"2026-07-01","firstSeen":"2026-07-08","lastSeen":"2026-07-08","lastPos":30}},"snapshots":[{"date":"2026-07-08","time":"2026-07-08 14:17","stats":{"BEPSc8q6Bd8":{"views":5209223},"Qi63-bxUdiA":{"views":375788},"EsU7ng0KIy0":{"views":3240779},"UOKLtaE2U90":{"views":2984235},"FFjDEkZg-54":{"views":6399043},"3F9jlnANW08":{"views":2950271},"MnPQxn20BRM":{"views":357553},"VhmQ1GL66GI":{"views":399250},"G3o0vC-iqoU":{"views":497370},"Jsm2uVtQhmY":{"views":186632},"Bkqk196gGOc":{"views":359790},"mnCKtu-cvjc":{"views":144739},"Y9n-Cozs9nw":{"views":82420},"ZaLSkvvzwro":{"views":708754},"XxOlPmuIJB0":{"views":153441},"9cS2wv6AfHk":{"views":24655700},"nNgPxwyPDe0":{"views":265013},"Gr6gLOYJzAA":{"views":719464},"rrWT4W07UHg":{"views":851498},"xJoq2AKxIQE":{"views":578449},"s5iZnQvsus4":{"views":66298},"9m-awpn0BHU":{"views":380276},"91PHp22qmlE":{"views":130561},"cRPDH72WP8c":{"views":599642},"lnddnsEbjMM":{"views":178759},"M5xdvUGEuio":{"views":405611},"aiHwTftMP1E":{"views":795679},"phv2nE2kBPE":{"views":630707},"3D5rg7Mk0FQ":{"views":107196},"vDKIheHefbE":{"views":191054}}}],"chartDates":{"2026-07-08":[{"id":"UOKLtaE2U90","pos":1},{"id":"FFjDEkZg-54","pos":2},{"id":"BEPSc8q6Bd8","pos":3},{"id":"3F9jlnANW08","pos":4},{"id":"EsU7ng0KIy0","pos":5},{"id":"Qi63-bxUdiA","pos":6},{"id":"VhmQ1GL66GI","pos":7},{"id":"MnPQxn20BRM","pos":8},{"id":"Bkqk196gGOc","pos":9},{"id":"G3o0vC-iqoU","pos":10},{"id":"Jsm2uVtQhmY","pos":11},{"id":"ZaLSkvvzwro","pos":12},{"id":"mnCKtu-cvjc","pos":13},{"id":"Y9n-Cozs9nw","pos":14},{"id":"XxOlPmuIJB0","pos":15},{"id":"nNgPxwyPDe0","pos":16},{"id":"9cS2wv6AfHk","pos":17},{"id":"Gr6gLOYJzAA","pos":18},{"id":"rrWT4W07UHg","pos":19},{"id":"9m-awpn0BHU","pos":20},{"id":"xJoq2AKxIQE","pos":21},{"id":"s5iZnQvsus4","pos":22},{"id":"91PHp22qmlE","pos":23},{"id":"cRPDH72WP8c","pos":24},{"id":"lnddnsEbjMM","pos":25},{"id":"M5xdvUGEuio","pos":26},{"id":"phv2nE2kBPE","pos":27},{"id":"aiHwTftMP1E","pos":28},{"id":"3D5rg7Mk0FQ","pos":29},{"id":"vDKIheHefbE","pos":30}]},"chartCurrent":{"time":"2026-07-08 14:17","entries":[{"id":"UOKLtaE2U90","pos":1},{"id":"FFjDEkZg-54","pos":2},{"id":"BEPSc8q6Bd8","pos":3},{"id":"3F9jlnANW08","pos":4},{"id":"EsU7ng0KIy0","pos":5},{"id":"Qi63-bxUdiA","pos":6},{"id":"VhmQ1GL66GI","pos":7},{"id":"MnPQxn20BRM","pos":8},{"id":"Bkqk196gGOc","pos":9},{"id":"G3o0vC-iqoU","pos":10},{"id":"Jsm2uVtQhmY","pos":11},{"id":"ZaLSkvvzwro","pos":12},{"id":"mnCKtu-cvjc","pos":13},{"id":"Y9n-Cozs9nw","pos":14},{"id":"XxOlPmuIJB0","pos":15},{"id":"nNgPxwyPDe0","pos":16},{"id":"9cS2wv6AfHk","pos":17},{"id":"Gr6gLOYJzAA","pos":18},{"id":"rrWT4W07UHg","pos":19},{"id":"9m-awpn0BHU","pos":20},{"id":"xJoq2AKxIQE","pos":21},{"id":"s5iZnQvsus4","pos":22},{"id":"91PHp22qmlE","pos":23},{"id":"cRPDH72WP8c","pos":24},{"id":"lnddnsEbjMM","pos":25},{"id":"M5xdvUGEuio","pos":26},{"id":"phv2nE2kBPE","pos":27},{"id":"aiHwTftMP1E","pos":28},{"id":"3D5rg7Mk0FQ","pos":29},{"id":"vDKIheHefbE","pos":30}]},"current":{"time":"2026-07-08 14:17","stats":{"BEPSc8q6Bd8":{"views":5209223},"Qi63-bxUdiA":{"views":375788},"EsU7ng0KIy0":{"views":3240779},"UOKLtaE2U90":{"views":2984235},"FFjDEkZg-54":{"views":6399043},"3F9jlnANW08":{"views":2950271},"MnPQxn20BRM":{"views":357553},"VhmQ1GL66GI":{"views":399250},"G3o0vC-iqoU":{"views":497370},"Jsm2uVtQhmY":{"views":186632},"Bkqk196gGOc":{"views":359790},"mnCKtu-cvjc":{"views":144739},"Y9n-Cozs9nw":{"views":82420},"ZaLSkvvzwro":{"views":708754},"XxOlPmuIJB0":{"views":153441},"9cS2wv6AfHk":{"views":24655700},"nNgPxwyPDe0":{"views":265013},"Gr6gLOYJzAA":{"views":719464},"rrWT4W07UHg":{"views":851498},"xJoq2AKxIQE":{"views":578449},"s5iZnQvsus4":{"views":66298},"9m-awpn0BHU":{"views":380276},"91PHp22qmlE":{"views":130561},"cRPDH72WP8c":{"views":599642},"lnddnsEbjMM":{"views":178759},"M5xdvUGEuio":{"views":405611},"aiHwTftMP1E":{"views":795679},"phv2nE2kBPE":{"views":630707},"3D5rg7Mk0FQ":{"views":107196},"vDKIheHefbE":{"views":191054}}}};
+const OWN = new Set(["tUcWwAO5zU8","RsQDAygpF6k","grqTg6WOJII","THGi-LLhbxM","Jsm2uVtQhmY"] || []);
+
+const fmt = (n) => n == null ? "–" : n.toLocaleString("ko-KR");
+const dstr = (d) => { const p = (n) => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); };
+
+const snaps = (DB.snapshots || []).slice().sort((a, b) => a.date < b.date ? -1 : 1);
+const byDate = Object.fromEntries(snaps.map((s) => [s.date, s]));
+const today = snaps.length ? snaps[snaps.length - 1].date : dstr(new Date());
+
+// 최근 7일 컬럼 (오늘 포함)
+const days = [];
+{
+  const base = new Date(today + "T00:00:00");
+  for (let i = 6; i >= 0; i--) days.push(dstr(new Date(base.getTime() - i * 86400000)));
+}
+const nextDay = (d) => dstr(new Date(new Date(d + "T00:00:00").getTime() + 86400000));
+
+// 그날 하루 스트리밍 (오늘은 현재까지)
+function dailyOf(id, d) {
+  const a = byDate[d]?.stats?.[id]?.views;
+  if (a == null) return null;
+  const b = d === today ? DB.current?.stats?.[id]?.views : byDate[nextDay(d)]?.stats?.[id]?.views;
+  return b == null ? null : b - a;
+}
+
+// 어제 차트 순위 (순위 변동 표시용)
+const ydate = dstr(new Date(new Date(today + "T00:00:00").getTime() - 86400000));
+const yRank = Object.fromEntries((DB.chartDates?.[ydate] || []).map((e) => [e.id, e.pos]));
+const hasYesterday = (DB.chartDates?.[ydate] || []).length > 0;
+
+document.getElementById("updated").innerHTML =
+  "업데이트: " + (DB.current?.time || "-") + " · 추적 " + Object.keys(DB.videos || {}).length + "곡";
+
+function headRow(withRank) {
+  return "<tr>" + (withRank ? '<th class="rank">순위</th>' : "") + '<th class="song">곡</th>' +
+    days.map((d) => "<th>" + d.slice(5).replace("-", "/") + (d === today ? "<br>오늘(현재)" : "") + "</th>").join("") +
+    "<th>총 조회수</th></tr>";
+}
+
+function bodyRow(id, pos) {
+  const v = DB.videos[id] || {};
+  const cells = days.map((d) => {
+    const n = dailyOf(id, d);
+    const cls = d === today ? "today" : (n == null ? "zero" : "");
+    return '<td class="' + cls + '">' + fmt(n) + "</td>";
+  }).join("");
+  let rank = "";
+  if (pos != null) {
+    let move = "";
+    if (hasYesterday) {
+      const y = yRank[id];
+      if (y == null) move = '<span class="rankmove new">NEW</span>';
+      else if (y > pos) move = '<span class="rankmove up">▲' + (y - pos) + "</span>";
+      else if (y < pos) move = '<span class="rankmove down">▼' + (pos - y) + "</span>";
+      else move = '<span class="rankmove zero">–</span>';
+    }
+    rank = '<td class="rank"><b>' + pos + "</b>" + move + "</td>";
+  }
+  const total = DB.current?.stats?.[id]?.views;
+  return '<tr class="' + (OWN.has(id) ? "mine" : "") + '">' + rank +
+    '<td class="song"><a href="https://youtu.be/' + id + '" target="_blank">' + (v.title || id) + "</a>" +
+    '<span class="artist">' + (v.artist || "") + (v.release ? " · " + v.release + " 발매" : "") + "</span></td>" +
+    cells + "<td>" + fmt(total) + "</td></tr>";
+}
+
+// 현재 차트
+const entries = DB.chartCurrent?.entries || [];
+document.getElementById("chartWrap").innerHTML = entries.length
+  ? "<table><thead>" + headRow(true) + "</thead><tbody>" +
+    entries.map((e) => bodyRow(e.id, e.pos)).join("") + "</tbody></table>"
+  : '<div class="empty">아직 수집된 차트가 없습니다.</div>';
+
+// 차트 아웃 후 추적 중
+const onChart = new Set(entries.map((e) => e.id));
+const dropped = Object.keys(DB.videos || {}).filter((id) => !onChart.has(id))
+  .sort((a, b) => (DB.videos[b].lastSeen || "").localeCompare(DB.videos[a].lastSeen || ""));
+if (dropped.length) {
+  document.getElementById("droppedPanel").style.display = "";
+  document.getElementById("droppedWrap").innerHTML =
+    "<table><thead>" + headRow(false) + "</thead><tbody>" +
+    dropped.map((id) => bodyRow(id, null)).join("") + "</tbody></table>";
+}
+</script>
+</body>
+</html>
