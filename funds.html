@@ -305,7 +305,7 @@
 <script>
 (function(){
   "use strict";
-  const KEY_TX="finance_transactions_v28", KEY_FIX="finance_fixedcosts_v28";
+  const KEY_TX="finance_transactions_v29", KEY_FIX="finance_fixedcosts_v29";
   const won=n=>(n<0?"-":"")+"₩"+Math.abs(Math.round(n)).toLocaleString("ko-KR");
   const man=n=>{const a=Math.abs(n); if(a>=100000000)return (n/100000000).toFixed(a%100000000?1:0)+"억"; if(a>=10000)return Math.round(n/10000).toLocaleString("ko-KR")+"만"; return Math.round(n).toLocaleString("ko-KR");};
   const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -724,7 +724,7 @@
     ["2026-06-25","지출","개인","문화",5000,"동행복권(토스 오픈뱅킹)"],
     // ── 미확정 (확인되면 재분류) ──
     ["2026-06-25","지출","개인","미확정",36300,"갤럭시아 차액정산(토스체크 6/25 11:23 — 컬쳐랜드/상품권 PG 추정)"],
-    ["2026-06-28","지출","개인","미확정",100000,"임채운 송금(6/28 12:26 개인KB→토스 임채운 — 누군지 확인)"],
+    ["2026-06-28","지출","개인","선물",100000,"임채운 축의금(개인KB→토스)"],
   ];
   function seedIfEmpty(){
     if(tx.length===0){
