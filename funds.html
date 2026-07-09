@@ -305,7 +305,7 @@
 <script>
 (function(){
   "use strict";
-  const KEY_TX="finance_transactions_v26", KEY_FIX="finance_fixedcosts_v26";
+  const KEY_TX="finance_transactions_v27", KEY_FIX="finance_fixedcosts_v27";
   const won=n=>(n<0?"-":"")+"₩"+Math.abs(Math.round(n)).toLocaleString("ko-KR");
   const man=n=>{const a=Math.abs(n); if(a>=100000000)return (n/100000000).toFixed(a%100000000?1:0)+"억"; if(a>=10000)return Math.round(n/10000).toLocaleString("ko-KR")+"만"; return Math.round(n).toLocaleString("ko-KR");};
   const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -601,7 +601,7 @@
     ["2026-05-01","지출","개인","구독",7890,"쿠팡와우 멤버십"],
   ];
   const SEED_JUN=[
-    // ※ 6월 = 법인(클로브)+109+토스+카카오페이 마감 완료 (개인KB 8808만 미반영)
+    // ※ 6월 = 전 계좌(법인·109·토스·카카오페이·개인KB) 완전 마감 (2026-07-10)
     // ※ 레이벡스 6/23 입금 2,530,000은 수익 아님(사용자 지시로 손익 제외) · 카카오페이 카드결제분은 법인통장과 중복이라 제외
     // ── 수입 (부가세 제외) ──
     ["2026-06-15","수입","사업","레이벡스",5000000,"레이벡스 월급(용역료, 부가세 제외)"],
@@ -714,10 +714,15 @@
     ["2026-06-17","지출","개인","구독",13880,"톡클라우드 990+네이버파이낸셜 5,000+쿠팡와우 7,890"],
     ["2026-06-21","지출","개인","식비",14000,"토종한우(109)"],
     ["2026-06-22","지출","개인","생활",5000,"토스페이 소액결제"],
+    // ══ 개인KB(8808) 6월 반영 (2026-07-10) — 6월 전 계좌 완전 마감 ══
+    // ※ '하나은행발 입금' = 본인 KB→109 오픈뱅킹 이체의 중계표시로 확인(자금이동) · 카카오페이 34,850 = 순환 확인 후 삭제(사용자 지시)
+    // ※ NICE결제대행 41,000은 6/22 결제→6/24 전액환불 상계 · 업비트 1원 인증(6/28) 무시 · 토스증권 6/23 70만 입금(6/24·26 60만 회수, 투자 잔류 10만)
+    ["2026-06-23","수입","사업","음저협",817221,"음저협 저작권료(6월분은 개인KB로 입금, 비과세)"],
+    ["2026-06-16","지출","사업","음원",27170,"음원사이트 구독(벅스 11,990+자동결제 7,590×2, 개인KB)"],
+    ["2026-06-25","지출","개인","문화",5000,"동행복권(토스 오픈뱅킹)"],
     // ── 미확정 (확인되면 재분류) ──
     ["2026-06-25","지출","개인","미확정",36300,"갤럭시아 차액정산(토스체크 6/25 11:23 — 컬쳐랜드/상품권 PG 추정)"],
-    ["2026-06-24","지출","개인","미확정",34850,"카카오페이 결제(6/24 21:01 충전분 — 카카오페이 앱에서 사용처 확인)"],
-    ["2026-06-16","수입","개인","미확정",100000,"하나은행발 이민우 입금(6/2 6만도 동일) — 당근페이(하나은행 제휴) 판매대금 추정, 당근 앱 확인"],
+    ["2026-06-28","지출","개인","미확정",100000,"임채운 송금(6/28 12:26 개인KB→토스 임채운 — 누군지 확인)"],
   ];
   function seedIfEmpty(){
     if(tx.length===0){
@@ -959,15 +964,15 @@
       const x=24+i*(bw+gap), h=Math.max(5,Math.abs(d.net)/max*maxh);
       const pos=d.net>=0, y=pos?mid-h:mid;
       const col=pos?"#2E8B6F":"#C0504D";
-      svg+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="6" fill="${col}" opacity="${d.mk==='2026-06'?0.5:0.9}"/>`;
+      svg+=`<rect x="${x}" y="${y}" width="${bw}" height="${h}" rx="6" fill="${col}" opacity="0.9"/>`;
       const ly=pos?y-10:y+h+18;
       svg+=`<text x="${x+bw/2}" y="${ly}" text-anchor="middle" font-size="12" font-weight="800" fill="${col}">${(d.net/10000).toFixed(0)}만</text>`;
-      const lbl=d.mk==='2026-06'?'6월*':`${parseInt(d.mk.slice(5))}월`;
+      const lbl=`${parseInt(d.mk.slice(5))}월`;
       svg+=`<text x="${x+bw/2}" y="${H-6}" text-anchor="middle" font-size="11.5" fill="var(--ink-soft)">${lbl}</text>`;
     });
     svg+=`</svg>`;
     const tot=data.reduce((s,d)=>s+d.net,0);
-    box.innerHTML=svg+`<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">2026 누적 순현금흐름: <b style="color:${tot<0?'#C0504D':'#2E8B6F'}">${won(tot)}</b> · <b>6월*</b>은 개인KB 제외 전 계좌 마감 — 음원 선투자 503만·새 월세 100만·큰 술값으로 적자</div>`;
+    box.innerHTML=svg+`<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">2026 누적 순현금흐름: <b style="color:${tot<0?'#C0504D':'#2E8B6F'}">${won(tot)}</b> · 6월은 전 계좌 완전 마감 — 음원 선투자 530만·새 월세 100만·큰 술값에도 음저협 82만으로 적자 축소</div>`;
   }
 
   function renderRadar(){
