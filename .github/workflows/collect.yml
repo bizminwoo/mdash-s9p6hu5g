@@ -1,0 +1,34 @@
+name: collect
+on:
+  workflow_dispatch:
+  # 데이터 이관 완료 후 활성화:
+  # schedule:
+  #   - cron: '0 * * * *'
+concurrency:
+  group: collect
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Seoul
+      YT_API_KEY: ${{ secrets.YT_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 수집 + 페이지 생성
+        run: |
+          node fetch.mjs
+          node fetch-trending.mjs
+      - name: 커밋 + 배포
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "auto update" || exit 0
+          git pull --rebase -X theirs || { git rebase --abort; exit 1; }
+          git push

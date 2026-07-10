@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>구보 마케팅 BEP</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #181b22; --panel2: #1f232c; --line: #2a2f3a;
+    --text: #e7eaf0; --muted: #8b93a3; --up: #35d07f; --down: #ff5d5d; --money: #f4d35e;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Pretendard","Malgun Gothic","Segoe UI",sans-serif; padding: 28px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  #sitetabs { display: flex; gap: 8px; margin: -8px 0 18px; }
+  #sitetabs a { color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 700;
+    padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); }
+  #sitetabs a:hover { color: var(--text); }
+  #sitetabs a.on { color: var(--text); background: var(--panel2); border-color: #3a4150; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 22px; }
+  .panel h2 { font-size: 15px; margin: 0 0 16px; }
+  .muted { color: var(--muted); }
+  .note { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.6; }
+  .empty { color: var(--muted); text-align: center; padding: 40px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: right; padding: 10px 10px; border-bottom: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  .pos { color: var(--up); font-weight: 700; }
+  .neg { color: var(--down); font-weight: 700; }
+  .money { color: var(--money); font-weight: 700; }
+  /* 계산기 */
+  .calcrow { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin-bottom: 16px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { color: var(--muted); font-size: 12px; }
+  .field input, .field select { background: var(--panel2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 10px; padding: 10px 12px; font-size: 15px; font-family: inherit; width: 160px; }
+  .bigout { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .card { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  .card .label { color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+  .card .value { font-size: 22px; font-weight: 700; }
+  tr.hl td { background: rgba(53,208,127,0.10); }
+  /* 캠페인 카드 */
+  .exp { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .exp h3 { margin: 0 0 4px; font-size: 16px; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-left: 8px; }
+  .badge.ok { background: rgba(53,208,127,.15); color: var(--up); }
+  .badge.no { background: rgba(255,93,93,.15); color: var(--down); }
+  .badge.wait { background: rgba(139,147,163,.15); color: var(--muted); }
+  .expgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 14px 0; }
+  .kv .k { color: var(--muted); font-size: 11.5px; }
+  .kv .v { font-size: 17px; font-weight: 700; margin-top: 2px; }
+  .chartbox { position: relative; height: 240px; }
+  @media (max-width: 720px) {
+    body { padding: 14px; }
+    .panel { padding: 14px; }
+    th, td { padding: 8px 6px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+  <div id="sitetabs">
+    <a href="index.html" id="tabDash">🎵 음원 대시보드</a>
+    <a href="bep.html" class="on">📈 구보 BEP</a>
+    <a href="funds.html">💼 자금 현황</a>
+    <a href="trending.html">🔥 인기 급상승</a>
+  </div>
+  <h1>📈 구보 마케팅 손익분기(BEP) 분석</h1>
+  <div class="sub" id="updated"></div>
+
+  <div class="panel">
+    <h2>🧮 BEP 계산기 <span class="muted">— 하루 얼마를 쓰면, 하루 몇 회가 더 나와야 본전인가</span></h2>
+    <div class="calcrow">
+      <div class="field"><label>하루 지출 (원)</label><input type="number" id="cSpend" value="30000" step="10000" min="0"></div>
+      <div class="field"><label>수익 지분</label><select id="cShare"><option value="1">100% (단독)</option><option value="0.5">50% (공동제작)</option></select></div>
+    </div>
+    <div class="bigout" id="calcOut"></div>
+    <div style="margin-top:18px" id="levelTable"></div>
+    <div class="note">모든 수치는 <b>"8.33원 기준 / 10원 기준"</b> 두 단가로 병기됩니다 — 8.33원(하루 1,000회 ≈ 월 25만원, 보수적) / 10원(후한 추정). BEP 필요 상승분 = 하루 지출 ÷ (단가 × 지분).<br>
+    예) 하루 3만원·지분 100% → +3,600회/일 (8.33원 기준) 또는 +3,000회/일 (10원 기준) 이상 <b>추가로</b> 나와야 본전.</div>
+  </div>
+
+  <div class="panel">
+    <h2>🔬 캠페인 실험 기록 <span class="muted">— 실제 데이터로 검증</span></h2>
+    <div id="expWrap"></div>
+    <div class="note">캠페인 시작 전 평균(기준선) 대비 캠페인 기간의 일별 상승분을 자동 계산합니다. 새 캠페인을 시작하면 곡·하루 지출·시작일을 알려주세요 (experiments.json 에 기록됩니다).</div>
+  </div>
+
+<script>
+const DATA = /*__DATA__*/ null;
+const EXPERIMENTS = /*__EXP__*/ null;
+
+const nf = new Intl.NumberFormat("ko-KR");
+// 스트리밍 1회당 단가 — 두 시나리오 병기 (표기: 8.33원 기준 / 10원 기준)
+const PS_A = 250000 / (1000 * 30); // 8.33원 (하루 1000회 ≈ 월 25만원)
+const PS_B = 10;                   // 10원
+
+// 로컬(file://)에서 열면 대시보드 링크를 dashboard.html 로
+if (location.protocol === "file:") document.getElementById("tabDash").href = "dashboard.html";
+
+function byDate(a,b){ return a.date < b.date ? -1 : 1; }
+function mdShort(s){ const [,m,d] = s.split("-"); return Number(m)+"/"+Number(d); }
+function won(v){
+  if(v == null) return "—";
+  const sign = v < 0 ? "-" : "";
+  const a = Math.abs(v);
+  if(a >= 100000000) return sign + (a/100000000).toFixed(1).replace(/\.0$/,"") + "억원";
+  if(a >= 10000) return sign + Math.round(a/10000).toLocaleString("ko-KR") + "만원";
+  return sign + Math.round(a).toLocaleString("ko-KR") + "원";
+}
+
+// 일별 스트리밍 맵: id -> { "YYYY-MM-DD": 하루치 }
+const daily = {};
+(function(){
+  if(!DATA) return;
+  const snaps = [...DATA.snapshots].sort(byDate);
+  for(let i=1;i<snaps.length;i++){
+    const d = snaps[i-1].date;
+    for(const id of Object.keys(DATA.songs)){
+      const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
+      if(a && b && a.views!=null && b.views!=null){ (daily[id] = daily[id] || {})[d] = b.views - a.views; }
+    }
+  }
+  document.getElementById("updated").textContent =
+    "데이터 기준: " + (DATA.current?.time || snaps[snaps.length-1]?.date || "-") +
+    "  ·  일별 데이터는 매일 00시 확정";
+})();
+
+// ---------- 계산기 ----------
+function calc(){
+  const spend = Number(document.getElementById("cSpend").value) || 0;
+  const share = Number(document.getElementById("cShare").value) || 1;
+  const needA = Math.ceil(spend / (PS_A * share)); // 8.33원 기준
+  const needB = Math.ceil(spend / (PS_B * share)); // 10원 기준
+  document.getElementById("calcOut").innerHTML = [
+    ["한 달 지출 (30일)", won(spend*30)],
+    ["BEP 필요 일일 추가 스트리밍 <span class='muted'>(8.33원 / 10원)</span>", `+${nf.format(needA)} / +${nf.format(needB)} <span class='muted' style='font-size:13px'>회/일</span>`],
+    ["BEP 필요 월간 추가 스트리밍 <span class='muted'>(8.33원 / 10원)</span>", `+${nf.format(needA*30)} / +${nf.format(needB*30)} <span class='muted' style='font-size:13px'>회</span>`],
+  ].map(c => `<div class="card"><div class="label">${c[0]}</div><div class="value">${c[1]}</div></div>`).join("");
+
+  // 금액대별 표 (1~10만원)
+  let rows = "";
+  for(let man=1; man<=10; man++){
+    const s = man*10000;
+    const nA = Math.ceil(s / (PS_A * share)), nB = Math.ceil(s / (PS_B * share));
+    const hl = s === spend ? " class='hl'" : "";
+    rows += `<tr${hl}><td>하루 ${man}만원</td><td>${won(s*30)}</td><td class="pos">+${nf.format(nA)} / +${nf.format(nB)}</td><td>+${nf.format(nA*30)} / +${nf.format(nB*30)}</td></tr>`;
+  }
+  document.getElementById("levelTable").innerHTML =
+    `<table><thead><tr><th>지출 구간</th><th>월 지출</th><th>BEP 필요 상승분(일) <span class="muted">8.33원 / 10원</span></th><th>BEP 필요 상승분(월) <span class="muted">8.33원 / 10원</span></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+document.getElementById("cSpend").addEventListener("input", calc);
+document.getElementById("cShare").addEventListener("change", calc);
+calc();
+
+// ---------- 캠페인 실험 ----------
+function renderExperiments(){
+  const wrap = document.getElementById("expWrap");
+  if(!EXPERIMENTS || EXPERIMENTS.length === 0){
+    wrap.innerHTML = '<div class="empty">아직 기록된 캠페인이 없습니다.<br>구보를 시작하면 [곡 · 하루 지출 · 시작일]을 알려주세요 — 자동으로 여기서 추적됩니다.</div>';
+    return;
+  }
+  wrap.innerHTML = "";
+  for(const e of EXPERIMENTS){
+    const song = DATA.songs[e.song];
+    if(!song) continue;
+    const share = e.share != null ? e.share : (song.share == null ? 1 : song.share);
+    const d = daily[e.song] || {};
+    const dates = Object.keys(d).sort();
+
+    // 기준선: 시작 전 마지막 N일 평균 (수동 지정 시 e.baseline 우선)
+    const bDays = e.baselineDays || 7;
+    const preDates = dates.filter(x => x < e.start).slice(-bDays);
+    const baseline = e.baseline != null ? e.baseline
+      : preDates.length ? preDates.reduce((s,x)=>s+d[x],0) / preDates.length : null;
+
+    // 캠페인 기간 일별
+    const endCut = e.end || "9999-12-31";
+    const campDates = dates.filter(x => x >= e.start && x <= endCut);
+    const needA = e.dailySpend / (PS_A * share); // 8.33원 기준 필요 상승분
+    const needB = e.dailySpend / (PS_B * share); // 10원 기준 필요 상승분
+
+    let card = `<div class="exp"><h3>${song.title}`;
+    let body = "";
+
+    if(baseline == null){
+      card += `<span class="badge wait">기준선 수집 중</span></h3>`;
+      body = `<div class="muted" style="margin-top:8px">캠페인 시작(${mdShort(e.start)}) 전 데이터가 아직 부족합니다.</div>`;
+    } else if(campDates.length === 0){
+      card += `<span class="badge wait">시작 대기</span></h3>`;
+      body = `<div class="expgrid">
+        <div class="kv"><div class="k">하루 지출</div><div class="v">${won(e.dailySpend)}</div></div>
+        <div class="kv"><div class="k">시작일</div><div class="v">${mdShort(e.start)}</div></div>
+        <div class="kv"><div class="k">기준선 (시작 전 ${preDates.length}일 평균)</div><div class="v">${nf.format(Math.round(baseline))}회/일</div></div>
+        <div class="kv"><div class="k">BEP 필요 상승분 <span class="muted">(8.33원 / 10원)</span></div><div class="v">+${nf.format(Math.ceil(needA))} / +${nf.format(Math.ceil(needB))}회/일</div></div>
+      </div>`;
+    } else {
+      const ups = campDates.map(x => d[x] - baseline);
+      const sumUp = ups.reduce((s,v)=>s+v,0);
+      const avgUp = sumUp / ups.length;
+      const revA = sumUp * PS_A * share, revB = sumUp * PS_B * share;
+      const spent = e.dailySpend * campDates.length;
+      const profitA = revA - spent, profitB = revB - spent;
+      const roiA = spent > 0 ? revA/spent*100 : 0, roiB = spent > 0 ? revB/spent*100 : 0;
+      const ok = profitA >= 0; // 뱃지는 보수적(8.33원) 기준
+      card += ok ? `<span class="badge ok">✅ BEP 달성 중 (ROI ${roiA.toFixed(0)}% / ${roiB.toFixed(0)}%)</span></h3>`
+           : profitB >= 0 ? `<span class="badge wait">⚠️ 10원 기준만 달성 (ROI ${roiA.toFixed(0)}% / ${roiB.toFixed(0)}%)</span></h3>`
+           : `<span class="badge no">❌ BEP 미달 (ROI ${roiA.toFixed(0)}% / ${roiB.toFixed(0)}%)</span></h3>`;
+      body = `<div class="muted">${mdShort(e.start)} 시작 · 측정 ${campDates.length}일 · 하루 ${won(e.dailySpend)}${e.memo ? " · " + e.memo : ""} · 병기 표기는 <b>8.33원 / 10원</b> 단가 기준</div>
+      <div class="expgrid">
+        <div class="kv"><div class="k">기준선 (시작 전 평균)</div><div class="v">${nf.format(Math.round(baseline))}회/일</div></div>
+        <div class="kv"><div class="k">캠페인 평균 상승분</div><div class="v ${avgUp>=0?"pos":"neg"}">${avgUp>=0?"+":""}${nf.format(Math.round(avgUp))}회/일</div></div>
+        <div class="kv"><div class="k">BEP 필요 상승분</div><div class="v">+${nf.format(Math.ceil(needA))} / +${nf.format(Math.ceil(needB))}회/일</div></div>
+        <div class="kv"><div class="k">달성률</div><div class="v ${avgUp>=needB?"pos":"neg"}">${needA>0 ? Math.round(avgUp/needA*100) : 0}% / ${needB>0 ? Math.round(avgUp/needB*100) : 0}%</div></div>
+        <div class="kv"><div class="k">누적 지출</div><div class="v">${won(spent)}</div></div>
+        <div class="kv"><div class="k">상승분 수익 환산${share!==1 ? ` (지분 ${share*100}%)` : ""}</div><div class="v money">${won(revA)} / ${won(revB)}</div></div>
+        <div class="kv"><div class="k">누적 손익</div><div class="v"><span class="${profitA>=0?"pos":"neg"}">${won(profitA)}</span> / <span class="${profitB>=0?"pos":"neg"}">${won(profitB)}</span></div></div>
+      </div>
+      <div class="chartbox"><canvas id="c_${e.song}_${e.start}"></canvas></div>
+      <div class="note">막대 = 그날 상승분(기준선 대비). 노란 선 = 8.33원 기준 BEP선, 청록 선 = 10원 기준 BEP선. 막대가 선 위에 있는 날이 "돈 번 날".</div>`;
+    }
+    card += body + `</div>`;
+    wrap.insertAdjacentHTML("beforeend", card);
+
+    // 차트
+    if(baseline != null && campDates.length > 0){
+      const ups = campDates.map(x => Math.round(d[x] - baseline));
+      new Chart(document.getElementById(`c_${e.song}_${e.start}`), {
+        data: {
+          labels: campDates.map(mdShort),
+          datasets: [
+            { type: "bar", label: "일일 상승분", data: ups,
+              backgroundColor: ups.map(v => v >= needA ? "#35d07f" : v >= needB ? "#4de1c1" : "#5a6272") },
+            { type: "line", label: "BEP선 (8.33원)", data: campDates.map(()=>Math.ceil(needA)),
+              borderColor: "#f4d35e", borderWidth: 2, pointRadius: 0 },
+            { type: "line", label: "BEP선 (10원)", data: campDates.map(()=>Math.ceil(needB)),
+              borderColor: "#4de1c1", borderWidth: 2, borderDash: [6,4], pointRadius: 0 },
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: "#8b93a3" } } },
+          scales: {
+            x: { ticks: { color: "#8b93a3" }, grid: { display: false } },
+            y: { ticks: { color: "#8b93a3", callback: v => nf.format(v) }, grid: { color: "#232833" } }
+          } }
+      });
+    }
+  }
+}
+renderExperiments();
+</script>
+</body>
+</html>

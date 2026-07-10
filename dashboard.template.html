@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>내 음원 대시보드 · 유튜브뮤직</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #181b22; --panel2: #1f232c; --line: #2a2f3a;
+    --text: #e7eaf0; --muted: #8b93a3; --accent: #ff4d6d; --up: #35d07f; --like: #ff8fab;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: "Pretendard","Malgun Gothic","Segoe UI",sans-serif; padding: 28px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  #sitetabs { display: flex; gap: 8px; margin: -8px 0 18px; }
+  #sitetabs a { color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 700;
+    padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); }
+  #sitetabs a:hover { color: var(--text); }
+  #sitetabs a.on { color: var(--text); background: var(--panel2); border-color: #3a4150; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+  .card .label { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+  .card .value { font-size: 26px; font-weight: 700; }
+  .card .value .unit { font-size: 13px; color: var(--muted); font-weight: 400; margin-left: 4px; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 22px; }
+  .panel h2 { font-size: 15px; margin: 0 0 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: right; padding: 12px 10px; border-bottom: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  td.song { font-weight: 600; }
+  td.song a { color: var(--text); text-decoration: none; }
+  td.song a:hover { color: var(--accent); }
+  .delta { font-weight: 700; }
+  .delta.up { color: var(--up); }
+  .delta.like { color: var(--like); }
+  .delta.money { color: #f4d35e; }
+  /* 일자별 매트릭스 */
+  #matrixWrap { overflow-x: auto; }
+  #matrixWrap table { min-width: 700px; }
+  #matrixWrap td, #matrixWrap th { white-space: nowrap; }
+  .dval { font-weight: 700; font-size: 14px; }
+  .dchg { font-size: 11px; margin-top: 2px; }
+  .dchg.pos { color: var(--up); }
+  .dchg.neg { color: #ff5d5d; }
+  .dchg.flat { color: var(--muted); }
+  tr.totalrow td { background: var(--panel2); font-weight: 700; border-top: 2px solid var(--line); }
+  td.mkton { background: rgba(57,135,229,0.13); box-shadow: inset 0 2px 0 rgba(57,135,229,0.55); }
+  /* small multiples */
+  .multigrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .facet { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .fhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .ftitle { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fdelta { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .fdelta.pos { color: var(--up); }
+  .fdelta.neg { color: #ff5d5d; }
+  .fdelta.flat { color: var(--muted); }
+  .fbig { font-size: 22px; font-weight: 700; margin: 6px 0 8px; }
+  .fchart { position: relative; height: 120px; }
+  /* 곡/기간 토글 */
+  .togglerow { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .tbtn { background: var(--panel2); border: 1px solid var(--line); color: var(--muted);
+    border-radius: 999px; padding: 7px 16px; font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: border-color .15s, color .15s; }
+  .tbtn:hover { color: var(--text); }
+  .tbtn.active { color: var(--text); }
+  .tbtn.small { padding: 5px 12px; font-size: 12px; }
+  #tableWrap { overflow-x: auto; }
+  /* 모바일 */
+  @media (max-width: 720px) {
+    body { padding: 14px; }
+    .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .card { padding: 14px; }
+    .card .value { font-size: 20px; }
+    .panel { padding: 14px; }
+    th, td { padding: 9px 7px; font-size: 13px; }
+    .multigrid { grid-template-columns: 1fr 1fr; }
+    .fchart { height: 100px; }
+    .chartbox { height: 260px; }
+  }
+  @media (max-width: 480px) {
+    .multigrid { grid-template-columns: 1fr; }
+  }
+  .muted { color: var(--muted); }
+  .chartbox { position: relative; height: 340px; }
+  .note { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  .empty { color: var(--muted); text-align: center; padding: 40px; }
+</style>
+</head>
+<body>
+  <div id="sitetabs">
+    <a href="#" class="on">🎵 음원 대시보드</a>
+    <a href="bep.html">📈 구보 BEP</a>
+    <a href="funds.html">💼 자금 현황</a>
+    <a href="trending.html">🔥 인기 급상승</a>
+  </div>
+  <h1>🎵 내 음원 대시보드 · 유튜브뮤직</h1>
+  <div class="sub" id="updated"></div>
+  <div class="cards" id="cards"></div>
+  <div class="panel">
+    <h2>📅 일자별 스트리밍 (최근 7일) <span class="muted">— 각 칸: 그날 하루 스트리밍, ▲▼ 전일 대비 증감</span></h2>
+    <div id="matrixWrap"></div>
+  </div>
+  <div class="panel">
+    <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
+    <div id="tableWrap"></div>
+    <div class="note">💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분.<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
+  </div>
+  <div class="panel">
+    <h2>일별 스트리밍 추세 (최근 30일) <span class="muted">— 곡마다 자기 스케일이라 변동이 그대로 보입니다</span></h2>
+    <div class="multigrid" id="multiGrid"></div>
+    <div class="note">각 점 = 해당 날짜 하루 스트리밍(00시 기준 전일 대비 증가분). 세로축이 곡마다 달라 곡 간 크기 비교는 아래 막대그래프를 보세요.</div>
+  </div>
+  <div class="panel">
+    <h2>곡별 상세 추세 <span class="muted">— 곡을 누르면 쌓인 전체 기간의 일별 감상 그래프가 나옵니다</span></h2>
+    <div class="togglerow" id="songToggles"></div>
+    <div class="togglerow" id="rangeToggles"></div>
+    <div class="chartbox"><canvas id="detail"></canvas></div>
+  </div>
+  <div class="panel" id="mktPanel" style="display:none">
+    <h2>📣 마케팅 트래킹 (최근 3개월) <span class="muted">— 감상 수치·증감만 표시, 수익/합계에는 포함 안 됨</span></h2>
+    <div id="mktMatrixWrap" style="margin-bottom:18px"></div>
+    <div class="multigrid" id="mktGrid"></div>
+    <div class="note">🚀 = 마케팅 시작일. 표와 그래프의 파란 강조 구간이 마케팅 기간입니다 (시작 전 구간은 회색).<br>트랙을 빼려면 marketing.json 에서 해당 줄을 지우면 다음 수집 때 사라집니다.</div>
+  </div>
+
+<script>
+const DATA = /*__DATA__*/ null;
+
+// 예상 수익 기준: 하루 1,000회 스트리밍 ≈ 한 달 250,000원
+const WON_PER_1000_DAILY = 250000;
+function estMonthly(dailyViews){
+  if(dailyViews == null) return null;
+  return Math.round(dailyViews / 1000 * WON_PER_1000_DAILY);
+}
+function won(v){
+  if(v == null) return null;
+  if(v >= 100000000) return (v/100000000).toFixed(1).replace(/\.0$/,"") + "억원";
+  if(v >= 10000) return Math.round(v/10000).toLocaleString("ko-KR") + "만원";
+  return v.toLocaleString("ko-KR") + "원";
+}
+
+const nf = new Intl.NumberFormat("ko-KR");
+// 다크 배경 검증 통과 팔레트 (곡 순서 고정 배정 — 정렬이 바뀌어도 곡 색은 유지)
+const palette = ["#3987e5","#199e70","#c98500","#008300","#9085e9","#e66767","#d55181","#d95926"];
+
+function byDate(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }
+function mdShort(s){ const [,m,d] = s.split("-"); return Number(m)+"/"+Number(d); }
+
+function render(){
+  if(!DATA || !DATA.snapshots || DATA.snapshots.length === 0){
+    document.body.innerHTML = '<div class="empty">아직 데이터가 없습니다.<br>곡 링크를 songs.json 에 넣고 수집 스크립트를 한 번 실행하세요.</div>';
+    return;
+  }
+  const snaps = [...DATA.snapshots].sort(byDate);
+  const latest = snaps[snaps.length-1];
+  const prev = snaps.length >= 2 ? snaps[snaps.length-2] : null;
+  const songs = DATA.songs;
+  const allIds = Object.keys(songs);
+  const ids = allIds.filter(id => !songs[id].marketing);   // 내 곡 (수익/합계 포함)
+  const mkIds = allIds.filter(id => songs[id].marketing);  // 마케팅 트래킹 (별도 섹션)
+
+  // 업데이트 시각 (6시간마다 갱신되는 현재값 기준)
+  const cur = DATA.current || null;
+  document.getElementById("updated").textContent =
+    "마지막 수집: " + (cur?.time || latest.time || latest.date) + "  ·  추적 곡 " + ids.length + "곡"
+    + (mkIds.length ? "  ·  마케팅 " + mkIds.length + "트랙" : "");
+
+  // 오늘 현재까지 (오늘 00시 기준값 대비 현재값)
+  const liveBy = {};
+  let liveSum = null;
+  if(cur){
+    for(const id of ids){
+      const a = latest.stats[id]?.views, b = cur.stats[id]?.views;
+      if(a!=null && b!=null){ liveBy[id] = b - a; liveSum = (liveSum||0) + (b - a); }
+    }
+  }
+
+  // 어제 동시간대 (어제 00시 기준값 대비 어제 같은 시각 값 — 시간별 스냅샷 기반)
+  const ydayBy = {};
+  let ydaySum = null, ydayHour = null;
+  if(cur && DATA.hourly){
+    const p2 = n => String(n).padStart(2,"0");
+    const [cy,cm,cd] = cur.time.slice(0,10).split("-").map(Number);
+    const yd = new Date(cy, cm-1, cd-1);
+    const ydate = `${yd.getFullYear()}-${p2(yd.getMonth()+1)}-${p2(yd.getDate())}`;
+    const base = snaps.find(s => s.date === ydate);
+    const hours = DATA.hourly[ydate] || {};
+    const curH = Number(cur.time.slice(11,13));
+    // 어제 기록 중 지금 시각 이하의 가장 늦은 시간대 사용
+    const avail = Object.keys(hours).map(Number).filter(h => h <= curH).sort((a,b)=>b-a);
+    if(base && avail.length){
+      ydayHour = avail[0];
+      const hv = hours[p2(ydayHour)];
+      for(const id of ids){
+        const a = base.stats[id]?.views, b = hv[id];
+        if(a!=null && b!=null){ ydayBy[id] = b - a; ydaySum = (ydaySum||0) + (b - a); }
+      }
+    }
+  }
+
+  // 곡별 계산
+  const rows = ids.map(id => {
+    const cur = latest.stats[id] || {};
+    const pv = prev ? (prev.stats[id] || {}) : {};
+    const dViews = (prev && cur.views!=null && pv.views!=null) ? cur.views - pv.views : null;
+    const dLikes = (prev && cur.likes!=null && pv.likes!=null) ? cur.likes - pv.likes : null;
+    const share = songs[id].share == null ? 1 : songs[id].share; // 수익 지분 (0=선급 제외)
+    return { id, title: songs[id].title, url: songs[id].url, share,
+      views: cur.views, likes: cur.likes, dViews, dLikes };
+  }).sort((a,b) => (b.dViews??-1) - (a.dViews??-1));
+
+  // 예상 월 수익: 이번 달 "실제 누적"을 기반으로 추정 (월이 지날수록 실제 수익에 수렴)
+  //   이번 달 실측 일평균 × 그 달 일수 = 예상 월 스트리밍 → × 스트림당 단가 × 지분
+  const [Y, M] = (prev ? prev.date : latest.date).split("-").map(Number);
+  const daysInMonth = new Date(Y, M, 0).getDate();
+  const PER_STREAM = WON_PER_1000_DAILY / (1000 * 30); // 스트림당 원 (하루 1,000회≈월 25만원 기준 환산)
+  const monthProj = (id) => {
+    let mtd = 0, days = 0;
+    for(let i=1;i<snaps.length;i++){
+      const [y,m] = snaps[i-1].date.split("-").map(Number);
+      if(y !== Y || m !== M) continue; // 이번 달 일자만 집계
+      const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
+      if(a && b && a.views!=null && b.views!=null){ mtd += b.views - a.views; days++; }
+    }
+    return days > 0 ? { mtd, days, projStreams: mtd / days * daysInMonth } : null;
+  };
+  let projDays = 0;
+  rows.forEach(r => {
+    const p = monthProj(r.id);
+    if(p){ r.revenue = Math.round(p.projStreams * PER_STREAM * r.share); projDays = Math.max(projDays, p.days); }
+    else if(r.dViews != null){ r.revenue = Math.round(estMonthly(r.dViews) * r.share); }
+    else r.revenue = null;
+  });
+
+  // 요약 카드
+  const sumDViews = rows.reduce((s,r)=> s + (r.dViews||0), 0);
+  const sumDLikes = rows.reduce((s,r)=> s + (r.dLikes||0), 0);
+  const sumViews = rows.reduce((s,r)=> s + (r.views||0), 0);
+  const sumRevenue = Math.round(rows.reduce((s,r)=> s + (r.revenue||0), 0));
+  const dayLabel = prev ? " ("+mdShort(prev.date)+")" : "";
+  const curClock = cur?.time ? cur.time.slice(11) : "";
+  // 오늘 현재까지 vs 어제 동시간대 증감 표시
+  let liveCmp = "";
+  if(liveSum!=null && ydaySum!=null && ydaySum > 0){
+    const d = liveSum - ydaySum;
+    const cls = d>0 ? "pos" : d<0 ? "neg" : "flat";
+    const arrow = d>0 ? "▲" : d<0 ? "▼" : "·";
+    liveCmp = ` <span class="dchg ${cls}" style="font-size:13px">${arrow}${nf.format(Math.abs(d))} (${d>=0?"+":"-"}${Math.abs(d/ydaySum*100).toFixed(1)}%)</span>`;
+  }
+  const cards = [
+    ["오늘 현재까지"+(curClock ? ` (${curClock} 수집 · <span id="ago"></span>)` : ""), (liveSum!=null ? nf.format(liveSum) : "—") + liveCmp, "회"],
+    ["어제 동시간대"+(ydayHour!=null ? ` (00시→${ydayHour}시)` : ""), ydaySum!=null ? nf.format(ydaySum) : "—", "회"],
+    ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) : "—", "회"],
+    [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
+    ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
+    ["누적 총 조회수", nf.format(sumViews), "회"],
+  ];
+  document.getElementById("cards").innerHTML = cards.map(c =>
+    `<div class="card"><div class="label">${c[0]}</div><div class="value">${c[1]}<span class="unit">${c[2]}</span></div></div>`).join("");
+
+  // "몇 분 전 수집" 실시간 갱신
+  if(cur?.time){
+    const collected = new Date(cur.time.replace(" ", "T"));
+    const tick = () => {
+      const el = document.getElementById("ago");
+      if(!el) return;
+      const m = Math.floor((Date.now() - collected.getTime()) / 60000);
+      el.textContent = m < 1 ? "방금" : m < 60 ? `${m}분 전` : `${Math.floor(m/60)}시간 ${m%60}분 전`;
+    };
+    tick();
+    setInterval(tick, 30000);
+  }
+
+  // 기간 라벨
+  if(prev){
+    document.getElementById("rangeLabel").textContent = "(" + prev.date + " → " + latest.date + " 변화)";
+  } else {
+    document.getElementById("rangeLabel").textContent = "(첫 수집 — 내일 00시 이후 일일 수치가 나옵니다)";
+  }
+
+  // 표
+  const tw = document.getElementById("tableWrap");
+  tw.innerHTML =
+    `<table><thead><tr>
+      <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
+    </tr></thead><tbody>` +
+    rows.map(r => `<tr>
+      <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a></td>
+      <td class="delta up">${liveBy[r.id]!=null ? "+"+nf.format(liveBy[r.id]) : "<span class='muted'>—</span>"}</td>
+      <td class="delta" style="color:var(--muted)">${ydayBy[r.id]!=null ? "+"+nf.format(ydayBy[r.id]) : "<span class='muted'>—</span>"}</td>
+      <td class="delta up">${r.dViews!=null ? "+"+nf.format(r.dViews) : "<span class='muted'>—</span>"}</td>
+      <td class="delta money">${
+        r.share === 0 ? "<span class='muted'>선급 제외</span>"
+        : r.revenue!=null ? won(r.revenue) + (r.share !== 1 ? ` <span class='muted'>(${r.share*100}%)</span>` : "")
+        : "<span class='muted'>—</span>"
+      }</td>
+      <td class="delta like">${r.dLikes!=null ? "+"+nf.format(r.dLikes) : "<span class='muted'>—</span>"}</td>
+      <td>${r.views!=null ? nf.format(r.views) : "—"}</td>
+      <td>${r.likes!=null ? nf.format(r.likes) : "—"}</td>
+    </tr>`).join("") + `</tbody></table>`;
+
+  renderDailyMatrix(snaps, songs, ids);
+
+  // 추세: small multiples (곡마다 자기 스케일)
+  renderSmallMultiples(snaps, songs, ids);
+
+  // 곡별 상세 추세 (토글 선택, 전체 기간)
+  renderDetail(snaps, songs, ids);
+
+  // 마케팅 트래킹 (최근 90일, 감상 수치·증감만, 시작일 강조)
+  if(mkIds.length){
+    document.getElementById("mktPanel").style.display = "";
+    renderMktMatrix(snaps, songs, mkIds);
+    renderSmallMultiples(snaps, songs, mkIds,
+      { gridId: "mktGrid", window: 90, includeTotal: false, colorOffset: ids.length, emphasizeStart: true });
+  }
+}
+
+// 마케팅 일자별 표 — 최근 14일, 마케팅 시작일(🚀)부터 강조
+function renderMktMatrix(snaps, songs, mkIds){
+  const wrap = document.getElementById("mktMatrixWrap");
+  const periods = [];
+  for(let i=1;i<snaps.length;i++){
+    periods.push({ date: snaps[i-1].date, a: snaps[i-1], b: snaps[i] });
+  }
+  const recent = periods.slice(-14);
+  if(recent.length === 0){
+    wrap.innerHTML = '<div class="empty">이틀 이상 데이터가 쌓이면 일자별 표가 나타납니다.</div>';
+    return;
+  }
+  const daily = (p, id) => {
+    const x = p.a.stats[id], y = p.b.stats[id];
+    return (x && y && x.views!=null && y.views!=null) ? y.views - x.views : null;
+  };
+  const inMkt = (p, id) => songs[id].start && p.date >= songs[id].start;
+  const cell = (v, prevV, on) => {
+    if(v == null) return `<td${on ? ' class="mkton"' : ''}><span class='muted'>—</span></td>`;
+    let chg = "";
+    if(prevV != null){
+      const d = v - prevV;
+      if(d > 0) chg = `<div class="dchg pos">▲ ${nf.format(d)}</div>`;
+      else if(d < 0) chg = `<div class="dchg neg">▼ ${nf.format(-d)}</div>`;
+      else chg = `<div class="dchg flat">－ 0</div>`;
+    }
+    return `<td${on ? ' class="mkton"' : ''}><div class="dval">${nf.format(v)}</div>${chg}</td>`;
+  };
+
+  let html = `<div style="overflow-x:auto"><table><thead><tr><th>트랙</th>` +
+    recent.map(p => {
+      const isStart = mkIds.some(id => songs[id].start === p.date);
+      return `<th>${isStart ? "🚀 " : ""}${mdShort(p.date)}</th>`;
+    }).join("") + `</tr></thead><tbody>`;
+  for(const id of mkIds){
+    html += `<tr><td class="song"><a href="${songs[id].url}" target="_blank">${escapeHtml(songs[id].title)}</a></td>`;
+    for(let i=0;i<recent.length;i++){
+      const v = daily(recent[i], id);
+      const pv = i>0 ? daily(recent[i-1], id) : null;
+      html += cell(v, pv, inMkt(recent[i], id));
+    }
+    html += `</tr>`;
+  }
+  html += `</tbody></table></div>`;
+  wrap.innerHTML = html;
+}
+
+// 곡 토글 + 기간 토글 → 선택한 곡의 일별 감상 추세 (쌓인 전체 기간)
+function renderDetail(snaps, songs, ids){
+  const songBox = document.getElementById("songToggles");
+  const rangeBox = document.getElementById("rangeToggles");
+  // 일별 데이터 전체 구성
+  const dates = [], daily = {};
+  ids.forEach(id => daily[id] = []);
+  for(let i=1;i<snaps.length;i++){
+    dates.push(mdShort(snaps[i-1].date));
+    for(const id of ids){
+      const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
+      daily[id].push((a && b && a.views!=null && b.views!=null) ? b.views - a.views : null);
+    }
+  }
+  if(dates.length === 0){
+    songBox.parentElement.querySelector(".chartbox").innerHTML =
+      '<div class="empty">이틀 이상 데이터가 쌓이면 나타납니다.</div>';
+  }
+  const totals = dates.map((_,i) => {
+    let s = 0, any = false;
+    for(const id of ids){ const v = daily[id][i]; if(v!=null){ s+=v; any=true; } }
+    return any ? s : null;
+  });
+
+  const RANGES = [["1개월",30],["3개월",90],["1년",365],["전체",Infinity]];
+  const state = { sel: "__total__", range: Infinity };
+  let chart = null;
+
+  const colorOf = (sel) => sel === "__total__" ? "#c3c2b7" : palette[ids.indexOf(sel)%palette.length];
+  const dataOf  = (sel) => sel === "__total__" ? totals : daily[sel];
+
+  function draw(){
+    if(dates.length === 0) return;
+    const n = state.range === Infinity ? dates.length : Math.min(state.range, dates.length);
+    const lbl = dates.slice(-n), d = dataOf(state.sel).slice(-n);
+    const c = colorOf(state.sel);
+    if(chart) chart.destroy();
+    chart = new Chart(document.getElementById("detail"), {
+      type: "line",
+      data: { labels: lbl, datasets: [{
+        label: state.sel === "__total__" ? "전체 합계" : songs[state.sel].title,
+        data: d, borderColor: c, backgroundColor: c+"2e", fill: true,
+        tension: 0.3, spanGaps: true, borderWidth: 2,
+        pointRadius: lbl.length > 60 ? 0 : 2.5 }] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: "#8b93a3", maxTicksLimit: 12 }, grid: { display: false } },
+          y: { beginAtZero: false,
+            ticks: { color: "#8b93a3", callback: v => nf.format(v) }, grid: { color: "#232833" } }
+        } }
+    });
+  }
+
+  function paintButtons(){
+    songBox.innerHTML = "";
+    const mk = (label, sel) => {
+      const b = document.createElement("button");
+      b.className = "tbtn" + (state.sel === sel ? " active" : "");
+      b.textContent = label;
+      if(state.sel === sel) b.style.borderColor = b.style.color = colorOf(sel);
+      b.onclick = () => { state.sel = sel; paintButtons(); draw(); };
+      songBox.appendChild(b);
+    };
+    mk("전체 합계", "__total__");
+    ids.forEach(id => mk(songs[id].title, id));
+
+    rangeBox.innerHTML = "";
+    for(const [label, days] of RANGES){
+      const b = document.createElement("button");
+      b.className = "tbtn small" + (state.range === days ? " active" : "");
+      if(state.range === days) b.style.borderColor = b.style.color = "#e7eaf0";
+      b.textContent = label;
+      b.onclick = () => { state.range = days; paintButtons(); draw(); };
+      rangeBox.appendChild(b);
+    }
+  }
+
+  paintButtons();
+  draw();
+}
+
+// 곡별 미니 추세 차트 격자 — 각 곡이 자기 y축 범위를 가져 변동폭이 잘 보임
+// opts: gridId(격자 요소), window(일수), includeTotal(합계 카드), colorOffset(색 시작 슬롯)
+function renderSmallMultiples(snaps, songs, ids, opts = {}){
+  const { gridId = "multiGrid", window: WINDOW = 30, includeTotal = true, colorOffset = 0, emphasizeStart = false } = opts;
+  const grid = document.getElementById(gridId);
+  const allLabels = [], allDates = [];
+  for(let i=1;i<snaps.length;i++){ allLabels.push(mdShort(snaps[i-1].date)); allDates.push(snaps[i-1].date); }
+  if(allLabels.length === 0){
+    grid.innerHTML = '<div class="empty">이틀 이상 데이터가 쌓이면 나타납니다.</div>';
+    return;
+  }
+  const dates = allDates.slice(-WINDOW);
+  const seriesFor = (id) => {
+    const data = [];
+    for(let i=1;i<snaps.length;i++){
+      const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
+      data.push((a && b && a.views!=null && b.views!=null) ? b.views - a.views : null);
+    }
+    return data.slice(-WINDOW);
+  };
+  const labels = allLabels.slice(-WINDOW);
+  const totals = labels.map((_,i) => {
+    let s = 0, any = false;
+    for(const id of ids){ const v = seriesFor(id)[i]; if(v!=null){ s+=v; any=true; } }
+    return any ? s : null;
+  });
+  const facets = [
+    ...(includeTotal ? [{ title: "전체 합계", data: totals, color: "#c3c2b7" }] : []),
+    ...ids.map((id,idx) => ({ title: songs[id].title, data: seriesFor(id),
+      color: palette[(colorOffset+idx)%palette.length],
+      start: emphasizeStart ? songs[id].start : null })),
+  ];
+  grid.innerHTML = "";
+  for(const f of facets){
+    const vals = f.data.filter(v=>v!=null);
+    const lastV = vals.length ? vals[vals.length-1] : null;
+    const prevV = vals.length > 1 ? vals[vals.length-2] : null;
+    let deltaHtml = "";
+    if(lastV!=null && prevV!=null){
+      const d = lastV - prevV;
+      deltaHtml = d > 0 ? `<span class="fdelta pos">▲ ${nf.format(d)}</span>`
+        : d < 0 ? `<span class="fdelta neg">▼ ${nf.format(-d)}</span>`
+        : `<span class="fdelta flat">－ 0</span>`;
+    }
+    const el = document.createElement("div");
+    el.className = "facet";
+    el.innerHTML = `<div class="fhead"><span class="ftitle" style="border-left:3px solid ${f.color};padding-left:8px">${escapeHtml(f.title)}</span>${deltaHtml}</div>
+      <div class="fbig">${lastV!=null ? nf.format(lastV) : "—"}</div>
+      <div class="fchart"><canvas></canvas></div>`;
+    grid.appendChild(el);
+    // 마케팅 시작일 강조: 시작 전 구간은 회색, 시작 후는 트랙 색
+    const gray = "#5a6272";
+    const onAt = (i) => !f.start || (dates[i] && dates[i] >= f.start);
+    const pr = labels.length > 45 ? 0 : 2.5;
+    new Chart(el.querySelector("canvas"), {
+      type: "line",
+      data: { labels, datasets: [{ data: f.data, borderColor: f.color, backgroundColor: f.color+"2e",
+        fill: true, tension: 0.3, spanGaps: true, pointRadius: pr, borderWidth: 2,
+        ...(f.start ? {
+          segment: { borderColor: ctx => onAt(ctx.p1DataIndex) ? f.color : gray },
+          pointBackgroundColor: labels.map((_,i) => onAt(i) ? f.color : gray),
+          pointBorderColor: labels.map((_,i) => onAt(i) ? f.color : gray),
+        } : {}) }] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: "#8b93a3", maxTicksLimit: 6, font: { size: 10 } }, grid: { display: false } },
+          y: { beginAtZero: false,
+            ticks: { color: "#8b93a3", maxTicksLimit: 3, font: { size: 10 }, callback: v => nf.format(v) },
+            grid: { color: "#232833" } }
+        } }
+    });
+  }
+}
+
+// 일자별 스트리밍 매트릭스 (곡 × 최근 7일, 전일 대비 증감 표시)
+function renderDailyMatrix(snaps, songs, ids){
+  const wrap = document.getElementById("matrixWrap");
+  // 연속 스냅샷 쌍 → 하루치 구간
+  const periods = [];
+  for(let i=1;i<snaps.length;i++){
+    const a = snaps[i-1], b = snaps[i];
+    const gap = (new Date(b.date) - new Date(a.date)) / 86400000;
+    const md = (s)=>{ const [,m,d]=s.split("-"); return Number(m)+"/"+Number(d); };
+    periods.push({ a, b, label: gap > 1 ? md(a.date)+"~"+md(b.date) : md(a.date) });
+  }
+  const recent = periods.slice(-7);
+  if(recent.length === 0){
+    wrap.innerHTML = '<div class="empty">이틀 이상 데이터가 쌓이면 일자별 표가 나타납니다.</div>';
+    return;
+  }
+  const daily = (p, id) => {
+    const x = p.a.stats[id], y = p.b.stats[id];
+    return (x && y && x.views!=null && y.views!=null) ? y.views - x.views : null;
+  };
+  const cell = (v, prevV) => {
+    if(v == null) return "<td><span class='muted'>—</span></td>";
+    let chg = "";
+    if(prevV != null){
+      const d = v - prevV;
+      if(d > 0) chg = `<div class="dchg pos">▲ ${nf.format(d)}</div>`;
+      else if(d < 0) chg = `<div class="dchg neg">▼ ${nf.format(-d)}</div>`;
+      else chg = `<div class="dchg flat">－ 0</div>`;
+    }
+    return `<td><div class="dval">${nf.format(v)}</div>${chg}</td>`;
+  };
+  // 곡 정렬: 가장 최근 하루치 기준 내림차순
+  const last = recent[recent.length-1];
+  const order = [...ids].sort((x,y) => (daily(last,y)??-1) - (daily(last,x)??-1));
+
+  let html = `<table><thead><tr><th>곡</th>` +
+    recent.map(p => `<th>${p.label}</th>`).join("") + `</tr></thead><tbody>`;
+  for(const id of order){
+    html += `<tr><td class="song"><a href="${songs[id].url}" target="_blank">${escapeHtml(songs[id].title)}</a></td>`;
+    for(let i=0;i<recent.length;i++){
+      const v = daily(recent[i], id);
+      const pv = i>0 ? daily(recent[i-1], id) : null;
+      html += cell(v, pv);
+    }
+    html += `</tr>`;
+  }
+  // 합계 행
+  const tot = recent.map(p => {
+    let s = 0, any = false;
+    for(const id of ids){ const v = daily(p,id); if(v!=null){ s+=v; any=true; } }
+    return any ? s : null;
+  });
+  html += `<tr class="totalrow"><td class="song">전체 합계</td>`;
+  for(let i=0;i<tot.length;i++) html += cell(tot[i], i>0 ? tot[i-1] : null);
+  html += `</tr></tbody></table>`;
+  wrap.innerHTML = html;
+}
+
+function escapeHtml(s){ return (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+render();
+</script>
+</body>
+</html>
