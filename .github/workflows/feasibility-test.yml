@@ -1,0 +1,24 @@
+name: feasibility-test
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: charts innertube (트렌딩 차트 목록)
+        run: |
+          code=$(curl -s -o /tmp/chart.json -w '%{http_code}' 'https://charts.youtube.com/youtubei/v1/browse?alt=json' \
+            -H 'Content-Type: application/json' \
+            -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126.0 Safari/537.36' \
+            -H 'Referer: https://charts.youtube.com/charts/TrendingVideos/kr' \
+            --data '{"context":{"client":{"clientName":"WEB_MUSIC_ANALYTICS","clientVersion":"2.0","hl":"ko","gl":"KR","theme":"MUSIC"}},"browseId":"FEmusic_analytics_charts_home","query":"perspective=CHART_DETAILS&chart_params_country_code=kr&chart_params_chart_type=TRENDING_VIDEOS"}')
+          n=$(grep -o '"videoViews"' /tmp/chart.json | wc -l)
+          echo "CHARTS: http=$code videoViews_blocks=$n size=$(wc -c </tmp/chart.json)"
+      - name: player innertube (조회수)
+        run: |
+          curl -s 'https://www.youtube.com/youtubei/v1/player' -H 'Content-Type: application/json' \
+            --data '{"context":{"client":{"clientName":"WEB","clientVersion":"2.20260101.00.00","hl":"ko","gl":"KR"}},"videoId":"tUcWwAO5zU8"}' \
+            | python3 -c "import json,sys; d=json.load(sys.stdin); print('PLAYER:', d.get('playabilityStatus',{}).get('status'), 'views=', d.get('videoDetails',{}).get('viewCount'))"
+      - name: yt-dlp (조회수+좋아요)
+        run: |
+          pip install -q yt-dlp
+          yt-dlp --skip-download --no-warnings --print "YTDLP: views=%(view_count)s likes=%(like_count)s" https://www.youtube.com/watch?v=tUcWwAO5zU8 || echo "YTDLP: FAILED"
