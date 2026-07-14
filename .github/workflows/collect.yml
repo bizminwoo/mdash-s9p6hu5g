@@ -1,9 +1,8 @@
 name: collect
 on:
   workflow_dispatch:
-  # 데이터 이관 완료 후 활성화:
-  # schedule:
-  #   - cron: '0 * * * *'
+  schedule:
+    - cron: '0 * * * *'  # 매시 정각(UTC 기준이지만 스크립트는 TZ=Asia/Seoul로 동작)
 concurrency:
   group: collect
   cancel-in-progress: false
