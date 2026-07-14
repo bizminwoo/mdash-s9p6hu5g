@@ -105,11 +105,6 @@
     <h2>📅 일자별 스트리밍 (최근 7일) <span class="muted">— 각 칸: 그날 하루 스트리밍, ▲▼ 전일 대비 증감</span></h2>
     <div id="matrixWrap"></div>
   </div>
-  <div class="panel" id="hourlyPanel">
-    <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
-    <div class="multigrid" id="hourlyGrid"></div>
-    <div class="note">각 점 = 직전 1시간 동안의 스트리밍 (예: "14시" 점 = 13시→14시 사이 유입). 실선 = 오늘, 점선 = 어제. 숫자 = 가장 최근 1시간 유입, ▲▼ = 어제 같은 시간과 비교. 수집이 없던 시간(PC 절전 등)은 선이 건너뜁니다.</div>
-  </div>
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
     <div id="tableWrap"></div>
@@ -131,6 +126,11 @@
     <div id="mktMatrixWrap" style="margin-bottom:18px"></div>
     <div class="multigrid" id="mktGrid"></div>
     <div class="note">🚀 = 마케팅 시작일. 표와 그래프의 파란 강조 구간이 마케팅 기간입니다 (시작 전 구간은 회색).<br>트랙을 빼려면 marketing.json 에서 해당 줄을 지우면 다음 수집 때 사라집니다.</div>
+  </div>
+  <div class="panel" id="hourlyPanel">
+    <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
+    <div class="multigrid" id="hourlyGrid"></div>
+    <div class="note">각 점 = 직전 1시간 동안의 스트리밍 (예: "14시" 점 = 13시→14시 사이 유입). 실선 = 오늘, 점선 = 어제. 숫자 = 가장 최근 1시간 유입, ▲▼ = 어제 같은 시간과 비교. 수집이 없던 시간(PC 절전 등)은 선이 건너뜁니다.</div>
   </div>
 
 <script>
