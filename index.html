@@ -110,6 +110,11 @@
     <div id="tableWrap"></div>
     <div class="note">💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분.<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
   </div>
+  <div class="panel" id="hourlyPanel">
+    <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
+    <div class="multigrid" id="hourlyGrid"></div>
+    <div class="note">각 점 = 직전 1시간 동안의 스트리밍 (예: "14시" 점 = 13시→14시 사이 유입). 실선 = 오늘, 점선 = 어제. 숫자 = 가장 최근 1시간 유입, ▲▼ = 어제 같은 시간과 비교. 수집이 없던 시간(PC 절전 등)은 선이 건너뜁니다.</div>
+  </div>
   <div class="panel">
     <h2>일별 스트리밍 추세 (최근 30일) <span class="muted">— 곡마다 자기 스케일이라 변동이 그대로 보입니다</span></h2>
     <div class="multigrid" id="multiGrid"></div>
@@ -126,11 +131,6 @@
     <div id="mktMatrixWrap" style="margin-bottom:18px"></div>
     <div class="multigrid" id="mktGrid"></div>
     <div class="note">🚀 = 마케팅 시작일. 표와 그래프의 파란 강조 구간이 마케팅 기간입니다 (시작 전 구간은 회색).<br>트랙을 빼려면 marketing.json 에서 해당 줄을 지우면 다음 수집 때 사라집니다.</div>
-  </div>
-  <div class="panel" id="hourlyPanel">
-    <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
-    <div class="multigrid" id="hourlyGrid"></div>
-    <div class="note">각 점 = 직전 1시간 동안의 스트리밍 (예: "14시" 점 = 13시→14시 사이 유입). 실선 = 오늘, 점선 = 어제. 숫자 = 가장 최근 1시간 유입, ▲▼ = 어제 같은 시간과 비교. 수집이 없던 시간(PC 절전 등)은 선이 건너뜁니다.</div>
   </div>
 
 <script>
