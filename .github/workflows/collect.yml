@@ -2,7 +2,7 @@ name: collect
 on:
   workflow_dispatch:
   schedule:
-    - cron: '5 * * * *'  # 매시 5분
+    - cron: '5,25,45 * * * *'  # 5분 본수집 + 25/45분 백업(누락 시 자동 보충)
 concurrency:
   group: collect
   cancel-in-progress: false

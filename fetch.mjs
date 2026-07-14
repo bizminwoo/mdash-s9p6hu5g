@@ -121,9 +121,12 @@ async function main() {
     db.snapshots.sort((a, b) => (a.date < b.date ? -1 : 1));
 
     // 시간별 스냅샷 — "어제 동시간대" 비교용 (조회수만, 최근 8일 유지)
+    // 같은 시간에 여러 번 실행돼도 "그 시간의 첫 수집"만 기록 → 시간대 비교 기준이 일정하고,
+    // 5분 예약이 누락되면 25분/45분 백업 실행이 그 시간 칸을 자동으로 채움
     const hh = String(new Date().getHours()).padStart(2, "0");
     db.hourly = db.hourly || {};
-    (db.hourly[today] = db.hourly[today] || {})[hh] = Object.fromEntries(
+    const hcur = (db.hourly[today] = db.hourly[today] || {});
+    if (!hcur[hh]) hcur[hh] = Object.fromEntries(
       Object.entries(stats).filter(([, s]) => s.views != null).map(([vid, s]) => [vid, s.views]));
     const cutoff = localDate(new Date(Date.now() - 8 * 86400000));
     for (const d of Object.keys(db.hourly)) if (d < cutoff) delete db.hourly[d];
