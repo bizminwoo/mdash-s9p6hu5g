@@ -113,7 +113,7 @@
   <div class="panel" id="hourlyPanel">
     <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
     <div class="multigrid" id="hourlyGrid"></div>
-    <div class="note">각 점 = 직전 1시간 동안의 스트리밍 (예: "14시" 점 = 13시→14시 사이 유입). 실선 = 오늘, 점선 = 어제. 숫자 = 가장 최근 1시간 유입, ▲▼ = 어제 같은 시간과 비교. 수집이 없던 시간(PC 절전 등)은 선이 건너뜁니다.</div>
+    <div class="note">각 점 = 직전 1시간 동안의 스트리밍 (예: "14시" 점 = 13시 정각→14시 정각 사이 유입). 실제 수집이 몇 분에 되든 <b>정각 값으로 환산</b>해 계산하므로 매일 같은 기준입니다. 실선 = 오늘, 점선 = 어제. 숫자 = 가장 최근 1시간 유입, ▲▼ = 어제 같은 시간과 비교. 수집 공백이 2시간 반을 넘는 구간은 선이 끊깁니다.</div>
   </div>
   <div class="panel">
     <h2>일별 스트리밍 추세 (최근 30일) <span class="muted">— 곡마다 자기 스케일이라 변동이 그대로 보입니다</span></h2>
@@ -136,6 +136,39 @@
 <script>
 const DATA = /*__DATA__*/ null;
 const SP = /*__SP__*/ null; // 스포티파이 인기도 (없으면 null)
+
+// ── 정각(H:00) 환산 ──
+// 수집이 몇 분에 되든, 정각을 사이에 둔 두 수집값을 분 단위로 비례 배분해 "딱 H시 00분" 값을 계산.
+// 예: 15:05에 10,000 → 16:05에 10,600 이면 16:00 값 = 10,550.
+const _sampleCache = {};
+function hourlySamples(id){
+  if(_sampleCache[id]) return _sampleCache[id];
+  const out = [];
+  const H = DATA.hourly || {}, M = DATA.hourlyMin || {};
+  for(const d of Object.keys(H).sort()){
+    for(const hh of Object.keys(H[d]).sort()){
+      const v = H[d][hh]?.[id];
+      if(v == null) continue;
+      const min = M[d]?.[hh] ?? 0; // 분 기록이 없는 과거 데이터는 정각 수집으로 간주
+      out.push({ t: new Date(d + "T" + hh + ":00:00").getTime()/60000 + min, v });
+    }
+  }
+  return _sampleCache[id] = out;
+}
+// dateStr 의 hour시 00분 정각 값 (hour 는 음수/24 이상도 허용 — 전날/다음날로 이어짐)
+function estAt(id, dateStr, hour){
+  const target = new Date(dateStr + "T00:00:00").getTime()/60000 + hour*60;
+  let lo = null, hi = null;
+  for(const p of hourlySamples(id)){
+    if(p.t <= target) lo = p;
+    else { hi = p; break; }
+  }
+  if(lo && lo.t === target) return lo.v;
+  // 두 수집 간격이 2.5시간 이내일 때만 보간 (절전 공백 등 긴 구멍은 환산하지 않음)
+  if(lo && hi && hi.t - lo.t <= 150)
+    return Math.round(lo.v + (hi.v - lo.v) * (target - lo.t) / (hi.t - lo.t));
+  return null;
+}
 
 // 스포티파이 인기도 셀: 현재 점수 + 어제 대비 변동
 function spCell(id){
@@ -188,43 +221,38 @@ function render(){
     "마지막 수집: " + (cur?.time || latest.time || latest.date) + "  ·  추적 곡 " + ids.length + "곡"
     + (mkIds.length ? "  ·  마케팅 " + mkIds.length + "트랙" : "");
 
-  // 오늘 현재까지 — 시간 단위 기준으로 통일: 수집이 몇 분에 되든 "그 시간의 첫 수집" 칸만 사용.
-  // 즉 표시값은 항상 "00시→N시" 이고, 어제와도 같은 N시 칸끼리 비교한다.
+  // 오늘 현재까지 — 정각 기준: "00시 정각 → N시 정각" 환산값. 수집이 몇 분에 되든 N시 00분 값으로 계산.
   const p2 = n => String(n).padStart(2,"0");
   const liveBy = {};
   let liveSum = null, liveHour = null;
   {
-    const todayHours = (DATA.hourly || {})[latest.date] || {};
-    const avail = Object.keys(todayHours).map(Number).sort((a,b)=>b-a);
-    if(avail.length){
-      liveHour = avail[0];
-      const hv = todayHours[p2(liveHour)];
+    const avail = Object.keys((DATA.hourly || {})[latest.date] || {}).map(Number).sort((a,b)=>b-a);
+    for(const H of avail){
+      if(H === 0) break;
+      let sum = null; const by = {};
       for(const id of ids){
-        const a = latest.stats[id]?.views, b = hv[id];
-        if(a!=null && b!=null){ liveBy[id] = b - a; liveSum = (liveSum||0) + (b - a); }
+        const a = estAt(id, latest.date, 0) ?? latest.stats[id]?.views;
+        const b = estAt(id, latest.date, H);
+        if(a!=null && b!=null){ by[id] = b - a; sum = (sum||0) + (b - a); }
       }
+      if(sum != null){ liveHour = H; Object.assign(liveBy, by); liveSum = sum; break; }
     }
   }
 
-  // 어제 동시간대 (어제 00시 기준값 대비 어제 같은 N시 칸 — 시간별 스냅샷 기반)
+  // 어제 동시간대 — 어제의 같은 N시 정각 값끼리 비교
   const ydayBy = {};
   let ydaySum = null, ydayHour = null;
-  if(liveHour != null && DATA.hourly){
+  if(liveHour != null){
     const [cy,cm,cd] = latest.date.split("-").map(Number);
     const yd = new Date(cy, cm-1, cd-1);
     const ydate = `${yd.getFullYear()}-${p2(yd.getMonth()+1)}-${p2(yd.getDate())}`;
     const base = snaps.find(s => s.date === ydate);
-    const hours = DATA.hourly[ydate] || {};
-    // 어제 기록 중 오늘 기준 시각(N시) 이하의 가장 늦은 칸 (정상적으론 같은 N시)
-    const avail = Object.keys(hours).map(Number).filter(h => h <= liveHour).sort((a,b)=>b-a);
-    if(base && avail.length){
-      ydayHour = avail[0];
-      const hv = hours[p2(ydayHour)];
-      for(const id of ids){
-        const a = base.stats[id]?.views, b = hv[id];
-        if(a!=null && b!=null){ ydayBy[id] = b - a; ydaySum = (ydaySum||0) + (b - a); }
-      }
+    for(const id of ids){
+      const a = estAt(id, ydate, 0) ?? base?.stats?.[id]?.views;
+      const b = estAt(id, ydate, liveHour);
+      if(a!=null && b!=null){ ydayBy[id] = b - a; ydaySum = (ydaySum||0) + (b - a); }
     }
+    if(ydaySum != null) ydayHour = liveHour;
   }
 
   // 곡별 계산
@@ -490,19 +518,13 @@ function renderHourly(songs, ids){
   // '어제'가 실제 하루 전일 때만 비교선 표시 (수집 공백 대비)
   const yday = prev && (new Date(today) - new Date(prev) === 86400000) ? prev : null;
   const labels = Array.from({length:24}, (_,h) => h + "시");
-  const hh = (h) => String(h).padStart(2, "0");
-  const dayBefore = (d) => { const t = new Date(d + "T00:00:00");
-    const p = new Date(t.getTime() - 86400000), z = (n)=>String(n).padStart(2,"0");
-    return `${p.getFullYear()}-${z(p.getMonth()+1)}-${z(p.getDate())}`; };
 
-  // "h시" 값 = h-1시 → h시 사이 유입 (연속된 두 시각이 다 있어야 계산, 아니면 공백)
-  // h=0 은 전날 23시 → 오늘 00시
+  // "h시" 값 = (h-1)시 정각 → h시 정각 사이 유입 — 수집 시각과 무관하게 정각 환산값으로 계산
   const seriesOf = (d, id) => {
     if(!d) return labels.map(() => null);
     return labels.map((_, h) => {
-      const cur = hourly[d]?.[hh(h)]?.[id];
-      const before = h === 0 ? hourly[dayBefore(d)]?.["23"]?.[id] : hourly[d]?.[hh(h-1)]?.[id];
-      return (cur != null && before != null) ? cur - before : null;
+      const a = estAt(id, d, h - 1), b = estAt(id, d, h);
+      return (a != null && b != null) ? b - a : null;
     });
   };
   const totalOf = (d) => {

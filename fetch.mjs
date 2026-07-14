@@ -126,10 +126,16 @@ async function main() {
     const hh = String(new Date().getHours()).padStart(2, "0");
     db.hourly = db.hourly || {};
     const hcur = (db.hourly[today] = db.hourly[today] || {});
-    if (!hcur[hh]) hcur[hh] = Object.fromEntries(
-      Object.entries(stats).filter(([, s]) => s.views != null).map(([vid, s]) => [vid, s.views]));
+    if (!hcur[hh]) {
+      hcur[hh] = Object.fromEntries(
+        Object.entries(stats).filter(([, s]) => s.views != null).map(([vid, s]) => [vid, s.views]));
+      // 수집된 "분"도 기록 → 대시보드가 정각(H:00) 값으로 비례 환산할 때 사용
+      db.hourlyMin = db.hourlyMin || {};
+      (db.hourlyMin[today] = db.hourlyMin[today] || {})[hh] = new Date().getMinutes();
+    }
     const cutoff = localDate(new Date(Date.now() - 8 * 86400000));
     for (const d of Object.keys(db.hourly)) if (d < cutoff) delete db.hourly[d];
+    for (const d of Object.keys(db.hourlyMin || {})) if (d < cutoff) delete db.hourlyMin[d];
 
     writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), "utf8");
   }
