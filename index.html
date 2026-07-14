@@ -105,6 +105,11 @@
     <h2>📅 일자별 스트리밍 (최근 7일) <span class="muted">— 각 칸: 그날 하루 스트리밍, ▲▼ 전일 대비 증감</span></h2>
     <div id="matrixWrap"></div>
   </div>
+  <div class="panel" id="hourlyPanel">
+    <h2>⏰ 시간대별 누적 스트리밍 <span class="muted">— 하루 24시간, 시간마다 얼마나 쌓이는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
+    <div class="multigrid" id="hourlyGrid"></div>
+    <div class="note">실선 = 오늘 00시부터 그 시각까지의 누적 스트리밍, 점선 = 어제의 같은 흐름. 숫자 = 오늘 현재까지 누적, ▲▼ = 어제 동시간 대비. 수집이 없던 시간(PC 절전 등)은 선이 건너뜁니다.</div>
+  </div>
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
     <div id="tableWrap"></div>
@@ -306,6 +311,9 @@ function render(){
 
   renderDailyMatrix(snaps, songs, ids);
 
+  // 시간대별 누적 (오늘 vs 어제)
+  renderHourly(songs, ids);
+
   // 추세: small multiples (곡마다 자기 스케일)
   renderSmallMultiples(snaps, songs, ids);
 
@@ -448,6 +456,93 @@ function renderDetail(snaps, songs, ids){
 
   paintButtons();
   draw();
+}
+
+// 시간대별 누적 스트리밍 (오늘 실선 vs 어제 점선) — 곡별 small multiple
+function renderHourly(songs, ids){
+  const panel = document.getElementById("hourlyPanel");
+  const grid = document.getElementById("hourlyGrid");
+  const hourly = DATA.hourly || {};
+  const days = Object.keys(hourly).sort();
+  if(days.length === 0){ panel.style.display = "none"; return; }
+  const today = days[days.length-1];
+  const prev = days.length > 1 ? days[days.length-2] : null;
+  // '어제'가 실제 하루 전일 때만 비교선 표시 (수집 공백 대비)
+  const yday = prev && (new Date(today) - new Date(prev) === 86400000) ? prev : null;
+  const labels = Array.from({length:24}, (_,h) => h + "시");
+  const hh = (h) => String(h).padStart(2, "0");
+
+  // 그날 기준값 = 스냅샷(00시 수집), 없으면 hourly의 00시 값
+  const baseOf = (d, id) => {
+    const s = (DATA.snapshots || []).find(x => x.date === d);
+    const b = s?.stats?.[id]?.views;
+    return b != null ? b : hourly[d]?.["00"]?.[id];
+  };
+  const seriesOf = (d, id) => {
+    if(!d) return labels.map(() => null);
+    const base = baseOf(d, id);
+    if(base == null) return labels.map(() => null);
+    return labels.map((_, h) => {
+      const v = hourly[d]?.[hh(h)]?.[id];
+      return v != null ? v - base : null;
+    });
+  };
+  const totalOf = (d) => {
+    if(!d) return labels.map(() => null);
+    const per = ids.map(id => seriesOf(d, id));
+    return labels.map((_, h) => per.every(p => p[h] != null)
+      ? per.reduce((s, p) => s + p[h], 0) : null);
+  };
+
+  const facets = [
+    { title: "전체 합계", color: "#c3c2b7", today: totalOf(today), yday: totalOf(yday) },
+    ...ids.map((id, idx) => ({ title: songs[id].title, color: palette[idx % palette.length],
+      today: seriesOf(today, id), yday: seriesOf(yday, id) })),
+  ];
+
+  const gray = "#8b93a3";
+  grid.innerHTML = "";
+  for(const f of facets){
+    // 오늘 마지막 수집 시각의 누적값과 어제 같은 시각의 값 비교
+    const lastIdx = f.today.reduce((a, v, i) => v != null ? i : a, -1);
+    const lastT = lastIdx >= 0 ? f.today[lastIdx] : null;
+    const ySame = lastIdx >= 0 ? f.yday[lastIdx] : null;
+    let deltaHtml = "";
+    if(lastT != null && ySame != null && ySame > 0){
+      const pct = Math.round((lastT - ySame) / ySame * 100);
+      deltaHtml = pct > 0 ? `<span class="fdelta pos">▲ ${pct}%</span>`
+        : pct < 0 ? `<span class="fdelta neg">▼ ${-pct}%</span>`
+        : `<span class="fdelta flat">－ 0%</span>`;
+    }
+    const el = document.createElement("div");
+    el.className = "facet";
+    el.innerHTML = `<div class="fhead"><span class="ftitle" style="border-left:3px solid ${f.color};padding-left:8px">${escapeHtml(f.title)}</span>${deltaHtml}</div>
+      <div class="fbig">${lastT != null ? nf.format(lastT) : "—"}</div>
+      <div class="fchart"><canvas></canvas></div>`;
+    grid.appendChild(el);
+    const tPoints = f.today.filter(v => v != null).length;
+    new Chart(el.querySelector("canvas"), {
+      type: "line",
+      data: { labels, datasets: [
+        { label: "오늘", data: f.today, borderColor: f.color, backgroundColor: f.color + "2e",
+          fill: true, tension: 0.25, spanGaps: true, borderWidth: 2,
+          pointRadius: tPoints < 2 ? 3 : 0, pointHitRadius: 8 },
+        { label: "어제", data: f.yday, borderColor: gray, borderDash: [5, 4],
+          fill: false, tension: 0.25, spanGaps: true, borderWidth: 1.5,
+          pointRadius: 0, pointHitRadius: 8 },
+      ] },
+      options: { responsive: true, maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${nf.format(c.parsed.y)}` } } },
+        scales: {
+          x: { ticks: { color: "#8b93a3", maxTicksLimit: 7, font: { size: 10 } }, grid: { display: false } },
+          y: { beginAtZero: true,
+            ticks: { color: "#8b93a3", maxTicksLimit: 3, font: { size: 10 }, callback: v => nf.format(v) },
+            grid: { color: "#232833" } }
+        } }
+    });
+  }
 }
 
 // 곡별 미니 추세 차트 격자 — 각 곡이 자기 y축 범위를 가져 변동폭이 잘 보임
