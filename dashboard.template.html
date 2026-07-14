@@ -106,9 +106,9 @@
     <div id="matrixWrap"></div>
   </div>
   <div class="panel" id="hourlyPanel">
-    <h2>⏰ 시간대별 누적 스트리밍 <span class="muted">— 하루 24시간, 시간마다 얼마나 쌓이는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
+    <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
     <div class="multigrid" id="hourlyGrid"></div>
-    <div class="note">실선 = 오늘 00시부터 그 시각까지의 누적 스트리밍, 점선 = 어제의 같은 흐름. 숫자 = 오늘 현재까지 누적, ▲▼ = 어제 동시간 대비. 수집이 없던 시간(PC 절전 등)은 선이 건너뜁니다.</div>
+    <div class="note">각 점 = 직전 1시간 동안의 스트리밍 (예: "14시" 점 = 13시→14시 사이 유입). 실선 = 오늘, 점선 = 어제. 숫자 = 가장 최근 1시간 유입, ▲▼ = 어제 같은 시간과 비교. 수집이 없던 시간(PC 절전 등)은 선이 건너뜁니다.</div>
   </div>
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
@@ -458,7 +458,7 @@ function renderDetail(snaps, songs, ids){
   draw();
 }
 
-// 시간대별 누적 스트리밍 (오늘 실선 vs 어제 점선) — 곡별 small multiple
+// 시간대별 스트리밍 — 각 시각의 직전 1시간 유입량 (오늘 실선 vs 어제 점선), 곡별 small multiple
 function renderHourly(songs, ids){
   const panel = document.getElementById("hourlyPanel");
   const grid = document.getElementById("hourlyGrid");
@@ -471,20 +471,18 @@ function renderHourly(songs, ids){
   const yday = prev && (new Date(today) - new Date(prev) === 86400000) ? prev : null;
   const labels = Array.from({length:24}, (_,h) => h + "시");
   const hh = (h) => String(h).padStart(2, "0");
+  const dayBefore = (d) => { const t = new Date(d + "T00:00:00");
+    const p = new Date(t.getTime() - 86400000), z = (n)=>String(n).padStart(2,"0");
+    return `${p.getFullYear()}-${z(p.getMonth()+1)}-${z(p.getDate())}`; };
 
-  // 그날 기준값 = 스냅샷(00시 수집), 없으면 hourly의 00시 값
-  const baseOf = (d, id) => {
-    const s = (DATA.snapshots || []).find(x => x.date === d);
-    const b = s?.stats?.[id]?.views;
-    return b != null ? b : hourly[d]?.["00"]?.[id];
-  };
+  // "h시" 값 = h-1시 → h시 사이 유입 (연속된 두 시각이 다 있어야 계산, 아니면 공백)
+  // h=0 은 전날 23시 → 오늘 00시
   const seriesOf = (d, id) => {
     if(!d) return labels.map(() => null);
-    const base = baseOf(d, id);
-    if(base == null) return labels.map(() => null);
     return labels.map((_, h) => {
-      const v = hourly[d]?.[hh(h)]?.[id];
-      return v != null ? v - base : null;
+      const cur = hourly[d]?.[hh(h)]?.[id];
+      const before = h === 0 ? hourly[dayBefore(d)]?.["23"]?.[id] : hourly[d]?.[hh(h-1)]?.[id];
+      return (cur != null && before != null) ? cur - before : null;
     });
   };
   const totalOf = (d) => {
@@ -503,7 +501,7 @@ function renderHourly(songs, ids){
   const gray = "#8b93a3";
   grid.innerHTML = "";
   for(const f of facets){
-    // 오늘 마지막 수집 시각의 누적값과 어제 같은 시각의 값 비교
+    // 오늘 가장 최근 1시간 유입과 어제 같은 시각의 유입 비교
     const lastIdx = f.today.reduce((a, v, i) => v != null ? i : a, -1);
     const lastT = lastIdx >= 0 ? f.today[lastIdx] : null;
     const ySame = lastIdx >= 0 ? f.yday[lastIdx] : null;
