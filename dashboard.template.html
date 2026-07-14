@@ -135,6 +135,19 @@
 
 <script>
 const DATA = /*__DATA__*/ null;
+const SP = /*__SP__*/ null; // 스포티파이 인기도 (없으면 null)
+
+// 스포티파이 인기도 셀: 현재 점수 + 어제 대비 변동
+function spCell(id){
+  const cur = SP?.current?.pop?.[id];
+  if(cur == null) return "<span class='muted'>—</span>";
+  const ss = SP.snapshots || [];
+  const prev = ss.length > 1 ? ss[ss.length-2].pop?.[id] : null;
+  let d = "";
+  if(prev != null && cur !== prev) d = cur > prev
+    ? ` <span class="dchg pos">▲${cur-prev}</span>` : ` <span class="dchg neg">▼${prev-cur}</span>`;
+  return `<b>${cur}</b>${d}`;
+}
 
 // 예상 수익 기준: 하루 1,000회 스트리밍 ≈ 한 달 250,000원
 const WON_PER_1000_DAILY = 250000;
@@ -292,7 +305,7 @@ function render(){
   const tw = document.getElementById("tableWrap");
   tw.innerHTML =
     `<table><thead><tr>
-      <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
+      <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>최근 하루 좋아요</th><th>SP 인기도</th><th>누적 조회수</th><th>누적 좋아요</th>
     </tr></thead><tbody>` +
     rows.map(r => `<tr>
       <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a></td>
@@ -305,6 +318,7 @@ function render(){
         : "<span class='muted'>—</span>"
       }</td>
       <td class="delta like">${r.dLikes!=null ? "+"+nf.format(r.dLikes) : "<span class='muted'>—</span>"}</td>
+      <td>${spCell(r.id)}</td>
       <td>${r.views!=null ? nf.format(r.views) : "—"}</td>
       <td>${r.likes!=null ? nf.format(r.likes) : "—"}</td>
     </tr>`).join("") + `</tbody></table>`;

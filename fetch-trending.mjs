@@ -202,10 +202,13 @@ async function main() {
     ownIds = Object.entries(main.songs || {}).filter(([, s]) => !s.marketing).map(([id]) => id);
   } catch { /* 없어도 무방 */ }
 
+  const SP_FILE = join(ROOT, "data", "spotify.json");
+  const sp = existsSync(SP_FILE) ? readFileSync(SP_FILE, "utf8") : "null";
   const tpl = readFileSync(TEMPLATE, "utf8");
   writeFileSync(OUTPUT,
     tpl.replace("/*__DATA__*/ null", JSON.stringify(db))
-       .replace("/*__OWN__*/ null", JSON.stringify(ownIds)), "utf8");
+       .replace("/*__OWN__*/ null", JSON.stringify(ownIds))
+       .replace("/*__SP__*/ null", sp), "utf8");
   console.log(`[완료] 저장: data/trending.json, 페이지: trending.html`);
 }
 

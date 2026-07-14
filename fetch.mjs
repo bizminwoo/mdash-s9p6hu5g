@@ -132,8 +132,11 @@ async function main() {
   }
 
   // index.html (대시보드) 생성
+  const SP_FILE = join(ROOT, "data", "spotify.json");
+  const sp = existsSync(SP_FILE) ? readFileSync(SP_FILE, "utf8") : "null";
   const tpl = readFileSync(TEMPLATE, "utf8");
-  writeFileSync(OUTPUT, tpl.replace("/*__DATA__*/ null", JSON.stringify(db)), "utf8");
+  writeFileSync(OUTPUT, tpl.replace("/*__DATA__*/ null", JSON.stringify(db))
+    .replace("/*__SP__*/ null", sp), "utf8");
 
   // bep.html 생성
   const BEP_TEMPLATE = join(ROOT, "bep.template.html");

@@ -73,6 +73,19 @@
 <script>
 const DB = /*__DATA__*/ null;
 const OWN = new Set(/*__OWN__*/ null || []);
+const SP = /*__SP__*/ null; // 스포티파이 인기도 (없으면 null)
+
+function spCell(id){
+  const cur = SP?.current?.pop?.[id];
+  if(cur == null) return "<span class='zero'>—</span>";
+  const ss = SP.snapshots || [];
+  const prev = ss.length > 1 ? ss[ss.length-2].pop?.[id] : null;
+  let d = "";
+  if(prev != null && cur !== prev) d = cur > prev
+    ? ` <span class="up" style="font-size:11px">▲${cur-prev}</span>`
+    : ` <span class="down" style="font-size:11px">▼${prev-cur}</span>`;
+  return `<b>${cur}</b>${d}`;
+}
 
 const fmt = (n) => n == null ? "–" : n.toLocaleString("ko-KR");
 const dstr = (d) => { const p = (n) => String(n).padStart(2, "0");
@@ -106,13 +119,13 @@ const hasYesterday = (DB.chartDates?.[ydate] || []).length > 0;
 document.getElementById("updated").innerHTML =
   "업데이트: " + (DB.current?.time || "-") + " · 추적 " + Object.keys(DB.videos || {}).length + "곡";
 
-function headRow(withRank) {
+function headRow(withRank, withSp) {
   return "<tr>" + (withRank ? '<th class="rank">순위</th>' : "") + '<th class="song">곡</th>' +
     days.map((d) => "<th>" + d.slice(5).replace("-", "/") + (d === today ? "<br>오늘(현재)" : "") + "</th>").join("") +
-    "<th>총 조회수</th></tr>";
+    (withSp ? "<th>SP 인기도</th>" : "") + "<th>총 조회수</th></tr>";
 }
 
-function bodyRow(id, pos, withRank = pos != null) {
+function bodyRow(id, pos, withRank = pos != null, withSp = false) {
   const v = DB.videos[id] || {};
   const cells = days.map((d) => {
     const n = dailyOf(id, d);
@@ -135,7 +148,7 @@ function bodyRow(id, pos, withRank = pos != null) {
   return '<tr class="' + (OWN.has(id) ? "mine" : "") + '">' + rank +
     '<td class="song"><a href="https://youtu.be/' + id + '" target="_blank">' + (v.title || id) + "</a>" +
     '<span class="artist">' + (v.artist || "") + (v.release ? " · " + v.release + " 발매" : "") + "</span></td>" +
-    cells + "<td>" + fmt(total) + "</td></tr>";
+    cells + (withSp ? "<td>" + spCell(id) + "</td>" : "") + "<td>" + fmt(total) + "</td></tr>";
 }
 
 // 현재 차트
@@ -153,8 +166,8 @@ const watch = Object.keys(DB.videos || {}).filter((id) => DB.videos[id].watch)
 if (watch.length) {
   document.getElementById("compPanel").style.display = "";
   document.getElementById("compWrap").innerHTML =
-    "<table><thead>" + headRow(true) + "</thead><tbody>" +
-    watch.map((id) => bodyRow(id, posOf[id] ?? null, true)).join("") + "</tbody></table>";
+    "<table><thead>" + headRow(true, true) + "</thead><tbody>" +
+    watch.map((id) => bodyRow(id, posOf[id] ?? null, true, true)).join("") + "</tbody></table>";
 }
 
 // 차트 아웃 후 추적 중 (경쟁사 곡은 위 표에 있으므로 제외)
