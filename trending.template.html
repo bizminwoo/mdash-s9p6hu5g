@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
 <title>인기 급상승 · 유튜브 차트 한국</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root {
     --bg: #0f1115; --panel: #181b22; --panel2: #1f232c; --line: #2a2f3a;
@@ -44,6 +45,17 @@
   .today { color: var(--up); font-weight: 700; }
   .note { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.6; }
   .empty { color: var(--muted); text-align: center; padding: 40px; }
+  /* 좋아요 추이 small multiples */
+  .multigrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .facet { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .fhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .ftitle { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fdelta { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .fdelta.pos { color: var(--up); } .fdelta.neg { color: var(--down); }
+  .fbig { font-size: 22px; font-weight: 700; margin: 6px 0 8px; }
+  .fbig .sub2 { font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .fchart { position: relative; height: 120px; }
+  @media (max-width: 640px) { .multigrid { grid-template-columns: 1fr; } }
   @media (max-width: 640px) { body { padding: 14px; } }
 </style>
 </head>
@@ -64,6 +76,11 @@
   <div class="panel" id="compPanel" style="display:none">
     <h2>🎯 경쟁사·관심 곡 추적 <span class="muted">— 기간 제한 없이 계속 수집 (competitors.json 에 링크 추가/삭제)</span></h2>
     <div class="wrap" id="compWrap"></div>
+  </div>
+  <div class="panel" id="likesPanel" style="display:none">
+    <h2>❤️ 좋아요 증가 추이 <span class="muted">— 1시간 단위 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
+    <div class="multigrid" id="likesGrid"></div>
+    <div class="note">각 점 = 직전 1시간 동안 늘어난 좋아요 (수집이 몇 분에 되든 정각 값으로 환산). 큰 숫자 = 총 좋아요, 옆 = 오늘 00시 이후 증가. competitors.json 에서 해당 곡에 <code>"likes": true</code> 를 붙이면 이 분석에 추가됩니다.</div>
   </div>
   <div class="panel" id="droppedPanel" style="display:none">
     <h2>차트 아웃 후 추적 중 <span class="muted">— 차트에서 빠진 뒤 14일간 계속 수집</span></h2>
@@ -169,6 +186,91 @@ if (watch.length) {
     "<table><thead>" + headRow(true, true) + "</thead><tbody>" +
     watch.map((id) => bodyRow(id, posOf[id] ?? null, true, true)).join("") + "</tbody></table>";
 }
+
+// ── ❤️ 좋아요 증가 추이 (likesTrack 곡) ──
+// 정각(H:00) 환산: 수집 분(hourlyLikesMin)을 반영해 두 수집값을 비례 배분
+const _lkCache = {};
+function lkSamples(id){
+  if(_lkCache[id]) return _lkCache[id];
+  const out = [];
+  const H = DB.hourlyLikes || {}, M = DB.hourlyLikesMin || {};
+  for(const d of Object.keys(H).sort()){
+    for(const hh of Object.keys(H[d]).sort()){
+      const v = H[d][hh]?.[id];
+      if(v == null) continue;
+      out.push({ t: new Date(d + "T" + hh + ":00:00").getTime()/60000 + (M[d]?.[hh] ?? 0), v });
+    }
+  }
+  return _lkCache[id] = out;
+}
+function lkAt(id, dateStr, hour){
+  const target = new Date(dateStr + "T00:00:00").getTime()/60000 + hour*60;
+  let lo = null, hi = null;
+  for(const p of lkSamples(id)){
+    if(p.t <= target) lo = p; else { hi = p; break; }
+  }
+  if(lo && lo.t === target) return lo.v;
+  if(lo && hi && hi.t - lo.t <= 150)
+    return Math.round(lo.v + (hi.v - lo.v) * (target - lo.t) / (hi.t - lo.t));
+  return null;
+}
+(function renderLikes(){
+  const tracked = Object.keys(DB.videos || {}).filter((id) => DB.videos[id].likesTrack)
+    .sort((a, b) => (DB.videos[a].order ?? 99) - (DB.videos[b].order ?? 99));
+  if(!tracked.length || typeof Chart === "undefined") return;
+  const lkDays = Object.keys(DB.hourlyLikes || {}).sort();
+  if(!lkDays.length) {
+    document.getElementById("likesPanel").style.display = "";
+    document.getElementById("likesGrid").innerHTML =
+      '<div class="empty">다음 수집부터 좋아요 데이터가 쌓입니다 — 몇 시간 뒤에 그래프가 나타나요.</div>';
+    return;
+  }
+  const lkToday = lkDays[lkDays.length - 1];
+  const lkPrev = lkDays.length > 1 ? lkDays[lkDays.length - 2] : null;
+  const lkYday = lkPrev && (new Date(lkToday) - new Date(lkPrev) === 86400000) ? lkPrev : null;
+  const lkLabels = Array.from({length:24}, (_,h) => h + "시");
+  const lkSeries = (d, id) => !d ? lkLabels.map(()=>null) : lkLabels.map((_, h) => {
+    const a = lkAt(id, d, h - 1), b = lkAt(id, d, h);
+    return (a != null && b != null) ? b - a : null;
+  });
+  document.getElementById("likesPanel").style.display = "";
+  const grid = document.getElementById("likesGrid");
+  grid.innerHTML = "";
+  const pink = "#ff8fab", gray = "#8b93a3";
+  for(const id of tracked){
+    const v = DB.videos[id];
+    const tSeries = lkSeries(lkToday, id), ySeries = lkSeries(lkYday, id);
+    // 총 좋아요(가장 최근 샘플) + 오늘 증가
+    const samples = lkSamples(id);
+    const total = samples.length ? samples[samples.length-1].v : null;
+    const base0 = lkAt(id, lkToday, 0);
+    const todayGain = (total != null && base0 != null) ? total - base0 : null;
+    const el = document.createElement("div");
+    el.className = "facet";
+    el.innerHTML = `<div class="fhead"><span class="ftitle" style="border-left:3px solid ${pink};padding-left:8px">${(v.title||id)}</span>${
+      todayGain != null ? `<span class="fdelta ${todayGain>=0?"pos":"neg"}">오늘 ${todayGain>=0?"+":""}${todayGain.toLocaleString("ko-KR")}</span>` : ""}</div>
+      <div class="fbig">${total != null ? total.toLocaleString("ko-KR") : "—"}<span class="sub2">총 좋아요</span></div>
+      <div class="fchart"><canvas></canvas></div>`;
+    grid.appendChild(el);
+    const pts = tSeries.filter(x => x != null).length;
+    new Chart(el.querySelector("canvas"), {
+      type: "line",
+      data: { labels: lkLabels, datasets: [
+        { label: "오늘", data: tSeries, borderColor: pink, backgroundColor: pink + "2e",
+          fill: true, tension: 0.25, spanGaps: true, borderWidth: 2, pointRadius: pts < 2 ? 3 : 0, pointHitRadius: 8 },
+        { label: "어제", data: ySeries, borderColor: gray, borderDash: [5,4],
+          fill: false, tension: 0.25, spanGaps: true, borderWidth: 1.5, pointRadius: 0, pointHitRadius: 8 },
+      ] },
+      options: { responsive: true, maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: gray, maxTicksLimit: 7, font: { size: 10 } }, grid: { display: false } },
+          y: { beginAtZero: true, ticks: { color: gray, maxTicksLimit: 3, font: { size: 10 } }, grid: { color: "#232833" } }
+        } }
+    });
+  }
+})();
 
 // 차트 아웃 후 추적 중 (경쟁사 곡은 위 표에 있으므로 제외)
 const dropped = Object.keys(DB.videos || {}).filter((id) => !onChart.has(id) && !DB.videos[id].watch)

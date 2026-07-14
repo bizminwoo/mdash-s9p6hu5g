@@ -83,7 +83,8 @@ async function fetchAllViewsAPI(ids) {
     const d = await res.json();
     for (const item of d.items || []) {
       const n = Number(item.statistics?.viewCount);
-      if (Number.isFinite(n)) stats[item.id] = { views: n };
+      const lk = Number(item.statistics?.likeCount);
+      if (Number.isFinite(n)) stats[item.id] = { views: n, ...(Number.isFinite(lk) ? { likes: lk } : {}) };
       meta[item.id] = { title: item.snippet?.title || null, author: item.snippet?.channelTitle || null };
     }
   }
@@ -144,7 +145,10 @@ async function main() {
     comps.forEach((c, i) => {
       const id = compIds[i];
       const v = db.videos[id] || {};
-      db.videos[id] = { ...v, watch: true, order: i, ...(c.title ? { title: c.title } : {}) };
+      const nv = { ...v, watch: true, order: i, ...(c.title ? { title: c.title } : {}),
+        ...(c.likes ? { likesTrack: true } : {}) };
+      if (!c.likes) delete nv.likesTrack; // 파일에서 likes 플래그를 빼면 좋아요 추적 중단
+      db.videos[id] = nv;
     });
     for (const [id, v] of Object.entries(db.videos)) {
       if (v.watch && !compIds.includes(id)) {
@@ -186,6 +190,27 @@ async function main() {
     }
     db.current = { time: localTime(), stats };
     db.snapshots.sort((a, b) => (a.date < b.date ? -1 : 1));
+
+    // 좋아요 시간별 스냅샷 — likesTrack 곡만, "그 시간의 첫 수집"만 기록 (정각 환산용 분도 저장)
+    const hh = String(new Date().getHours()).padStart(2, "0");
+    db.hourlyLikes = db.hourlyLikes || {};
+    db.hourlyLikesMin = db.hourlyLikesMin || {};
+    const lk = {};
+    for (const [id, v] of Object.entries(db.videos)) {
+      if (v.likesTrack && stats[id]?.likes != null) lk[id] = stats[id].likes;
+    }
+    if (Object.keys(lk).length) {
+      const hcur = (db.hourlyLikes[today] = db.hourlyLikes[today] || {});
+      if (!hcur[hh]) {
+        hcur[hh] = lk;
+        (db.hourlyLikesMin[today] = db.hourlyLikesMin[today] || {})[hh] = new Date().getMinutes();
+      } else {
+        for (const [id, v] of Object.entries(lk)) if (hcur[hh][id] == null) hcur[hh][id] = v;
+      }
+    }
+    const lkCutoff = localDate(new Date(Date.now() - 14 * 86400000));
+    for (const d of Object.keys(db.hourlyLikes)) if (d < lkCutoff) delete db.hourlyLikes[d];
+    for (const d of Object.keys(db.hourlyLikesMin)) if (d < lkCutoff) delete db.hourlyLikesMin[d];
 
     // 보관 기간 정리
     const snapCutoff = localDate(new Date(Date.now() - SNAP_DAYS * 86400000));
