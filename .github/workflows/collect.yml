@@ -2,7 +2,7 @@ name: collect
 on:
   workflow_dispatch:
   schedule:
-    - cron: '7 * * * *'  # 매시 7분 (정각은 GitHub 혼잡으로 지연·누락 잦음)
+    - cron: '5 * * * *'  # 매시 5분
 concurrency:
   group: collect
   cancel-in-progress: false
