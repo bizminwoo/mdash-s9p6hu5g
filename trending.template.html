@@ -78,9 +78,9 @@
     <div class="wrap" id="compWrap"></div>
   </div>
   <div class="panel" id="likesPanel" style="display:none">
-    <h2>❤️ 좋아요 증가 추이 <span class="muted">— 1시간 단위 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
+    <h2>🔎 시간 단위 상세 추적 <span class="muted">— 스트리밍·좋아요, 1시간마다 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
     <div class="multigrid" id="likesGrid"></div>
-    <div class="note">각 점 = 직전 1시간 동안 늘어난 좋아요 (수집이 몇 분에 되든 정각 값으로 환산). 큰 숫자 = 총 좋아요, 옆 = 오늘 00시 이후 증가. competitors.json 에서 해당 곡에 <code>"likes": true</code> 를 붙이면 이 분석에 추가됩니다.</div>
+    <div class="note">각 점 = 직전 1시간 동안의 증가량 (수집이 몇 분에 되든 정각 값으로 환산). 큰 숫자 = 오늘 00시 이후 증가(첫날은 발매 후 증가), 옆 = 총계. competitors.json 에서 해당 곡에 <code>"likes": true</code> 를 붙이면 이 상세 추적에 추가됩니다.</div>
   </div>
   <div class="panel" id="droppedPanel" style="display:none">
     <h2>차트 아웃 후 추적 중 <span class="muted">— 차트에서 빠진 뒤 14일간 계속 수집</span></h2>
@@ -187,89 +187,95 @@ if (watch.length) {
     watch.map((id) => bodyRow(id, posOf[id] ?? null, true, true)).join("") + "</tbody></table>";
 }
 
-// ── ❤️ 좋아요 증가 추이 (likesTrack 곡) ──
-// 정각(H:00) 환산: 수집 분(hourlyLikesMin)을 반영해 두 수집값을 비례 배분
-const _lkCache = {};
-function lkSamples(id){
-  if(_lkCache[id]) return _lkCache[id];
-  const out = [];
-  const H = DB.hourlyLikes || {}, M = DB.hourlyLikesMin || {};
-  for(const d of Object.keys(H).sort()){
-    for(const hh of Object.keys(H[d]).sort()){
-      const v = H[d][hh]?.[id];
-      if(v == null) continue;
-      out.push({ t: new Date(d + "T" + hh + ":00:00").getTime()/60000 + (M[d]?.[hh] ?? 0), v });
+// ── 🔎 시간 단위 상세 추적 (likesTrack 곡: 스트리밍 + 좋아요) ──
+// 정각(H:00) 환산: 수집 분을 반영해 두 수집값을 비례 배분
+function mkSampler(H, M){
+  const cache = {};
+  const samples = (id) => {
+    if(cache[id]) return cache[id];
+    const out = [];
+    for(const d of Object.keys(H || {}).sort()){
+      for(const hh of Object.keys(H[d]).sort()){
+        const v = H[d][hh]?.[id];
+        if(v == null) continue;
+        out.push({ t: new Date(d + "T" + hh + ":00:00").getTime()/60000 + (M?.[d]?.[hh] ?? 0), v });
+      }
     }
-  }
-  return _lkCache[id] = out;
+    return cache[id] = out;
+  };
+  const at = (id, dateStr, hour) => {
+    const target = new Date(dateStr + "T00:00:00").getTime()/60000 + hour*60;
+    let lo = null, hi = null;
+    for(const p of samples(id)){
+      if(p.t <= target) lo = p; else { hi = p; break; }
+    }
+    if(lo && lo.t === target) return lo.v;
+    if(lo && hi && hi.t - lo.t <= 150)
+      return Math.round(lo.v + (hi.v - lo.v) * (target - lo.t) / (hi.t - lo.t));
+    return null;
+  };
+  return { samples, at };
 }
-function lkAt(id, dateStr, hour){
-  const target = new Date(dateStr + "T00:00:00").getTime()/60000 + hour*60;
-  let lo = null, hi = null;
-  for(const p of lkSamples(id)){
-    if(p.t <= target) lo = p; else { hi = p; break; }
-  }
-  if(lo && lo.t === target) return lo.v;
-  if(lo && hi && hi.t - lo.t <= 150)
-    return Math.round(lo.v + (hi.v - lo.v) * (target - lo.t) / (hi.t - lo.t));
-  return null;
-}
-(function renderLikes(){
+(function renderDetail(){
   const tracked = Object.keys(DB.videos || {}).filter((id) => DB.videos[id].likesTrack)
     .sort((a, b) => (DB.videos[a].order ?? 99) - (DB.videos[b].order ?? 99));
   if(!tracked.length || typeof Chart === "undefined") return;
-  const lkDays = Object.keys(DB.hourlyLikes || {}).sort();
-  if(!lkDays.length) {
-    document.getElementById("likesPanel").style.display = "";
-    document.getElementById("likesGrid").innerHTML =
-      '<div class="empty">다음 수집부터 좋아요 데이터가 쌓입니다 — 몇 시간 뒤에 그래프가 나타나요.</div>';
-    return;
-  }
-  const lkToday = lkDays[lkDays.length - 1];
-  const lkPrev = lkDays.length > 1 ? lkDays[lkDays.length - 2] : null;
-  const lkYday = lkPrev && (new Date(lkToday) - new Date(lkPrev) === 86400000) ? lkPrev : null;
-  const lkLabels = Array.from({length:24}, (_,h) => h + "시");
-  const lkSeries = (d, id) => !d ? lkLabels.map(()=>null) : lkLabels.map((_, h) => {
-    const a = lkAt(id, d, h - 1), b = lkAt(id, d, h);
-    return (a != null && b != null) ? b - a : null;
-  });
   document.getElementById("likesPanel").style.display = "";
   const grid = document.getElementById("likesGrid");
   grid.innerHTML = "";
-  const pink = "#ff8fab", gray = "#8b93a3";
+  const gray = "#8b93a3";
+  const METRICS = [
+    { label: "스트리밍", color: "#3987e5", s: mkSampler(DB.hourlyViews, DB.hourlyViewsMin), H: DB.hourlyViews },
+    { label: "좋아요",   color: "#ff8fab", s: mkSampler(DB.hourlyLikes, DB.hourlyLikesMin), H: DB.hourlyLikes },
+  ];
+  const labels = Array.from({length:24}, (_,h) => h + "시");
+  let drew = false;
   for(const id of tracked){
     const v = DB.videos[id];
-    const tSeries = lkSeries(lkToday, id), ySeries = lkSeries(lkYday, id);
-    // 총 좋아요(가장 최근 샘플) + 오늘 증가
-    const samples = lkSamples(id);
-    const total = samples.length ? samples[samples.length-1].v : null;
-    const base0 = lkAt(id, lkToday, 0);
-    const todayGain = (total != null && base0 != null) ? total - base0 : null;
-    const el = document.createElement("div");
-    el.className = "facet";
-    el.innerHTML = `<div class="fhead"><span class="ftitle" style="border-left:3px solid ${pink};padding-left:8px">${(v.title||id)}</span>${
-      todayGain != null ? `<span class="fdelta ${todayGain>=0?"pos":"neg"}">오늘 ${todayGain>=0?"+":""}${todayGain.toLocaleString("ko-KR")}</span>` : ""}</div>
-      <div class="fbig">${total != null ? total.toLocaleString("ko-KR") : "—"}<span class="sub2">총 좋아요</span></div>
-      <div class="fchart"><canvas></canvas></div>`;
-    grid.appendChild(el);
-    const pts = tSeries.filter(x => x != null).length;
-    new Chart(el.querySelector("canvas"), {
-      type: "line",
-      data: { labels: lkLabels, datasets: [
-        { label: "오늘", data: tSeries, borderColor: pink, backgroundColor: pink + "2e",
-          fill: true, tension: 0.25, spanGaps: true, borderWidth: 2, pointRadius: pts < 2 ? 3 : 0, pointHitRadius: 8 },
-        { label: "어제", data: ySeries, borderColor: gray, borderDash: [5,4],
-          fill: false, tension: 0.25, spanGaps: true, borderWidth: 1.5, pointRadius: 0, pointHitRadius: 8 },
-      ] },
-      options: { responsive: true, maintainAspectRatio: false,
-        interaction: { mode: "index", intersect: false },
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { ticks: { color: gray, maxTicksLimit: 7, font: { size: 10 } }, grid: { display: false } },
-          y: { beginAtZero: true, ticks: { color: gray, maxTicksLimit: 3, font: { size: 10 } }, grid: { color: "#232833" } }
-        } }
-    });
+    for(const m of METRICS){
+      const days = Object.keys(m.H || {}).sort();
+      if(!days.length) continue;
+      drew = true;
+      const dToday = days[days.length - 1];
+      const dPrev = days.length > 1 ? days[days.length - 2] : null;
+      const dYday = dPrev && (new Date(dToday) - new Date(dPrev) === 86400000) ? dPrev : null;
+      const seriesOf = (d) => !d ? labels.map(()=>null) : labels.map((_, h) => {
+        const a = m.s.at(id, d, h - 1), b = m.s.at(id, d, h);
+        return (a != null && b != null) ? b - a : null;
+      });
+      const tSeries = seriesOf(dToday), ySeries = seriesOf(dYday);
+      const all = m.s.samples(id);
+      const total = all.length ? all[all.length-1].v : null;
+      // 오늘 증가: 00시 정각 환산 기준, 없으면(발매 첫날 등) 오늘 첫 샘플 기준
+      const todayFirst = all.find(p => p.t >= new Date(dToday + "T00:00:00").getTime()/60000);
+      const base0 = m.s.at(id, dToday, 0) ?? todayFirst?.v;
+      const gain = (total != null && base0 != null) ? total - base0 : null;
+      const el = document.createElement("div");
+      el.className = "facet";
+      el.innerHTML = `<div class="fhead"><span class="ftitle" style="border-left:3px solid ${m.color};padding-left:8px">${(v.title||id)} · ${m.label}</span></div>
+        <div class="fbig">${gain != null ? "+" + gain.toLocaleString("ko-KR") : "—"}<span class="sub2">오늘${total != null ? " · 총 " + total.toLocaleString("ko-KR") : ""}</span></div>
+        <div class="fchart"><canvas></canvas></div>`;
+      grid.appendChild(el);
+      const pts = tSeries.filter(x => x != null).length;
+      new Chart(el.querySelector("canvas"), {
+        type: "line",
+        data: { labels, datasets: [
+          { label: "오늘", data: tSeries, borderColor: m.color, backgroundColor: m.color + "2e",
+            fill: true, tension: 0.25, spanGaps: true, borderWidth: 2, pointRadius: pts < 2 ? 3 : 0, pointHitRadius: 8 },
+          { label: "어제", data: ySeries, borderColor: gray, borderDash: [5,4],
+            fill: false, tension: 0.25, spanGaps: true, borderWidth: 1.5, pointRadius: 0, pointHitRadius: 8 },
+        ] },
+        options: { responsive: true, maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: gray, maxTicksLimit: 7, font: { size: 10 } }, grid: { display: false } },
+            y: { beginAtZero: true, ticks: { color: gray, maxTicksLimit: 3, font: { size: 10 } }, grid: { color: "#232833" } }
+          } }
+      });
+    }
   }
+  if(!drew) grid.innerHTML = '<div class="empty">다음 수집부터 데이터가 쌓입니다 — 몇 시간 뒤에 그래프가 나타나요.</div>';
 })();
 
 // 차트 아웃 후 추적 중 (경쟁사 곡은 위 표에 있으므로 제외)
