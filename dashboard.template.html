@@ -188,29 +188,35 @@ function render(){
     "마지막 수집: " + (cur?.time || latest.time || latest.date) + "  ·  추적 곡 " + ids.length + "곡"
     + (mkIds.length ? "  ·  마케팅 " + mkIds.length + "트랙" : "");
 
-  // 오늘 현재까지 (오늘 00시 기준값 대비 현재값)
+  // 오늘 현재까지 — 시간 단위 기준으로 통일: 수집이 몇 분에 되든 "그 시간의 첫 수집" 칸만 사용.
+  // 즉 표시값은 항상 "00시→N시" 이고, 어제와도 같은 N시 칸끼리 비교한다.
+  const p2 = n => String(n).padStart(2,"0");
   const liveBy = {};
-  let liveSum = null;
-  if(cur){
-    for(const id of ids){
-      const a = latest.stats[id]?.views, b = cur.stats[id]?.views;
-      if(a!=null && b!=null){ liveBy[id] = b - a; liveSum = (liveSum||0) + (b - a); }
+  let liveSum = null, liveHour = null;
+  {
+    const todayHours = (DATA.hourly || {})[latest.date] || {};
+    const avail = Object.keys(todayHours).map(Number).sort((a,b)=>b-a);
+    if(avail.length){
+      liveHour = avail[0];
+      const hv = todayHours[p2(liveHour)];
+      for(const id of ids){
+        const a = latest.stats[id]?.views, b = hv[id];
+        if(a!=null && b!=null){ liveBy[id] = b - a; liveSum = (liveSum||0) + (b - a); }
+      }
     }
   }
 
-  // 어제 동시간대 (어제 00시 기준값 대비 어제 같은 시각 값 — 시간별 스냅샷 기반)
+  // 어제 동시간대 (어제 00시 기준값 대비 어제 같은 N시 칸 — 시간별 스냅샷 기반)
   const ydayBy = {};
   let ydaySum = null, ydayHour = null;
-  if(cur && DATA.hourly){
-    const p2 = n => String(n).padStart(2,"0");
-    const [cy,cm,cd] = cur.time.slice(0,10).split("-").map(Number);
+  if(liveHour != null && DATA.hourly){
+    const [cy,cm,cd] = latest.date.split("-").map(Number);
     const yd = new Date(cy, cm-1, cd-1);
     const ydate = `${yd.getFullYear()}-${p2(yd.getMonth()+1)}-${p2(yd.getDate())}`;
     const base = snaps.find(s => s.date === ydate);
     const hours = DATA.hourly[ydate] || {};
-    const curH = Number(cur.time.slice(11,13));
-    // 어제 기록 중 지금 시각 이하의 가장 늦은 시간대 사용
-    const avail = Object.keys(hours).map(Number).filter(h => h <= curH).sort((a,b)=>b-a);
+    // 어제 기록 중 오늘 기준 시각(N시) 이하의 가장 늦은 칸 (정상적으론 같은 N시)
+    const avail = Object.keys(hours).map(Number).filter(h => h <= liveHour).sort((a,b)=>b-a);
     if(base && avail.length){
       ydayHour = avail[0];
       const hv = hours[p2(ydayHour)];
@@ -271,8 +277,8 @@ function render(){
     liveCmp = ` <span class="dchg ${cls}" style="font-size:13px">${arrow}${nf.format(Math.abs(d))} (${d>=0?"+":"-"}${Math.abs(d/ydaySum*100).toFixed(1)}%)</span>`;
   }
   const cards = [
-    ["오늘 현재까지"+(curClock ? ` (${curClock} 수집 · <span id="ago"></span>)` : ""), (liveSum!=null ? nf.format(liveSum) : "—") + liveCmp, "회"],
-    ["어제 동시간대"+(ydayHour!=null ? ` (00시→${ydayHour}시)` : ""), ydaySum!=null ? nf.format(ydaySum) : "—", "회"],
+    ["오늘 현재까지"+(liveHour!=null ? ` (00시→${liveHour}시 기준)` : ""), (liveSum!=null ? nf.format(liveSum) : "—") + liveCmp, "회"],
+    ["어제 동시간대"+(ydayHour!=null ? ` (00시→${ydayHour}시 기준)` : ""), ydaySum!=null ? nf.format(ydaySum) : "—", "회"],
     ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) : "—", "회"],
     [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
     ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
