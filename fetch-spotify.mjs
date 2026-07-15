@@ -57,7 +57,7 @@ async function main() {
       if (!cached || cached.spId !== e.spotify) db.tracks[e.key] = { spId: e.spotify, manual: true };
       continue;
     }
-    if (cached?.spId || cached?.notFound) continue;
+    if (cached?.spId) continue; // 매칭 실패(notFound)는 다음 실행 때 재시도
     // "가수 - 제목" → track/artist 분리 검색, 실패 시 통짜 검색
     const [artist, ...rest] = e.title.split(" - ");
     const track = rest.join(" - ").replace(/\(.*?\)/g, "").trim();
