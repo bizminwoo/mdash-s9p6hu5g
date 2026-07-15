@@ -65,7 +65,10 @@ async function main() {
     let hit = null;
     for (const q of tries) {
       const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&market=KR&limit=3`, { headers: H });
-      if (!res.ok) continue;
+      if (!res.ok) {
+        console.log(`  ⚠ 검색 HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
+        continue;
+      }
       const items = (await res.json()).tracks?.items || [];
       if (items.length) { hit = items[0]; break; }
     }
