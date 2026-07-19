@@ -321,7 +321,8 @@
   const AREA_COLOR={레이벡스:"#7C5CD6",엔터:"#C0508A",음원IP:"#3E8E7E",음저협:"#9A7B4F",음원:"var(--c-music)",틱톡:"var(--c-tiktok)",화장품:"var(--c-cosme)",공통:"var(--c-common)"};
   const isFixedPersonalCat=c=>["주거","통신","상환"].includes(c);
 
-  let tx=[], fixed=[], cursor=new Date(2026,0,15);
+  let tx=[], fixed=[], cursor=new Date(); cursor.setDate(15); // 열면 항상 이번 달부터
+
   let storage=(typeof window!=="undefined"&&window.storage)?window.storage:
   (typeof localStorage!=="undefined"?{
     async get(k){const v=localStorage.getItem(k);return v?{value:v}:null;},
