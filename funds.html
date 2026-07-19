@@ -152,6 +152,7 @@
       <div><span class="k">사업 영업수입</span><span class="v income num" id="incVal">—</span></div>
       <div><span class="k">− 사업 영업비용</span><span class="v expense num" id="expVal">—</span></div>
       <div><span class="k">− 개인지출</span><span class="v num" id="fixRatio">—</span></div>
+      <div><span class="k">= 총지출 합계</span><span class="v expense num" id="totalExp">—</span></div>
     </div>
   </div>
 
@@ -832,6 +833,7 @@
     document.getElementById("incVal").textContent=won(c.bizIncome);
     document.getElementById("expVal").textContent=won(c.bizExpense);
     document.getElementById("fixRatio").textContent=won(c.personal);
+    document.getElementById("totalExp").textContent=won(c.bizExpense+c.personal);
 
     document.getElementById("cardFixed").style.color=c.musicPL<0?"var(--neg)":"var(--pos)";
     document.getElementById("cardFixed").textContent=won(c.musicPL);
