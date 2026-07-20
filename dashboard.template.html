@@ -108,7 +108,7 @@
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
     <div id="tableWrap"></div>
-    <div class="note">💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분.<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
+    <div class="note">📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분.<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
   </div>
   <div class="panel" id="hourlyPanel">
     <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
@@ -255,6 +255,29 @@ function render(){
     if(ydaySum != null) ydayHour = liveHour;
   }
 
+  // 오늘 하루 예상(추정): 과거 며칠의 "N시까지 소진 비율" 평균으로 환산
+  //   예: 과거 평균적으로 16시까지 하루의 62%가 나왔다면 → 오늘 예상 = 오늘 16시까지 ÷ 0.62
+  const projOf = {};
+  let projSum = null;
+  if(liveHour != null){
+    const pastDays = Object.keys(DATA.hourly || {}).sort().slice(0, -1); // 오늘 제외
+    for(const id of ids){
+      const fracs = [];
+      for(const d of pastDays){
+        const b0 = estAt(id, d, 0), bN = estAt(id, d, liveHour), b24 = estAt(id, d, 24);
+        if(b0!=null && bN!=null && b24!=null && b24 > b0){
+          const f = (bN - b0) / (b24 - b0);
+          if(f > 0.02 && f <= 1) fracs.push(f);
+        }
+      }
+      const live = liveBy[id];
+      if(live == null) continue;
+      const f = fracs.length ? fracs.reduce((a,b)=>a+b,0) / fracs.length : liveHour / 24; // 프로필 없으면 단순 선형
+      projOf[id] = Math.round(live / f);
+      projSum = (projSum || 0) + projOf[id];
+    }
+  }
+
   // 곡별 계산
   const rows = ids.map(id => {
     const cur = latest.stats[id] || {};
@@ -307,6 +330,7 @@ function render(){
   const cards = [
     ["오늘 현재까지"+(liveHour!=null ? ` (00시→${liveHour}시 기준)` : ""), (liveSum!=null ? nf.format(liveSum) : "—") + liveCmp, "회"],
     ["어제 동시간대"+(ydayHour!=null ? ` (00시→${ydayHour}시 기준)` : ""), ydaySum!=null ? nf.format(ydaySum) : "—", "회"],
+    ["오늘 하루 예상 (추정)", projSum!=null ? "≈ "+nf.format(projSum) : "—", "회"],
     ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) : "—", "회"],
     [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
     ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
@@ -339,12 +363,22 @@ function render(){
   const tw = document.getElementById("tableWrap");
   tw.innerHTML =
     `<table><thead><tr>
-      <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>최근 하루 좋아요</th><th>SP 인기도</th><th>누적 조회수</th><th>누적 좋아요</th>
+      <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>오늘 예상(추정)</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>최근 하루 좋아요</th><th>SP 인기도</th><th>누적 조회수</th><th>누적 좋아요</th>
     </tr></thead><tbody>` +
     rows.map(r => `<tr>
       <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a></td>
       <td class="delta up">${liveBy[r.id]!=null ? "+"+nf.format(liveBy[r.id]) : "<span class='muted'>—</span>"}</td>
       <td class="delta" style="color:var(--muted)">${ydayBy[r.id]!=null ? "+"+nf.format(ydayBy[r.id]) : "<span class='muted'>—</span>"}</td>
+      <td>${(() => {
+        const p = projOf[r.id];
+        if(p == null) return "<span class='muted'>—</span>";
+        let chg = "";
+        if(r.dViews){
+          const dd = Math.round((p - r.dViews) / r.dViews * 100);
+          chg = dd > 0 ? `<div class="dchg pos">▲ ${dd}%</div>` : dd < 0 ? `<div class="dchg neg">▼ ${-dd}%</div>` : `<div class="dchg flat">－ 0%</div>`;
+        }
+        return `<b>≈ ${nf.format(p)}</b>${chg}`;
+      })()}</td>
       <td class="delta up">${r.dViews!=null ? "+"+nf.format(r.dViews) : "<span class='muted'>—</span>"}</td>
       <td class="delta money">${
         r.share === 0 ? "<span class='muted'>선급 제외</span>"
