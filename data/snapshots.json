@@ -758,260 +758,76 @@
           "likes": 966
         }
       }
+    },
+    {
+      "date": "2026-07-21",
+      "time": "2026-07-21 00:00",
+      "stats": {
+        "tUcWwAO5zU8": {
+          "views": 1141589,
+          "likes": 3179
+        },
+        "RsQDAygpF6k": {
+          "views": 250716,
+          "likes": 10287
+        },
+        "grqTg6WOJII": {
+          "views": 187413,
+          "likes": 20105
+        },
+        "THGi-LLhbxM": {
+          "views": 180700,
+          "likes": 8032
+        },
+        "Jsm2uVtQhmY": {
+          "views": 245658,
+          "likes": 12781
+        },
+        "gTG9evSpuWg": {
+          "views": 19105993,
+          "likes": 72832
+        },
+        "D7VsFDJx4zw": {
+          "views": 75489,
+          "likes": 982
+        }
+      }
     }
   ],
   "current": {
-    "time": "2026-07-20 23:00",
+    "time": "2026-07-21 00:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1141442,
+        "views": 1141589,
         "likes": 3179
       },
       "RsQDAygpF6k": {
-        "views": 250394,
-        "likes": 10286
+        "views": 250716,
+        "likes": 10287
       },
       "grqTg6WOJII": {
-        "views": 187008,
-        "likes": 20104
+        "views": 187413,
+        "likes": 20105
       },
       "THGi-LLhbxM": {
-        "views": 179109,
-        "likes": 8029
+        "views": 180700,
+        "likes": 8032
       },
       "Jsm2uVtQhmY": {
-        "views": 245483,
+        "views": 245658,
         "likes": 12781
       },
       "gTG9evSpuWg": {
-        "views": 19103592,
-        "likes": 72804
+        "views": 19105993,
+        "likes": 72832
       },
       "D7VsFDJx4zw": {
-        "views": 75515,
+        "views": 75489,
         "likes": 982
       }
     }
   },
   "hourly": {
-    "2026-07-12": {
-      "10": {
-        "tUcWwAO5zU8": 1108176,
-        "RsQDAygpF6k": 188904,
-        "grqTg6WOJII": 115569,
-        "THGi-LLhbxM": 87943,
-        "Jsm2uVtQhmY": 211810,
-        "gTG9evSpuWg": 18821646,
-        "D7VsFDJx4zw": 66407
-      },
-      "11": {
-        "tUcWwAO5zU8": 1108267,
-        "RsQDAygpF6k": 188987,
-        "grqTg6WOJII": 115569,
-        "THGi-LLhbxM": 87943,
-        "Jsm2uVtQhmY": 211920,
-        "gTG9evSpuWg": 18822238,
-        "D7VsFDJx4zw": 66431
-      },
-      "12": {
-        "tUcWwAO5zU8": 1108377,
-        "RsQDAygpF6k": 189081,
-        "grqTg6WOJII": 115680,
-        "THGi-LLhbxM": 88349,
-        "Jsm2uVtQhmY": 212149,
-        "gTG9evSpuWg": 18823132,
-        "D7VsFDJx4zw": 66460
-      },
-      "13": {
-        "tUcWwAO5zU8": 1108521,
-        "RsQDAygpF6k": 189221,
-        "grqTg6WOJII": 115680,
-        "THGi-LLhbxM": 88545,
-        "Jsm2uVtQhmY": 212364,
-        "gTG9evSpuWg": 18824127,
-        "D7VsFDJx4zw": 66513
-      },
-      "14": {
-        "tUcWwAO5zU8": 1108658,
-        "RsQDAygpF6k": 189360,
-        "grqTg6WOJII": 115961,
-        "THGi-LLhbxM": 88757,
-        "Jsm2uVtQhmY": 212593,
-        "gTG9evSpuWg": 18825180,
-        "D7VsFDJx4zw": 66545
-      },
-      "15": {
-        "tUcWwAO5zU8": 1108794,
-        "RsQDAygpF6k": 189483,
-        "grqTg6WOJII": 116249,
-        "THGi-LLhbxM": 88978,
-        "Jsm2uVtQhmY": 212799,
-        "gTG9evSpuWg": 18826214,
-        "D7VsFDJx4zw": 66575
-      },
-      "16": {
-        "tUcWwAO5zU8": 1108991,
-        "RsQDAygpF6k": 189640,
-        "grqTg6WOJII": 116465,
-        "THGi-LLhbxM": 89249,
-        "Jsm2uVtQhmY": 213080,
-        "gTG9evSpuWg": 18827488,
-        "D7VsFDJx4zw": 66638
-      },
-      "17": {
-        "tUcWwAO5zU8": 1109194,
-        "RsQDAygpF6k": 189795,
-        "grqTg6WOJII": 116666,
-        "THGi-LLhbxM": 89510,
-        "Jsm2uVtQhmY": 213104,
-        "gTG9evSpuWg": 18828726,
-        "D7VsFDJx4zw": 66639
-      },
-      "18": {
-        "tUcWwAO5zU8": 1109409,
-        "RsQDAygpF6k": 189995,
-        "grqTg6WOJII": 116873,
-        "THGi-LLhbxM": 89822,
-        "Jsm2uVtQhmY": 213642,
-        "gTG9evSpuWg": 18830199,
-        "D7VsFDJx4zw": 66747
-      },
-      "19": {
-        "tUcWwAO5zU8": 1109613,
-        "RsQDAygpF6k": 190191,
-        "grqTg6WOJII": 117105,
-        "THGi-LLhbxM": 90104,
-        "Jsm2uVtQhmY": 213910,
-        "gTG9evSpuWg": 18831567,
-        "D7VsFDJx4zw": 66800
-      },
-      "20": {
-        "tUcWwAO5zU8": 1109779,
-        "RsQDAygpF6k": 190346,
-        "grqTg6WOJII": 117297,
-        "THGi-LLhbxM": 90387,
-        "Jsm2uVtQhmY": 214166,
-        "gTG9evSpuWg": 18832805,
-        "D7VsFDJx4zw": 66845
-      },
-      "21": {
-        "tUcWwAO5zU8": 1109968,
-        "RsQDAygpF6k": 190527,
-        "grqTg6WOJII": 117508,
-        "THGi-LLhbxM": 90664,
-        "Jsm2uVtQhmY": 214399,
-        "gTG9evSpuWg": 18834110,
-        "D7VsFDJx4zw": 66881
-      },
-      "22": {
-        "tUcWwAO5zU8": 1110128,
-        "RsQDAygpF6k": 190698,
-        "grqTg6WOJII": 117706,
-        "THGi-LLhbxM": 90886,
-        "Jsm2uVtQhmY": 214626,
-        "gTG9evSpuWg": 18835260,
-        "D7VsFDJx4zw": 66896
-      },
-      "23": {
-        "tUcWwAO5zU8": 1110271,
-        "RsQDAygpF6k": 190857,
-        "grqTg6WOJII": 117909,
-        "THGi-LLhbxM": 91176,
-        "Jsm2uVtQhmY": 214845,
-        "gTG9evSpuWg": 18836513,
-        "D7VsFDJx4zw": 66983
-      },
-      "00": {
-        "tUcWwAO5zU8": 1107371,
-        "RsQDAygpF6k": 188332,
-        "grqTg6WOJII": 114910,
-        "THGi-LLhbxM": 87335,
-        "Jsm2uVtQhmY": 210900,
-        "gTG9evSpuWg": 18816344,
-        "D7VsFDJx4zw": 66233
-      },
-      "01": {
-        "tUcWwAO5zU8": 1107567,
-        "RsQDAygpF6k": 188425,
-        "grqTg6WOJII": 115008,
-        "THGi-LLhbxM": 87419,
-        "Jsm2uVtQhmY": 211028,
-        "gTG9evSpuWg": 18817349,
-        "D7VsFDJx4zw": 66258
-      },
-      "02": {
-        "tUcWwAO5zU8": 1107589,
-        "RsQDAygpF6k": 188507,
-        "grqTg6WOJII": 115109,
-        "THGi-LLhbxM": 87510,
-        "Jsm2uVtQhmY": 211155,
-        "gTG9evSpuWg": 18818231,
-        "D7VsFDJx4zw": 66293
-      },
-      "03": {
-        "tUcWwAO5zU8": 1107589,
-        "RsQDAygpF6k": 188515,
-        "grqTg6WOJII": 115186,
-        "THGi-LLhbxM": 87599,
-        "Jsm2uVtQhmY": 211280,
-        "gTG9evSpuWg": 18818980,
-        "D7VsFDJx4zw": 66296
-      },
-      "04": {
-        "tUcWwAO5zU8": 1107589,
-        "RsQDAygpF6k": 188630,
-        "grqTg6WOJII": 115280,
-        "THGi-LLhbxM": 87661,
-        "Jsm2uVtQhmY": 211382,
-        "gTG9evSpuWg": 18819519,
-        "D7VsFDJx4zw": 66296
-      },
-      "05": {
-        "tUcWwAO5zU8": 1107917,
-        "RsQDAygpF6k": 188675,
-        "grqTg6WOJII": 115280,
-        "THGi-LLhbxM": 87723,
-        "Jsm2uVtQhmY": 211429,
-        "gTG9evSpuWg": 18819915,
-        "D7VsFDJx4zw": 66349
-      },
-      "06": {
-        "tUcWwAO5zU8": 1107917,
-        "RsQDAygpF6k": 188711,
-        "grqTg6WOJII": 115280,
-        "THGi-LLhbxM": 87756,
-        "Jsm2uVtQhmY": 211509,
-        "gTG9evSpuWg": 18820328,
-        "D7VsFDJx4zw": 66359
-      },
-      "07": {
-        "tUcWwAO5zU8": 1107917,
-        "RsQDAygpF6k": 188741,
-        "grqTg6WOJII": 115426,
-        "THGi-LLhbxM": 87758,
-        "Jsm2uVtQhmY": 211572,
-        "gTG9evSpuWg": 18820673,
-        "D7VsFDJx4zw": 66359
-      },
-      "08": {
-        "tUcWwAO5zU8": 1108057,
-        "RsQDAygpF6k": 188781,
-        "grqTg6WOJII": 115426,
-        "THGi-LLhbxM": 87758,
-        "Jsm2uVtQhmY": 211636,
-        "gTG9evSpuWg": 18820975,
-        "D7VsFDJx4zw": 66359
-      },
-      "09": {
-        "tUcWwAO5zU8": 1108129,
-        "RsQDAygpF6k": 188844,
-        "grqTg6WOJII": 115426,
-        "THGi-LLhbxM": 87758,
-        "Jsm2uVtQhmY": 211718,
-        "gTG9evSpuWg": 18821266,
-        "D7VsFDJx4zw": 66359
-      }
-    },
     "2026-07-13": {
       "10": {
         "tUcWwAO5zU8": 1111466,
@@ -2755,6 +2571,17 @@
         "gTG9evSpuWg": 19072422,
         "D7VsFDJx4zw": 74596
       }
+    },
+    "2026-07-21": {
+      "00": {
+        "tUcWwAO5zU8": 1141589,
+        "RsQDAygpF6k": 250716,
+        "grqTg6WOJII": 187413,
+        "THGi-LLhbxM": 180700,
+        "Jsm2uVtQhmY": 245658,
+        "gTG9evSpuWg": 19105993,
+        "D7VsFDJx4zw": 75489
+      }
     }
   },
   "hourlyMin": {
@@ -2922,6 +2749,9 @@
       "07": 0,
       "08": 0,
       "09": 0
+    },
+    "2026-07-21": {
+      "00": 0
     }
   }
 }
