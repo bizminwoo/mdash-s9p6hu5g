@@ -412,9 +412,11 @@ function render(){
   let projDays = 0;
   rows.forEach(r => {
     const p = monthProj(r.id);
-    if(p){ r.revenue = Math.round(p.projStreams * PER_STREAM * r.share); projDays = Math.max(projDays, p.days); }
-    else if(r.dViews != null){ r.revenue = Math.round(estMonthly(r.dViews) * r.share); }
-    else r.revenue = null;
+    if(p){ r.revenue = Math.round(p.projStreams * PER_STREAM * r.share); projDays = Math.max(projDays, p.days);
+      r.revenueFull = Math.round(p.projStreams * PER_STREAM); } // 지분 100% 기준 (선급곡 참고용)
+    else if(r.dViews != null){ r.revenue = Math.round(estMonthly(r.dViews) * r.share);
+      r.revenueFull = Math.round(estMonthly(r.dViews)); }
+    else { r.revenue = null; r.revenueFull = null; }
   });
 
   // 요약 카드
@@ -486,7 +488,7 @@ function render(){
       })()}</td>
       <td class="delta up">${r.dViews!=null ? "+"+nf.format(r.dViews) : "<span class='muted'>—</span>"}</td>
       <td class="delta money">${
-        r.share === 0 ? "<span class='muted'>선급 제외</span>"
+        r.share === 0 ? `<span class='muted'>선급 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
         : r.revenue!=null ? won(r.revenue) + (r.share !== 1 ? ` <span class='muted'>(${r.share*100}%)</span>` : "")
         : "<span class='muted'>—</span>"
       }</td>
