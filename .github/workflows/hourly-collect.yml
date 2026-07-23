@@ -14,8 +14,6 @@ jobs:
     env:
       TZ: Asia/Seoul
       YT_API_KEY: ${{ secrets.YT_API_KEY }}
-      SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
-      SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -23,7 +21,6 @@ jobs:
           node-version: 22
       - name: 수집 + 페이지 생성
         run: |
-          node fetch-spotify.mjs
           node fetch.mjs
           node fetch-trending.mjs
       - name: 커밋 + 배포

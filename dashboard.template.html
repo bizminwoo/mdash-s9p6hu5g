@@ -108,7 +108,7 @@
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
     <div id="tableWrap"></div>
-    <div class="note">📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분.<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
+    <div class="note">📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분. <b>이번 달 실측 수익</b> = 이번 달 1일부터 어제까지 <b>실제 확정된 스트리밍만</b>으로 계산한 수익 (오늘 진행분 미포함 — 날이 갈수록 예상 월 수익에 다가감).<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
   </div>
   <div class="panel" id="hourlyPanel">
     <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
@@ -135,7 +135,6 @@
 
 <script>
 const DATA = /*__DATA__*/ null;
-const SP = /*__SP__*/ null; // 스포티파이 인기도 (없으면 null)
 
 // ── 정각(H:00) 환산 ──
 // 수집이 몇 분에 되든, 정각을 사이에 둔 두 수집값을 분 단위로 비례 배분해 "딱 H시 00분" 값을 계산.
@@ -170,17 +169,6 @@ function estAt(id, dateStr, hour){
   return null;
 }
 
-// 스포티파이 인기도 셀: 현재 점수 + 어제 대비 변동
-function spCell(id){
-  const cur = SP?.current?.pop?.[id];
-  if(cur == null) return "<span class='muted'>—</span>";
-  const ss = SP.snapshots || [];
-  const prev = ss.length > 1 ? ss[ss.length-2].pop?.[id] : null;
-  let d = "";
-  if(prev != null && cur !== prev) d = cur > prev
-    ? ` <span class="dchg pos">▲${cur-prev}</span>` : ` <span class="dchg neg">▼${prev-cur}</span>`;
-  return `<b>${cur}</b>${d}`;
-}
 
 // 예상 수익 기준: 하루 1,000회 스트리밍 ≈ 한 달 250,000원
 const WON_PER_1000_DAILY = 250000;
@@ -308,10 +296,12 @@ function render(){
   rows.forEach(r => {
     const p = monthProj(r.id);
     if(p){ r.revenue = Math.round(p.projStreams * PER_STREAM * r.share); projDays = Math.max(projDays, p.days);
-      r.revenueFull = Math.round(p.projStreams * PER_STREAM); } // 지분 100% 기준 (선급곡 참고용)
+      r.revenueFull = Math.round(p.projStreams * PER_STREAM); // 지분 100% 기준 (선급곡 참고용)
+      r.mtdRevenue = Math.round(p.mtd * PER_STREAM * r.share); // 이번 달 실측분 (1일~어제 확정 스트리밍 기반)
+      r.mtdRevenueFull = Math.round(p.mtd * PER_STREAM); }
     else if(r.dViews != null){ r.revenue = Math.round(estMonthly(r.dViews) * r.share);
-      r.revenueFull = Math.round(estMonthly(r.dViews)); }
-    else { r.revenue = null; r.revenueFull = null; }
+      r.revenueFull = Math.round(estMonthly(r.dViews)); r.mtdRevenue = null; r.mtdRevenueFull = null; }
+    else { r.revenue = null; r.revenueFull = null; r.mtdRevenue = null; r.mtdRevenueFull = null; }
   });
 
   // 요약 카드
@@ -365,7 +355,7 @@ function render(){
   const tw = document.getElementById("tableWrap");
   tw.innerHTML =
     `<table><thead><tr>
-      <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>오늘 예상(추정)</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>최근 하루 좋아요</th><th>SP 인기도</th><th>누적 조회수</th><th>누적 좋아요</th>
+      <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>오늘 예상(추정)</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>이번 달 실측 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
     </tr></thead><tbody>` +
     rows.map(r => `<tr>
       <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a></td>
@@ -387,8 +377,12 @@ function render(){
         : r.revenue!=null ? won(r.revenue) + (r.share !== 1 ? ` <span class='muted'>(${r.share*100}%)</span>` : "")
         : "<span class='muted'>—</span>"
       }</td>
+      <td class="delta money">${
+        r.share === 0 ? `<span class='muted'>제외${r.mtdRevenueFull ? ` (≈${won(r.mtdRevenueFull)})` : ""}</span>`
+        : r.mtdRevenue!=null ? won(r.mtdRevenue)
+        : "<span class='muted'>—</span>"
+      }</td>
       <td class="delta like">${r.dLikes!=null ? "+"+nf.format(r.dLikes) : "<span class='muted'>—</span>"}</td>
-      <td>${spCell(r.id)}</td>
       <td>${r.views!=null ? nf.format(r.views) : "—"}</td>
       <td>${r.likes!=null ? nf.format(r.likes) : "—"}</td>
     </tr>`).join("") + `</tbody></table>`;
