@@ -560,8 +560,12 @@ function renderHourly(songs, ids){
   const totalOf = (d) => {
     if(!d) return labels.map(() => null);
     const per = ids.map(id => seriesOf(d, id));
-    return labels.map((_, h) => per.every(p => p[h] != null)
-      ? per.reduce((s, p) => s + p[h], 0) : null);
+    // 데이터가 있는 곡만 합산 (신곡은 데이터가 쌓이기 전이라도 나머지 곡 합계는 나오게)
+    return labels.map((_, h) => {
+      let s = 0, any = false;
+      for(const p of per){ if(p[h] != null){ s += p[h]; any = true; } }
+      return any ? s : null;
+    });
   };
 
   const facets = [
