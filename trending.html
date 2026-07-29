@@ -45,7 +45,14 @@
   .today { color: var(--up); font-weight: 700; }
   .note { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.6; }
   .empty { color: var(--muted); text-align: center; padding: 40px; }
-  /* 좋아요 추이 small multiples */
+  /* 상세 추적: 곡별 한 줄 (스트리밍 크게 + 좋아요) */
+  .songrow { margin-bottom: 18px; }
+  .songrow:last-child { margin-bottom: 0; }
+  .srhead { font-size: 14.5px; font-weight: 700; margin: 0 0 10px; padding-left: 10px; border-left: 3px solid var(--accent); }
+  .srhead .muted2 { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
+  .srgrid { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+  .srgrid .fchart { height: 170px; }
+  @media (max-width: 760px) { .srgrid { grid-template-columns: 1fr; } .srgrid .fchart { height: 140px; } }
   .multigrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
   .facet { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
   .fhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
@@ -79,7 +86,7 @@
   </div>
   <div class="panel" id="likesPanel" style="display:none">
     <h2>🔎 시간 단위 상세 추적 <span class="muted">— 스트리밍·좋아요, 1시간마다 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
-    <div class="multigrid" id="likesGrid"></div>
+    <div id="likesGrid"></div>
     <div class="note">각 점 = 직전 1시간 동안의 증가량 (수집이 몇 분에 되든 정각 값으로 환산). 큰 숫자 = 오늘 00시 이후 증가(첫날은 발매 후 증가), 옆 = 총계. competitors.json 에서 해당 곡에 <code>"likes": true</code> 를 붙이면 이 상세 추적에 추가됩니다.</div>
   </div>
   <div class="panel" id="droppedPanel" style="display:none">
@@ -219,6 +226,12 @@ function mkSampler(H, M){
   let drew = false;
   for(const id of tracked){
     const v = DB.videos[id];
+    const row = document.createElement("div");
+    row.className = "songrow";
+    row.innerHTML = `<div class="srhead">${(v.title||id)}<span class="muted2">${v.artist ? v.artist : ""}</span></div>
+      <div class="srgrid"></div>`;
+    grid.appendChild(row);
+    const srgrid = row.querySelector(".srgrid");
     for(const m of METRICS){
       const days = Object.keys(m.H || {}).sort();
       if(!days.length) continue;
@@ -239,10 +252,10 @@ function mkSampler(H, M){
       const gain = (total != null && base0 != null) ? total - base0 : null;
       const el = document.createElement("div");
       el.className = "facet";
-      el.innerHTML = `<div class="fhead"><span class="ftitle" style="border-left:3px solid ${m.color};padding-left:8px">${(v.title||id)} · ${m.label}</span></div>
+      el.innerHTML = `<div class="fhead"><span class="ftitle" style="border-left:3px solid ${m.color};padding-left:8px">${m.label}</span></div>
         <div class="fbig">${gain != null ? "+" + gain.toLocaleString("ko-KR") : "—"}<span class="sub2">오늘${total != null ? " · 총 " + total.toLocaleString("ko-KR") : ""}</span></div>
         <div class="fchart"><canvas></canvas></div>`;
-      grid.appendChild(el);
+      srgrid.appendChild(el);
       const pts = tSeries.filter(x => x != null).length;
       new Chart(el.querySelector("canvas"), {
         type: "line",
