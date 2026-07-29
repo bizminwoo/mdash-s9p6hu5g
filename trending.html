@@ -219,8 +219,8 @@ function mkSampler(H, M){
   grid.innerHTML = "";
   const gray = "#8b93a3";
   const METRICS = [
-    { label: "스트리밍", color: "#3987e5", s: mkSampler(DB.hourlyViews, DB.hourlyViewsMin), H: DB.hourlyViews },
-    { label: "좋아요",   color: "#ff8fab", s: mkSampler(DB.hourlyLikes, DB.hourlyLikesMin), H: DB.hourlyLikes },
+    { label: "스트리밍", key: "views", color: "#3987e5", s: mkSampler(DB.hourlyViews, DB.hourlyViewsMin), H: DB.hourlyViews },
+    { label: "좋아요",   key: "likes", color: "#ff8fab", s: mkSampler(DB.hourlyLikes, DB.hourlyLikesMin), H: DB.hourlyLikes },
   ];
   const labels = Array.from({length:24}, (_,h) => h + "시");
   let drew = false;
@@ -245,7 +245,8 @@ function mkSampler(H, M){
       });
       const tSeries = seriesOf(dToday), ySeries = seriesOf(dYday);
       const all = m.s.samples(id);
-      const total = all.length ? all[all.length-1].v : null;
+      // 총계·오늘 증가는 "가장 최신 수집값" 기준 (시간 칸은 정각 고정이지만 헤더 숫자는 최신으로)
+      const total = DB.current?.stats?.[id]?.[m.key] ?? (all.length ? all[all.length-1].v : null);
       // 오늘 증가: 00시 정각 환산 기준, 없으면(발매 첫날 등) 오늘 첫 샘플 기준
       const todayFirst = all.find(p => p.t >= new Date(dToday + "T00:00:00").getTime()/60000);
       const base0 = m.s.at(id, dToday, 0) ?? todayFirst?.v;
