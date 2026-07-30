@@ -76,11 +76,12 @@ async function main() {
   let db = { songs: {}, snapshots: [] };
   if (existsSync(DATA_FILE)) db = JSON.parse(readFileSync(DATA_FILE, "utf8"));
 
-  // songs.json 의 제목/수익비율(share)을 항상 반영
-  for (const { url, title, share } of songs) {
+  // songs.json 의 제목/수익비율(share)/광고플래그(adViews)를 항상 반영
+  for (const { url, title, share, adViews } of songs) {
     const vid = vidOf(url);
     db.songs[vid] = { ...(db.songs[vid] || {}), url,
       ...(title ? { title } : {}), share: share == null ? 1 : share };
+    if (adViews) db.songs[vid].adViews = true; else delete db.songs[vid].adViews;
   }
   // 마케팅 트랙 반영 + marketing.json 에서 빠진 트랙은 목록에서 제거
   for (const { url, title, start } of marketing) {

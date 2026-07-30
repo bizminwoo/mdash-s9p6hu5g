@@ -108,7 +108,7 @@
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
     <div id="tableWrap"></div>
-    <div class="note">📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분. <b>이번 달 실측 수익</b> = 이번 달 1일부터 어제까지 <b>실제 확정된 스트리밍만</b>으로 계산한 수익 (오늘 진행분 미포함 — 날이 갈수록 예상 월 수익에 다가감).<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
+    <div class="note">📢 표시 곡 = 광고 조회 포함이라 수치가 부정확 — 개별 기록은 표시하되 <b>오늘 현재까지·어제 동시간대·오늘 하루 예상 합계(카드)에서 제외</b>.<br>📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분. <b>이번 달 실측 수익</b> = 이번 달 1일부터 어제까지 <b>실제 확정된 스트리밍만</b>으로 계산한 수익 (오늘 진행분 미포함 — 날이 갈수록 예상 월 수익에 다가감).<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
   </div>
   <div class="panel" id="hourlyPanel">
     <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
@@ -221,7 +221,8 @@ function render(){
       for(const id of ids){
         const a = estAt(id, latest.date, 0) ?? latest.stats[id]?.views;
         const b = estAt(id, latest.date, H);
-        if(a!=null && b!=null){ by[id] = b - a; sum = (sum||0) + (b - a); }
+        if(a!=null && b!=null){ by[id] = b - a;
+          if(!songs[id].adViews) sum = (sum||0) + (b - a); } // 광고 조회 곡은 합계 제외
       }
       if(sum != null){ liveHour = H; Object.assign(liveBy, by); liveSum = sum; break; }
     }
@@ -238,7 +239,8 @@ function render(){
     for(const id of ids){
       const a = estAt(id, ydate, 0) ?? base?.stats?.[id]?.views;
       const b = estAt(id, ydate, liveHour);
-      if(a!=null && b!=null){ ydayBy[id] = b - a; ydaySum = (ydaySum||0) + (b - a); }
+      if(a!=null && b!=null){ ydayBy[id] = b - a;
+        if(!songs[id].adViews) ydaySum = (ydaySum||0) + (b - a); }
     }
     if(ydaySum != null) ydayHour = liveHour;
   }
@@ -262,7 +264,7 @@ function render(){
       if(live == null) continue;
       const f = fracs.length ? fracs.reduce((a,b)=>a+b,0) / fracs.length : liveHour / 24; // 프로필 없으면 단순 선형
       projOf[id] = Math.round(live / f);
-      projSum = (projSum || 0) + projOf[id];
+      if(!songs[id].adViews) projSum = (projSum || 0) + projOf[id]; // 광고 조회 곡은 합계 제외
     }
   }
 
@@ -273,7 +275,7 @@ function render(){
     const dViews = (prev && cur.views!=null && pv.views!=null) ? cur.views - pv.views : null;
     const dLikes = (prev && cur.likes!=null && pv.likes!=null) ? cur.likes - pv.likes : null;
     const share = songs[id].share == null ? 1 : songs[id].share; // 수익 지분 (0=선급 제외)
-    return { id, title: songs[id].title, url: songs[id].url, share,
+    return { id, title: songs[id].title, url: songs[id].url, share, adViews: songs[id].adViews,
       views: cur.views, likes: cur.likes, dViews, dLikes };
   }).sort((a,b) => (b.dViews??-1) - (a.dViews??-1));
 
@@ -358,7 +360,7 @@ function render(){
       <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>오늘 예상(추정)</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>이번 달 실측 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
     </tr></thead><tbody>` +
     rows.map(r => `<tr>
-      <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a></td>
+      <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a>${r.adViews ? " <span class='muted' title='광고 조회 포함 — 합계·예상에서 제외'>📢</span>" : ""}</td>
       <td class="delta up">${liveBy[r.id]!=null ? "+"+nf.format(liveBy[r.id]) : "<span class='muted'>—</span>"}</td>
       <td class="delta" style="color:var(--muted)">${ydayBy[r.id]!=null ? "+"+nf.format(ydayBy[r.id]) : "<span class='muted'>—</span>"}</td>
       <td>${(() => {
