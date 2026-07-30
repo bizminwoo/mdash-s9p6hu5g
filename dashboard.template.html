@@ -108,7 +108,7 @@
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
     <div id="tableWrap"></div>
-    <div class="note">📢 표시 곡 = 광고 조회 포함이라 수치가 부정확 — 개별 기록은 표시하되 <b>오늘 현재까지·어제 동시간대·오늘 하루 예상 합계(카드)에서 제외</b>.<br>📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분. <b>이번 달 실측 수익</b> = 이번 달 1일부터 어제까지 <b>실제 확정된 스트리밍만</b>으로 계산한 수익 (오늘 진행분 미포함 — 날이 갈수록 예상 월 수익에 다가감).<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
+    <div class="note">📢 표시 곡 = 광고 조회 포함이라 수치가 부정확 — 개별 기록은 표시하되 <b>모든 합계에서 제외</b> (카드 전체 + 일자별 전체 합계 행 + 그래프의 전체 합계).<br>📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분. <b>이번 달 실측 수익</b> = 이번 달 1일부터 어제까지 <b>실제 확정된 스트리밍만</b>으로 계산한 수익 (오늘 진행분 미포함 — 날이 갈수록 예상 월 수익에 다가감).<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
   </div>
   <div class="panel" id="hourlyPanel">
     <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
@@ -306,11 +306,12 @@ function render(){
     else { r.revenue = null; r.revenueFull = null; r.mtdRevenue = null; r.mtdRevenueFull = null; }
   });
 
-  // 요약 카드
-  const sumDViews = rows.reduce((s,r)=> s + (r.dViews||0), 0);
-  const sumDLikes = rows.reduce((s,r)=> s + (r.dLikes||0), 0);
-  const sumViews = rows.reduce((s,r)=> s + (r.views||0), 0);
-  const sumRevenue = Math.round(rows.reduce((s,r)=> s + (r.revenue||0), 0));
+  // 요약 카드 (광고 조회 곡은 모든 합계에서 제외)
+  const sRows = rows.filter(r => !r.adViews);
+  const sumDViews = sRows.reduce((s,r)=> s + (r.dViews||0), 0);
+  const sumDLikes = sRows.reduce((s,r)=> s + (r.dLikes||0), 0);
+  const sumViews = sRows.reduce((s,r)=> s + (r.views||0), 0);
+  const sumRevenue = Math.round(sRows.reduce((s,r)=> s + (r.revenue||0), 0));
   const dayLabel = prev ? " ("+mdShort(prev.date)+")" : "";
   const curClock = cur?.time ? cur.time.slice(11) : "";
   // 오늘 현재까지 vs 어제 동시간대 증감 표시
@@ -476,7 +477,7 @@ function renderDetail(snaps, songs, ids){
   }
   const totals = dates.map((_,i) => {
     let s = 0, any = false;
-    for(const id of ids){ const v = daily[id][i]; if(v!=null){ s+=v; any=true; } }
+    for(const id of ids){ if(songs[id].adViews) continue; const v = daily[id][i]; if(v!=null){ s+=v; any=true; } }
     return any ? s : null;
   });
 
@@ -561,7 +562,7 @@ function renderHourly(songs, ids){
   };
   const totalOf = (d) => {
     if(!d) return labels.map(() => null);
-    const per = ids.map(id => seriesOf(d, id));
+    const per = ids.filter(id => !songs[id].adViews).map(id => seriesOf(d, id));
     // 데이터가 있는 곡만 합산 (신곡은 데이터가 쌓이기 전이라도 나머지 곡 합계는 나오게)
     return labels.map((_, h) => {
       let s = 0, any = false;
@@ -644,7 +645,7 @@ function renderSmallMultiples(snaps, songs, ids, opts = {}){
   const labels = allLabels.slice(-WINDOW);
   const totals = labels.map((_,i) => {
     let s = 0, any = false;
-    for(const id of ids){ const v = seriesFor(id)[i]; if(v!=null){ s+=v; any=true; } }
+    for(const id of ids){ if(songs[id].adViews) continue; const v = seriesFor(id)[i]; if(v!=null){ s+=v; any=true; } }
     return any ? s : null;
   });
   const facets = [
@@ -742,10 +743,11 @@ function renderDailyMatrix(snaps, songs, ids){
     }
     html += `</tr>`;
   }
-  // 합계 행
+  // 합계 행 (광고 조회 곡은 제외)
+  const sumIds = ids.filter(id => !songs[id].adViews);
   const tot = recent.map(p => {
     let s = 0, any = false;
-    for(const id of ids){ const v = daily(p,id); if(v!=null){ s+=v; any=true; } }
+    for(const id of sumIds){ const v = daily(p,id); if(v!=null){ s+=v; any=true; } }
     return any ? s : null;
   });
   html += `<tr class="totalrow"><td class="song">전체 합계</td>`;
