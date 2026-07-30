@@ -40,7 +40,8 @@
     "K_viUNQs5lc": {
       "url": "https://www.youtube.com/watch?v=K_viUNQs5lc",
       "title": "블린 - 많이 기다렸다고 말해줄래",
-      "share": 0.33
+      "share": 0.33,
+      "adViews": true
     },
     "VCqKgW6Lvb4": {
       "url": "https://www.youtube.com/watch?v=VCqKgW6Lvb4",
@@ -1139,43 +1140,43 @@
     }
   ],
   "current": {
-    "time": "2026-07-30 13:13",
+    "time": "2026-07-30 14:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1171073,
-        "likes": 3248
+        "views": 1171165,
+        "likes": 3249
       },
       "RsQDAygpF6k": {
-        "views": 436400,
+        "views": 437075,
         "likes": 10739
       },
       "grqTg6WOJII": {
-        "views": 389020,
-        "likes": 20348
+        "views": 389641,
+        "likes": 20347
       },
       "THGi-LLhbxM": {
-        "views": 332995,
-        "likes": 8314
+        "views": 333309,
+        "likes": 8313
       },
       "Jsm2uVtQhmY": {
-        "views": 270344,
-        "likes": 15926
+        "views": 270413,
+        "likes": 15925
       },
       "K_viUNQs5lc": {
         "views": 17166,
         "likes": 3
       },
       "VCqKgW6Lvb4": {
-        "views": 33643,
-        "likes": 154
+        "views": 34478,
+        "likes": 155
       },
       "gTG9evSpuWg": {
-        "views": 19531114,
-        "likes": 74668
+        "views": 19532521,
+        "likes": 74676
       },
       "D7VsFDJx4zw": {
-        "views": 88966,
-        "likes": 1134
+        "views": 88996,
+        "likes": 1135
       }
     }
   },
@@ -3056,6 +3057,17 @@
         "gTG9evSpuWg": 19530613,
         "D7VsFDJx4zw": 88955
       },
+      "14": {
+        "tUcWwAO5zU8": 1171165,
+        "RsQDAygpF6k": 437075,
+        "grqTg6WOJII": 389641,
+        "THGi-LLhbxM": 333309,
+        "Jsm2uVtQhmY": 270413,
+        "K_viUNQs5lc": 17166,
+        "VCqKgW6Lvb4": 34478,
+        "gTG9evSpuWg": 19532521,
+        "D7VsFDJx4zw": 88996
+      },
       "00": {
         "tUcWwAO5zU8": 1169889,
         "RsQDAygpF6k": 426679,
@@ -3382,6 +3394,7 @@
       "11": 0,
       "12": 0,
       "13": 0,
+      "14": 0,
       "00": 0,
       "01": 0,
       "02": 0,
