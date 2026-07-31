@@ -239,9 +239,11 @@ function mkSampler(H, M){
       const dToday = days[days.length - 1];
       const dPrev = days.length > 1 ? days[days.length - 2] : null;
       const dYday = dPrev && (new Date(dToday) - new Date(dPrev) === 86400000) ? dPrev : null;
+      // 스트리밍은 음수 불가 → 0으로 클램프 (수집 소스 간 미세 오차 잡음 방지). 좋아요는 취소가 실제로 있어 그대로 둠.
       const seriesOf = (d) => !d ? labels.map(()=>null) : labels.map((_, h) => {
         const a = m.s.at(id, d, h - 1), b = m.s.at(id, d, h);
-        return (a != null && b != null) ? b - a : null;
+        if(a == null || b == null) return null;
+        return m.key === "views" ? Math.max(0, b - a) : b - a;
       });
       const tSeries = seriesOf(dToday), ySeries = seriesOf(dYday);
       const all = m.s.samples(id);

@@ -552,12 +552,13 @@ function renderHourly(songs, ids){
   const yday = prev && (new Date(today) - new Date(prev) === 86400000) ? prev : null;
   const labels = Array.from({length:24}, (_,h) => h + "시");
 
-  // "h시" 값 = (h-1)시 정각 → h시 정각 사이 유입 — 수집 시각과 무관하게 정각 환산값으로 계산
+  // "h시" 값 = (h-1)시 정각 → h시 정각 사이 유입 — 수집 시각과 무관하게 정각 환산값으로 계산.
+  // 음수는 0으로 처리 (유튜브의 조회수 소급 정정·수집 소스 간 미세 오차가 작은 곡에서 ±로 보이는 것 방지)
   const seriesOf = (d, id) => {
     if(!d) return labels.map(() => null);
     return labels.map((_, h) => {
       const a = estAt(id, d, h - 1), b = estAt(id, d, h);
-      return (a != null && b != null) ? b - a : null;
+      return (a != null && b != null) ? Math.max(0, b - a) : null;
     });
   };
   const totalOf = (d) => {
