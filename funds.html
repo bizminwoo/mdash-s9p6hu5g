@@ -306,7 +306,7 @@
 <script>
 (function(){
   "use strict";
-  const KEY_TX="finance_transactions_v35", KEY_FIX="finance_fixedcosts_v35";
+  const KEY_TX="finance_transactions_v36", KEY_FIX="finance_fixedcosts_v36";
   const won=n=>(n<0?"-":"")+"₩"+Math.abs(Math.round(n)).toLocaleString("ko-KR");
   const man=n=>{const a=Math.abs(n); if(a>=100000000)return (n/100000000).toFixed(a%100000000?1:0)+"억"; if(a>=10000)return Math.round(n/10000).toLocaleString("ko-KR")+"만"; return Math.round(n).toLocaleString("ko-KR");};
   const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -777,7 +777,7 @@
     // ── 틱톡 ──
     ["2026-07-02","지출","사업","틱톡",60000,"문성혜 작업실 36만−송수범 부담 30만(7/2 입금) 상계"],
     ["2026-07-07","지출","사업","틱톡",70000,"틱톡 제작비(김정규 5만+모세연 2만, 카카오페이)"],
-    ["2026-07-14","지출","사업","틱톡",213000,"틱톡 지출(유진 12만·공중도덕 9.3만)"],
+    ["2026-07-14","지출","개인","술",213000,"유진 12만·공중도덕 9.3만(08-03 술값으로 재확정)"],
     ["2026-07-06","지출","사업","틱톡",412990,"틱톡 제작비(무제15만·파평윤씨13.8만·바다포차10.5만·쿠팡2만)"],
     // ── 화장품 ──
     ["2026-07-08","지출","사업","화장품",108900,"언더어스 3PL 물류"],
