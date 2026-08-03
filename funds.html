@@ -306,7 +306,7 @@
 <script>
 (function(){
   "use strict";
-  const KEY_TX="finance_transactions_v36", KEY_FIX="finance_fixedcosts_v36";
+  const KEY_TX="finance_transactions_v37", KEY_FIX="finance_fixedcosts_v37";
   const won=n=>(n<0?"-":"")+"₩"+Math.abs(Math.round(n)).toLocaleString("ko-KR");
   const man=n=>{const a=Math.abs(n); if(a>=100000000)return (n/100000000).toFixed(a%100000000?1:0)+"억"; if(a>=10000)return Math.round(n/10000).toLocaleString("ko-KR")+"만"; return Math.round(n).toLocaleString("ko-KR");};
   const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -757,23 +757,23 @@
     ["2026-07-10","수입","사업","엔터",200000,"모스트 60만(부가세 제외)−황승률 페이백 40만(7/8 지급)"],
     ["2026-07-01","수입","사업","음원",384651,"뮤즈플랫폼 음원매출(부가세 제외)"],
     // ── 음원(엔터사업부 지출) ──
-    ["2026-07-02","지출","사업","음원",1292000,"NICE 음원마케팅 6건(7/1~8)"],
-    ["2026-07-01","지출","사업","음원",641097,"장유진 6월 엔터정산"],
-    ["2026-07-08","지출","사업","음원",310429,"황승률 음원마케팅"],
-    ["2026-07-04","지출","사업","음원",253680,"메타 광고(마스타해외 14건)"],
-    ["2026-07-16","지출","사업","음원",116740,"음원사이트 구독(벅스6·지니3·플로)"],
-    ["2026-07-13","지출","사업","음원",110000,"엔터제작 접대(두껍삼·스타벅스)"],
-    ["2026-07-07","지출","사업","음원",40000,"서울스투디오 부가세"],
-    ["2026-07-31","지출","사업","음원",1934000,"서수정 음원제작비"],
-    ["2026-07-27","지출","사업","음원",880000,"박광현 음원제작비(오메가미디어)"],
-    ["2026-07-31","지출","사업","음원",483500,"오병국 음원제작비"],
-    ["2026-07-31","지출","사업","음원",363000,"황승률 음원제작비"],
-    ["2026-07-27","지출","사업","음원",220000,"821사운드(차가을)"],
-    ["2026-07-27","지출","사업","음원",193400,"김태양(차가을 세션)"],
-    ["2026-07-29","지출","사업","음원",46750,"음원사이트 구독(벅스2·지니·자동결제2, 7월 하반기)"],
-    ["2026-07-27","지출","사업","음원",14964,"메타 광고(마스타, 7월 하반기)"],
-    ["2026-07-16","지출","사업","음원",82730,"음원사이트 구독(개인계좌 7건: 벅스·멜론·FLO·바이브 등)"],
-    ["2026-07-31","지출","사업","음원",65000,"차가을 정산(카카오페이)"],
+    ["2026-07-02","지출","사업","음원",1292000,"광고|NICE 음원마케팅 6건"],
+    ["2026-07-01","지출","사업","음원",641097,"정산|장유진 6월 정산"],
+    ["2026-07-08","지출","사업","음원",310429,"광고|황승률 마케팅"],
+    ["2026-07-04","지출","사업","음원",253680,"광고|메타(마스타) 14건"],
+    ["2026-07-16","지출","사업","음원",116740,"구독|벅스6·지니3·플로"],
+    ["2026-07-13","지출","사업","음원",110000,"기타|제작 접대(두껍삼·스벅)"],
+    ["2026-07-07","지출","사업","음원",40000,"기타|서울스투디오 부가세"],
+    ["2026-07-31","지출","사업","음원",1934000,"제작|서수정 음원제작비"],
+    ["2026-07-27","지출","사업","음원",880000,"제작|박광현(오메가미디어)"],
+    ["2026-07-31","지출","사업","음원",483500,"제작|오병국"],
+    ["2026-07-31","지출","사업","음원",363000,"제작|황승률"],
+    ["2026-07-27","지출","사업","음원",220000,"제작|821사운드(차가을)"],
+    ["2026-07-27","지출","사업","음원",193400,"제작|김태양(차가을 세션)"],
+    ["2026-07-29","지출","사업","음원",46750,"구독|벅스2·지니·자동결제2"],
+    ["2026-07-27","지출","사업","음원",14964,"광고|메타(마스타) 하반기"],
+    ["2026-07-16","지출","사업","음원",82730,"구독|개인계좌 7건(벅스·멜론·FLO·바이브)"],
+    ["2026-07-31","지출","사업","음원",65000,"제작|차가을 정산(카카오페이)"],
     // ── 틱톡 ──
     ["2026-07-02","지출","사업","틱톡",60000,"문성혜 작업실 36만−송수범 부담 30만(7/2 입금) 상계"],
     ["2026-07-07","지출","사업","틱톡",70000,"틱톡 제작비(김정규 5만+모세연 2만, 카카오페이)"],
@@ -929,6 +929,7 @@
       row("↳ 음원IP (스트리밍 정산)","",sumIn("음원IP"),0,{sub:1});
       row("↳ 음저협 저작권료","",sumIn("음저협"),0,{sub:1});
       if(sumIn("음원")) row("↳ 기타 음원 정산","",sumIn("음원"),0,{sub:1});
+      subItems("음원");
     }
     // 틱톡
     if(sumIn("틱톡")||sumEx("틱톡")){const i=sumIn("틱톡"),e=sumEx("틱톡");tI+=i;tE+=e;
@@ -946,12 +947,30 @@
     function subItems(area){
       const items=m.filter(t=>t.kind==="지출"&&t.scope==="사업"&&t.area===area)
         .sort((a,b)=>b.amount-a.amount);
-      items.forEach(t=>{
-        body.insertAdjacentHTML("beforeend",
-          `<tr><td style="padding-left:26px"><span class="name" style="font-size:12.5px;color:var(--ink-soft)">↳ ${t.memo}</span></td>
-           <td class="num">—</td><td class="num" style="font-size:12.5px;color:var(--ink-soft)">${won(t.amount)}</td>
-           <td class="num"></td></tr>`);
-      });
+      const itemRow=(memo,amt,pad)=>body.insertAdjacentHTML("beforeend",
+        `<tr><td style="padding-left:${pad}px"><span class="name" style="font-size:12.5px;color:var(--ink-soft)">↳ ${memo}</span></td>
+         <td class="num">—</td><td class="num" style="font-size:12.5px;color:var(--ink-soft)">${won(amt)}</td>
+         <td class="num"></td></tr>`);
+      // 메모가 "그룹|내용" 형식이면 그룹별 소계로 묶어서 표시 (엔터 지출 등)
+      if(items.some(t=>(t.memo||"").includes("|"))){
+        const groups={};
+        items.forEach(t=>{
+          const ix=(t.memo||"").indexOf("|");
+          const g=ix>0?t.memo.slice(0,ix):"기타";
+          (groups[g]=groups[g]||[]).push({memo:ix>0?t.memo.slice(ix+1):t.memo,amount:t.amount});
+        });
+        Object.entries(groups).map(([g,arr])=>[g,arr.reduce((s,t)=>s+t.amount,0),arr])
+          .sort((a,b)=>b[1]-a[1])
+          .forEach(([g,gsum,arr])=>{
+            body.insertAdjacentHTML("beforeend",
+              `<tr><td style="padding-left:26px"><span class="name" style="font-size:12.5px">↳ <b>${g}</b> <span style="color:var(--ink-faint)">${arr.length}건</span></span></td>
+               <td class="num">—</td><td class="num" style="font-size:12.5px;font-weight:700">${won(gsum)}</td>
+               <td class="num"></td></tr>`);
+            arr.forEach(t=>itemRow(t.memo,t.amount,42));
+          });
+        return;
+      }
+      items.forEach(t=>itemRow(t.memo,t.amount,26));
     }
     const foot=document.getElementById("pnlFoot");
     foot.innerHTML=`<tr><td>영업이익 합계</td><td class="num">${won(tI)}</td><td class="num">${won(tE)}</td>
