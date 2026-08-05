@@ -45,6 +45,12 @@
   .today { color: var(--up); font-weight: 700; }
   .note { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.6; }
   .empty { color: var(--muted); text-align: center; padding: 40px; }
+  /* 트윗엔터테인먼트 섹션 */
+  .twtgroup { font-size: 13.5px; font-weight: 700; margin: 16px 0 8px; padding-left: 8px; }
+  .twtgroup.iron { border-left: 3px solid #3987e5; }
+  .twtgroup.insta { border-left: 3px solid #d55181; }
+  .twtgroup:first-child { margin-top: 0; }
+  .sparkcell { width: 120px; }
   /* 상세 추적: 곡별 한 줄 (스트리밍 크게 + 좋아요) */
   .songrow { margin-bottom: 18px; }
   .songrow:last-child { margin-bottom: 0; }
@@ -83,6 +89,11 @@
   <div class="panel" id="compPanel" style="display:none">
     <h2>🎯 경쟁사·관심 곡 추적 <span class="muted">— 기간 제한 없이 계속 수집 (competitors.json 에 링크 추가/삭제)</span></h2>
     <div class="wrap" id="compWrap"></div>
+  </div>
+  <div class="panel" id="twtPanel" style="display:none">
+    <h2>🏢 트윗엔터테인먼트 <span class="muted">— 시간당 스트리밍 · 어제 동시간 대비 · 좋아요(데일리)</span></h2>
+    <div id="twtWrap"></div>
+    <div class="note">"오늘" = 00시 이후 현재까지 스트리밍, % = 어제 같은 시각(정각 환산) 대비. "시간당" = 오늘 시간별 유입 미니 그래프 — 등록 시점부터 쌓여서 하루 뒤부터 온전히 보입니다. 좋아요는 일 단위(오늘 증가 / 어제 하루 증가).</div>
   </div>
   <div class="panel" id="likesPanel" style="display:none">
     <h2>🔎 시간 단위 상세 추적 <span class="muted">— 스트리밍·좋아요, 1시간마다 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
@@ -210,6 +221,82 @@ function mkSampler(H, M){
   };
   return { samples, at };
 }
+// ── 🏢 트윗엔터테인먼트 (group: iron/insta 곡 — 시간당 스트리밍 + 어제 대비 % + 데일리 좋아요) ──
+(function renderTwt(){
+  const GROUPS = [["iron", "트윗 X 아이언이엔엠"], ["insta", "인스타 터 구매내역"]];
+  const all = Object.keys(DB.videos || {}).filter((id) => DB.videos[id].group)
+    .sort((a, b) => (DB.videos[a].order ?? 99) - (DB.videos[b].order ?? 99));
+  if(!all.length) return;
+  document.getElementById("twtPanel").style.display = "";
+  const wrap = document.getElementById("twtWrap");
+  const vs = mkSampler(DB.hourlyViews, DB.hourlyViewsMin);
+  const snaps2 = (DB.snapshots || []).slice().sort((a,b) => a.date < b.date ? -1 : 1);
+  const tSnap = snaps2[snaps2.length - 1] || null;
+  const pSnap = snaps2.length > 1 ? snaps2[snaps2.length - 2] : null;
+  const consec = tSnap && pSnap && (new Date(tSnap.date) - new Date(pSnap.date) === 86400000);
+  const curH = DB.current?.time ? Number(DB.current.time.slice(11, 13)) : null;
+  const ydate2 = tSnap ? (() => { const d = new Date(tSnap.date + "T00:00:00");
+    const p = new Date(d.getTime() - 86400000), z = n => String(n).padStart(2, "0");
+    return `${p.getFullYear()}-${z(p.getMonth()+1)}-${z(p.getDate())}`; })() : null;
+  const pcell = (v) => v == null ? "<span class='zero'>—</span>" : fmt(v);
+  const charts = [];
+  let html = "";
+  for(const [gk, gname] of GROUPS){
+    const gids = all.filter(id => DB.videos[id].group === gk);
+    if(!gids.length) continue;
+    html += `<div class="twtgroup ${gk}">${gname} <span class="zero" style="font-weight:400">(${gids.length}곡)</span></div>`;
+    html += `<div class="wrap"><table><thead><tr><th class="song">곡</th><th>오늘 현재까지</th><th>어제 동시간 대비</th><th class="sparkcell">시간당 (오늘)</th><th>최근 하루</th><th>좋아요 오늘</th><th>좋아요 어제 하루</th><th>총 조회수</th></tr></thead><tbody>`;
+    for(const id of gids){
+      const v = DB.videos[id];
+      const cur = DB.current?.stats?.[id] || {};
+      const tS = tSnap?.stats?.[id], pS = pSnap?.stats?.[id];
+      const today = (cur.views != null && tS?.views != null) ? cur.views - tS.views : null;
+      // 어제 동시간 (시간별 조회수 정각 환산 — 데이터 쌓인 뒤부터)
+      let ypct = "<span class='zero'>—</span>";
+      if(today != null && curH != null && ydate2){
+        const a = vs.at(id, ydate2, 0), b = vs.at(id, ydate2, curH);
+        if(a != null && b != null && b - a > 0){
+          const p = Math.round((today - (b - a)) / (b - a) * 100);
+          ypct = p > 0 ? `<span class="up">▲ ${p}%</span>` : p < 0 ? `<span class="down">▼ ${-p}%</span>` : "－ 0%";
+        }
+      }
+      const dayViews = (consec && tS?.views != null && pS?.views != null) ? tS.views - pS.views : null;
+      const likeToday = (cur.likes != null && tS?.likes != null) ? cur.likes - tS.likes : null;
+      const likeDay = (consec && tS?.likes != null && pS?.likes != null) ? tS.likes - pS.likes : null;
+      const cid = "spark_" + id;
+      charts.push([cid, id]);
+      html += `<tr><td class="song"><a href="https://youtu.be/${id}" target="_blank">${v.title || id}</a></td>
+        <td class="up" style="font-weight:700">${today != null ? "+" + fmt(today) : "<span class='zero'>—</span>"}</td>
+        <td>${ypct}</td>
+        <td class="sparkcell"><canvas id="${cid}" width="120" height="34"></canvas></td>
+        <td>${dayViews != null ? "+" + fmt(dayViews) : "<span class='zero'>—</span>"}</td>
+        <td>${likeToday != null ? (likeToday >= 0 ? "+" : "") + fmt(likeToday) : "<span class='zero'>—</span>"}</td>
+        <td>${likeDay != null ? (likeDay >= 0 ? "+" : "") + fmt(likeDay) : "<span class='zero'>—</span>"}</td>
+        <td>${pcell(cur.views)}</td></tr>`;
+    }
+    html += "</tbody></table></div>";
+  }
+  wrap.innerHTML = html;
+  // 시간당 미니 그래프 (오늘, 정각 환산, 음수 클램프)
+  if(typeof Chart !== "undefined" && tSnap){
+    for(const [cid, id] of charts){
+      const data = Array.from({length: 24}, (_, h) => {
+        const a = vs.at(id, tSnap.date, h - 1), b = vs.at(id, tSnap.date, h);
+        return (a != null && b != null) ? Math.max(0, b - a) : null;
+      });
+      if(data.every(x => x == null)) continue;
+      const el = document.getElementById(cid);
+      if(!el) continue;
+      new Chart(el, { type: "line",
+        data: { labels: data.map((_, i) => i), datasets: [{ data, borderColor: "#3987e5",
+          backgroundColor: "#3987e52e", fill: true, borderWidth: 1.5, pointRadius: 0, tension: 0.3, spanGaps: true }] },
+        options: { responsive: false, maintainAspectRatio: false, animation: false,
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          scales: { x: { display: false }, y: { display: false, beginAtZero: true } } } });
+    }
+  }
+})();
+
 (function renderDetail(){
   const tracked = Object.keys(DB.videos || {}).filter((id) => DB.videos[id].likesTrack)
     .sort((a, b) => (DB.videos[a].order ?? 99) - (DB.videos[b].order ?? 99));

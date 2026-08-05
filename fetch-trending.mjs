@@ -146,8 +146,9 @@ async function main() {
       const id = compIds[i];
       const v = db.videos[id] || {};
       const nv = { ...v, watch: true, order: i, ...(c.title ? { title: c.title } : {}),
-        ...(c.likes ? { likesTrack: true } : {}) };
+        ...(c.likes ? { likesTrack: true } : {}), ...(c.group ? { group: c.group } : {}) };
       if (!c.likes) delete nv.likesTrack; // 파일에서 likes 플래그를 빼면 좋아요 추적 중단
+      if (!c.group) delete nv.group;
       db.videos[id] = nv;
     });
     for (const [id, v] of Object.entries(db.videos)) {
@@ -210,8 +211,8 @@ async function main() {
     };
     const lk = {}, hv = {};
     for (const [id, v] of Object.entries(db.videos)) {
-      if (!v.likesTrack) continue;
-      if (stats[id]?.likes != null) lk[id] = stats[id].likes;
+      if (!v.likesTrack && !v.group) continue; // 상세추적 곡 + 그룹(트윗엔터) 곡은 시간별 조회수 기록
+      if (v.likesTrack && stats[id]?.likes != null) lk[id] = stats[id].likes;
       if (stats[id]?.views != null) hv[id] = stats[id].views;
     }
     writeHourly("hourlyLikes", "hourlyLikesMin", lk);
