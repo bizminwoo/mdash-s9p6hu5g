@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="robots" content="noindex, nofollow" />
-<title><!--__PAGETITLE__--></title>
+<title>AI 음원 대시보드 · 유튜브뮤직</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   :root {
@@ -92,8 +92,8 @@
 </style>
 </head>
 <body>
-  <!--__NAV__-->
-  <h1><!--__H1__--></h1>
+  <div id="sitetabs"><a href="index.html">🎵 음원 대시보드</a><a href="#" class="on">🤖 AI 음원</a><a href="funds.html">💼 자금 현황</a><a href="trending.html">🔥 인기 급상승</a></div>
+  <h1>🤖 AI 음원 대시보드 · 유튜브뮤직</h1>
   <div class="sub" id="updated"></div>
   <div class="cards" id="cards"></div>
   <div class="panel">
@@ -129,7 +129,7 @@
   </div>
 
 <script>
-const DATA = /*__DATA__*/ null;
+const DATA = {"songs":{},"snapshots":[]};
 
 // ── 정각(H:00) 환산 ──
 // 수집이 몇 분에 되든, 정각을 사이에 둔 두 수집값을 분 단위로 비례 배분해 "딱 H시 00분" 값을 계산.

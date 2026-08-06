@@ -3,6 +3,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { navHtml } from "./nav.mjs";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = join(ROOT, "data", "trending.json");
@@ -237,9 +238,10 @@ async function main() {
   const sp = existsSync(SP_FILE) ? readFileSync(SP_FILE, "utf8") : "null";
   const tpl = readFileSync(TEMPLATE, "utf8");
   writeFileSync(OUTPUT,
-    tpl.replace("/*__DATA__*/ null", JSON.stringify(db))
-       .replace("/*__OWN__*/ null", JSON.stringify(ownIds))
-       .replace("/*__SP__*/ null", sp), "utf8");
+    tpl.replace("/*__DATA__*/ null", () => JSON.stringify(db))
+       .replace("/*__OWN__*/ null", () => JSON.stringify(ownIds))
+       .replace("/*__SP__*/ null", () => sp)
+       .replace("<!--__NAV__-->", () => navHtml("trending.html")), "utf8");
   console.log(`[완료] 저장: data/trending.json, 페이지: trending.html`);
 }
 

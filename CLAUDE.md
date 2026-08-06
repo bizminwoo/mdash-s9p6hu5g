@@ -10,10 +10,13 @@
 
 ```
 fetch.mjs              내 곡+마케팅 수집 → data/snapshots.json → index.html + bep.html 생성
+                       AI 음원도 같이 수집 → data/ai-snapshots.json → ai.html 생성
 fetch-trending.mjs     인기급상승 차트 30곡 + 경쟁사 수집 → data/trending.json → trending.html 생성
 fetch-spotify.mjs      스포티파이 인기도(보류 중 — 아래 참고) → data/spotify.json
 *.template.html        페이지 템플릿. /*__DATA__*/ null 자리에 JSON 주입 방식
+nav.mjs                상단 탭 목록 한 곳 관리 → 템플릿의 <!--__NAV__--> 자리에 주입
 songs.json             내 곡 목록 {url, title, share} — share: 수익 지분(0=선급 제외, 0.5=공동제작)
+ai-songs.json          AI 음원 목록 (songs.json과 같은 형식) — ai.html 대시보드용
 competitors.json       경쟁사 곡 {url, title, likes?} — likes:true면 시간별 좋아요+조회수 상세 추적
 marketing.json         마케팅 참고 트랙 (수익/합계 미포함, 대시보드 별도 섹션)
 experiments.json       구보(구독보장) 캠페인 기록 → bep.html 손익분기 분석
@@ -49,6 +52,11 @@ funds.html             자금 현황 (별도 문서에서 생성됨 — 자금 �
   표시한다 (사용자 강한 요구사항 — "16:40에 수집돼도 16시 데이터로"). 템플릿의 estAt()/mkSampler() 참조.
   150분 넘는 수집 공백은 보간하지 않음(null).
 - 수익: 하루 1,000회 ≈ 월 25만원 기준, × share. 오늘 예상(추정) = 최근 7일의 "N시까지 소진율" 평균으로 환산.
+- **합계는 지분 반영**: 요약 카드·전체 합계 행·전체 합계 그래프는 곡별 조회수 × share 로 더한다
+  (공동제작 50% 곡은 절반만). 단 **share 0(선급곡)은 스트리밍 합계에 100% 반영** — 수익에서만 빠진다.
+  곡별 칸의 숫자는 유튜브 실측 그대로라, 곡별 값을 단순 합산한 것보다 전체 합계가 작다 (템플릿의 wOf()).
+- **AI 음원 대시보드(ai.html)**: 내 곡 대시보드와 같은 템플릿·같은 규칙, 데이터셋만 분리
+  (ai-songs.json → data/ai-snapshots.json). 두 대시보드의 합계는 서로 섞이지 않는다.
 
 ## push 규칙
 

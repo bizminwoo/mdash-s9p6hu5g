@@ -4,11 +4,16 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { navHtml } from "./nav.mjs";
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = join(ROOT, "data", "snapshots.json");
 const TEMPLATE = join(ROOT, "dashboard.template.html");
 const OUTPUT = join(ROOT, "index.html");
+// 🤖 AI 음원 대시보드 — 내 곡과 같은 템플릿·같은 형식이지만 데이터셋이 완전히 분리돼 있다
+const AI_SONGS_FILE = join(ROOT, "ai-songs.json");
+const AI_DATA_FILE = join(ROOT, "data", "ai-snapshots.json");
+const AI_OUTPUT = join(ROOT, "ai.html");
 
 function localDate(d = new Date()) {
   const p = (n) => String(n).padStart(2, "0");
@@ -56,6 +61,92 @@ async function fetchStatsYtdlp(ids, urlOf) {
     }
   }
   return out;
+}
+
+// 수집 결과를 데이터셋에 반영 — 날짜별 스냅샷(그날 첫 수집으로 고정) + 시간별 칸(그 시간 첫 수집만) + 현재값
+function applyStats(db, stats) {
+  const today = localDate();
+  const idx = db.snapshots.findIndex((s) => s.date === today);
+  if (idx >= 0) {
+    // 오늘 기준값은 유지하고 신규 곡 기준값만 추가 (locked 스냅샷도 이 규칙으로 보호된다)
+    for (const [vid, s] of Object.entries(stats)) {
+      if (!db.snapshots[idx].stats[vid]) db.snapshots[idx].stats[vid] = s;
+    }
+  } else {
+    db.snapshots.push({ date: today, time: localTime(), stats });
+  }
+  db.current = { time: localTime(), stats };
+  db.snapshots.sort((a, b) => (a.date < b.date ? -1 : 1));
+
+  // 시간별 스냅샷 — "어제 동시간대" 비교용 (조회수만, 최근 8일 유지)
+  // 같은 시간에 여러 번 실행돼도 "그 시간의 첫 수집"만 기록 → 시간대 비교 기준이 일정하고,
+  // 5분 예약이 누락되면 25분/45분 백업 실행이 그 시간 칸을 자동으로 채움
+  const hh = String(new Date().getHours()).padStart(2, "0");
+  db.hourly = db.hourly || {};
+  const hcur = (db.hourly[today] = db.hourly[today] || {});
+  if (!hcur[hh]) {
+    hcur[hh] = Object.fromEntries(
+      Object.entries(stats).filter(([, s]) => s.views != null).map(([vid, s]) => [vid, s.views]));
+    // 수집된 "분"도 기록 → 대시보드가 정각(H:00) 값으로 비례 환산할 때 사용
+    db.hourlyMin = db.hourlyMin || {};
+    (db.hourlyMin[today] = db.hourlyMin[today] || {})[hh] = new Date().getMinutes();
+  }
+  const cutoff = localDate(new Date(Date.now() - 8 * 86400000));
+  for (const d of Object.keys(db.hourly)) if (d < cutoff) delete db.hourly[d];
+  for (const d of Object.keys(db.hourlyMin || {})) if (d < cutoff) delete db.hourlyMin[d];
+}
+
+// 대시보드 템플릿의 자리표시자 채우기 (데이터 + 상단 탭 + 제목)
+function fillPage(tpl, db, sp, { nav, h1, title }) {
+  return tpl
+    .replace("/*__DATA__*/ null", () => JSON.stringify(db))
+    .replace("/*__SP__*/ null", () => sp)
+    .replace("<!--__NAV__-->", () => nav)
+    .replace("<!--__H1__-->", () => h1)
+    .replace("<!--__PAGETITLE__-->", () => title);
+}
+
+// 🤖 AI 음원 대시보드: ai-songs.json → data/ai-snapshots.json → ai.html
+// 내 곡 대시보드와 같은 템플릿을 쓰지만 데이터가 분리돼 있어 합계가 서로 섞이지 않는다.
+async function buildAi(renderOnly, tpl) {
+  const songs = existsSync(AI_SONGS_FILE)
+    ? JSON.parse(readFileSync(AI_SONGS_FILE, "utf8"))
+        .map((e) => (typeof e === "string" ? { url: e } : e))
+        .filter((e) => e && typeof e.url === "string" && vidOf(e.url))
+    : [];
+
+  let db = { songs: {}, snapshots: [] };
+  if (existsSync(AI_DATA_FILE)) db = JSON.parse(readFileSync(AI_DATA_FILE, "utf8"));
+
+  for (const { url, title, share, adViews } of songs) {
+    const vid = vidOf(url);
+    db.songs[vid] = { ...(db.songs[vid] || {}), url,
+      ...(title ? { title } : {}), share: share == null ? 1 : share };
+    if (adViews) db.songs[vid].adViews = true; else delete db.songs[vid].adViews;
+  }
+  // ai-songs.json 에서 지운 곡은 목록에서 빠진다 (과거 스냅샷 수치는 그대로 남음)
+  const keep = new Set(songs.map((e) => vidOf(e.url)));
+  for (const vid of Object.keys(db.songs)) if (!keep.has(vid)) delete db.songs[vid];
+
+  if (!renderOnly && songs.length) {
+    const ids = songs.map((e) => vidOf(e.url));
+    const urlOf = (id) => songs[ids.indexOf(id)].url;
+    console.log(`[${localTime()}] AI 음원 ${songs.length}곡 수집...`);
+    const stats = process.env.YT_API_KEY ? await fetchStatsAPI(ids) : await fetchStatsYtdlp(ids, urlOf);
+    for (const [vid, s] of Object.entries(stats)) {
+      console.log(`  ✓ ${db.songs[vid]?.title || vid}  (조회 ${s.views?.toLocaleString() ?? "?"}, 좋아요 ${s.likes?.toLocaleString() ?? "?"})`);
+    }
+    const missing = ids.filter((id) => !stats[id]);
+    if (missing.length) console.log(`  ⚠ 수집 실패: ${missing.join(", ")}`);
+    applyStats(db, stats);
+    writeFileSync(AI_DATA_FILE, JSON.stringify(db, null, 2), "utf8");
+  }
+
+  writeFileSync(AI_OUTPUT, fillPage(tpl, db, "null", {
+    nav: navHtml("ai.html"),
+    h1: "🤖 AI 음원 대시보드 · 유튜브뮤직",
+    title: "AI 음원 대시보드 · 유튜브뮤직",
+  }), "utf8");
 }
 
 async function main() {
@@ -109,35 +200,7 @@ async function main() {
     const missing = ids.filter((id) => !stats[id]);
     if (missing.length) console.log(`  ⚠ 수집 실패: ${missing.join(", ")}`);
 
-    // 오늘의 기준값(하루 첫 수집 = 00시)은 유지, 신규 곡 기준값만 추가
-    const idx = db.snapshots.findIndex((s) => s.date === today);
-    if (idx >= 0) {
-      for (const [vid, s] of Object.entries(stats)) {
-        if (!db.snapshots[idx].stats[vid]) db.snapshots[idx].stats[vid] = s;
-      }
-    } else {
-      db.snapshots.push({ date: today, time: localTime(), stats });
-    }
-    db.current = { time: localTime(), stats };
-    db.snapshots.sort((a, b) => (a.date < b.date ? -1 : 1));
-
-    // 시간별 스냅샷 — "어제 동시간대" 비교용 (조회수만, 최근 8일 유지)
-    // 같은 시간에 여러 번 실행돼도 "그 시간의 첫 수집"만 기록 → 시간대 비교 기준이 일정하고,
-    // 5분 예약이 누락되면 25분/45분 백업 실행이 그 시간 칸을 자동으로 채움
-    const hh = String(new Date().getHours()).padStart(2, "0");
-    db.hourly = db.hourly || {};
-    const hcur = (db.hourly[today] = db.hourly[today] || {});
-    if (!hcur[hh]) {
-      hcur[hh] = Object.fromEntries(
-        Object.entries(stats).filter(([, s]) => s.views != null).map(([vid, s]) => [vid, s.views]));
-      // 수집된 "분"도 기록 → 대시보드가 정각(H:00) 값으로 비례 환산할 때 사용
-      db.hourlyMin = db.hourlyMin || {};
-      (db.hourlyMin[today] = db.hourlyMin[today] || {})[hh] = new Date().getMinutes();
-    }
-    const cutoff = localDate(new Date(Date.now() - 8 * 86400000));
-    for (const d of Object.keys(db.hourly)) if (d < cutoff) delete db.hourly[d];
-    for (const d of Object.keys(db.hourlyMin || {})) if (d < cutoff) delete db.hourlyMin[d];
-
+    applyStats(db, stats);
     writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), "utf8");
   }
 
@@ -145,21 +208,28 @@ async function main() {
   const SP_FILE = join(ROOT, "data", "spotify.json");
   const sp = existsSync(SP_FILE) ? readFileSync(SP_FILE, "utf8") : "null";
   const tpl = readFileSync(TEMPLATE, "utf8");
-  writeFileSync(OUTPUT, tpl.replace("/*__DATA__*/ null", JSON.stringify(db))
-    .replace("/*__SP__*/ null", sp), "utf8");
+  writeFileSync(OUTPUT, fillPage(tpl, db, sp, {
+    nav: navHtml("index.html"),
+    h1: "🎵 내 음원 대시보드 · 유튜브뮤직",
+    title: "내 음원 대시보드 · 유튜브뮤직",
+  }), "utf8");
 
-  // bep.html 생성
+  // ai.html (AI 음원 대시보드) 생성 — 같은 템플릿, 분리된 데이터
+  await buildAi(renderOnly, tpl);
+
+  // bep.html 생성 (상단 탭에서는 뺐지만 주소로는 계속 접근 가능)
   const BEP_TEMPLATE = join(ROOT, "bep.template.html");
   if (existsSync(BEP_TEMPLATE)) {
     const EXP_FILE = join(ROOT, "experiments.json");
     const experiments = existsSync(EXP_FILE) ? JSON.parse(readFileSync(EXP_FILE, "utf8")) : [];
     writeFileSync(join(ROOT, "bep.html"),
       readFileSync(BEP_TEMPLATE, "utf8")
-        .replace("/*__DATA__*/ null", JSON.stringify(db))
-        .replace("/*__EXP__*/ null", JSON.stringify(experiments)), "utf8");
+        .replace("/*__DATA__*/ null", () => JSON.stringify(db))
+        .replace("/*__EXP__*/ null", () => JSON.stringify(experiments))
+        .replace("<!--__NAV__-->", () => navHtml("bep.html")), "utf8");
   }
 
-  console.log(`[완료] 저장: data/snapshots.json,  페이지: index.html + bep.html`);
+  console.log(`[완료] 저장: data/snapshots.json + data/ai-snapshots.json,  페이지: index.html + ai.html + bep.html`);
 }
 
 await main();
