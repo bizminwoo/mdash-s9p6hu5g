@@ -100,6 +100,10 @@
     <div id="likesGrid"></div>
     <div class="note">각 점 = 직전 1시간 동안의 증가량 (수집이 몇 분에 되든 정각 값으로 환산). 큰 숫자 = 오늘 00시 이후 증가(첫날은 발매 후 증가), 옆 = 총계. competitors.json 에서 해당 곡에 <code>"likes": true</code> 를 붙이면 이 상세 추적에 추가됩니다.</div>
   </div>
+  <div class="panel" id="testPanel" style="display:none">
+    <h2>🧪 TEST <span class="muted">— competitors.json 에서 <code>"group": "test"</code> 곡</span></h2>
+    <div class="wrap" id="testWrap"></div>
+  </div>
   <div class="panel" id="droppedPanel" style="display:none">
     <h2>차트 아웃 후 추적 중 <span class="muted">— 차트에서 빠진 뒤 14일간 계속 수집</span></h2>
     <div class="wrap" id="droppedWrap"></div>
@@ -183,13 +187,23 @@ document.getElementById("chartWrap").innerHTML = entries.length
 // 경쟁사·관심 곡 (차트 등재 여부와 무관하게 항상 표시, 차트에 있으면 순위도 표시)
 const onChart = new Set(entries.map((e) => e.id));
 const posOf = Object.fromEntries(entries.map((e) => [e.id, e.pos]));
-const watch = Object.keys(DB.videos || {}).filter((id) => DB.videos[id].watch)
+const watch = Object.keys(DB.videos || {}).filter((id) => DB.videos[id].watch && DB.videos[id].group !== "test")
   .sort((a, b) => (DB.videos[a].order ?? 99) - (DB.videos[b].order ?? 99));
 if (watch.length) {
   document.getElementById("compPanel").style.display = "";
   document.getElementById("compWrap").innerHTML =
     "<table><thead>" + headRow(true) + "</thead><tbody>" +
     watch.map((id) => bodyRow(id, posOf[id] ?? null, true)).join("") + "</tbody></table>";
+}
+
+// 🧪 TEST 섹션 (group: "test" 곡 — 경쟁사 표에서 분리해 별도 표시)
+const testIds = Object.keys(DB.videos || {}).filter((id) => DB.videos[id].watch && DB.videos[id].group === "test")
+  .sort((a, b) => (DB.videos[a].order ?? 99) - (DB.videos[b].order ?? 99));
+if (testIds.length) {
+  document.getElementById("testPanel").style.display = "";
+  document.getElementById("testWrap").innerHTML =
+    "<table><thead>" + headRow(true) + "</thead><tbody>" +
+    testIds.map((id) => bodyRow(id, posOf[id] ?? null, true)).join("") + "</tbody></table>";
 }
 
 // ── 🔎 시간 단위 상세 추적 (likesTrack 곡: 스트리밍 + 좋아요) ──
