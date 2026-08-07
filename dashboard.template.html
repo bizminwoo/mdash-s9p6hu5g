@@ -97,7 +97,7 @@
   <div class="sub" id="updated"></div>
   <div class="cards" id="cards"></div>
   <div class="panel">
-    <h2>📅 일자별 스트리밍 (최근 7일) <span class="muted">— 각 칸: 그날 하루 스트리밍, ▲▼ 전일 대비 증감</span></h2>
+    <h2>📅 일자별 스트리밍 (최근 10일) <span class="muted">— 각 칸: 그날 하루 스트리밍, ▲▼ 전일 대비 증감</span></h2>
     <div id="matrixWrap"></div>
   </div>
   <div class="panel">
@@ -714,7 +714,7 @@ function renderDailyMatrix(snaps, songs, ids){
     const md = (s)=>{ const [,m,d]=s.split("-"); return Number(m)+"/"+Number(d); };
     periods.push({ a, b, label: gap > 1 ? md(a.date)+"~"+md(b.date) : md(a.date) });
   }
-  const recent = periods.slice(-7);
+  const recent = periods.slice(-10);
   if(recent.length === 0){
     wrap.innerHTML = '<div class="empty">이틀 이상 데이터가 쌓이면 일자별 표가 나타납니다.</div>';
     return;
