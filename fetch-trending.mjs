@@ -130,6 +130,15 @@ async function main() {
   }
 
   if (!renderOnly) {
+    // 경쟁사 4팀 신곡 자동 감지 → competitors.json 갱신 (아래에서 다시 읽음)
+    try { await import("./detect-releases.mjs"); }
+    catch (e) { console.log(`  ✗ 신곡감지 실패: ${String(e.message).split("\n")[0]}`); }
+    comps = existsSync(COMP_FILE)
+      ? JSON.parse(readFileSync(COMP_FILE, "utf8"))
+          .map((e) => (typeof e === "string" ? { url: e } : e))
+          .filter((e) => e && typeof e.url === "string" && vidOf(e.url))
+      : comps;
+
     const today = localDate();
     console.log(`[${localTime()}] 인기 급상승 차트 수집 시작...`);
     const chart = await fetchChart();
