@@ -258,7 +258,8 @@ const TWT_EVENTS = {"j5cWxhNLFfI": [{"d": "2026-08-04", "n": "구매 5000"}, {"d
     // 📅 일자별 일간 스트리밍 (7/30~ = 최근 10일) — 곡 × 날짜
     {
       const _td = days[days.length - 1];
-      html += `<div class="wrap" style="margin-bottom:10px"><table><thead><tr><th class="song">곡 — 일간 스트리밍(그날 하루)</th>${days.map(d => `<th>${d.slice(5).replace("-", "/")}${d === _td ? "<br>오늘" : ""}</th>`).join("")}</tr></thead><tbody>`;
+      const _WD = ["일","월","화","수","목","금","토"];
+      html += `<div class="wrap" style="margin-bottom:10px"><table><thead><tr><th class="song">곡 — 일간 스트리밍(그날 하루)</th>${days.map(d => { const wd = _WD[new Date(d + "T00:00:00").getDay()]; return `<th>${d.slice(5).replace("-", "/")}<br><span class="muted" style="font-weight:400">(${wd})${d === _td ? " 오늘" : ""}</span></th>`; }).join("")}</tr></thead><tbody>`;
       for(const id of gids){
         const v2 = DB.videos[id];
         const cells = days.map(d => {
