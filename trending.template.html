@@ -254,6 +254,17 @@ function mkSampler(H, M){
     const gids = all.filter(id => DB.videos[id].group === gk);
     if(!gids.length) continue;
     html += `<div class="twtgroup ${gk}">${gname} <span class="zero" style="font-weight:400">(${gids.length}곡)</span></div>`;
+    // 📅 일자별 일간 스트리밍 (7/30~ = 최근 10일) — 곡 × 날짜
+    {
+      const _td = days[days.length - 1];
+      html += `<div class="wrap" style="margin-bottom:10px"><table><thead><tr><th class="song">곡 — 일간 스트리밍(그날 하루)</th>${days.map(d => `<th>${d.slice(5).replace("-", "/")}${d === _td ? "<br>오늘" : ""}</th>`).join("")}</tr></thead><tbody>`;
+      for(const id of gids){
+        const v2 = DB.videos[id];
+        const cells = days.map(d => { const n = dailyOf(id, d); return `<td class="${d === _td ? "today" : (n == null ? "zero" : "")}">${fmt(n)}</td>`; }).join("");
+        html += `<tr><td class="song"><a href="https://youtu.be/${id}" target="_blank">${v2.title || id}</a></td>${cells}</tr>`;
+      }
+      html += `</tbody></table></div>`;
+    }
     html += `<div class="wrap"><table><thead><tr><th class="song">곡</th><th>오늘 현재까지</th><th>어제 동시간 대비</th><th class="sparkcell">시간당 (오늘)</th><th>최근 하루</th><th>좋아요 오늘</th><th>좋아요 어제 하루</th><th>총 조회수</th></tr></thead><tbody>`;
     for(const id of gids){
       const v = DB.videos[id];
