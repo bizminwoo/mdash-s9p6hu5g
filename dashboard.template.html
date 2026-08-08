@@ -714,7 +714,8 @@ function renderDailyMatrix(snaps, songs, ids){
     const a = snaps[i-1], b = snaps[i];
     const gap = (new Date(b.date) - new Date(a.date)) / 86400000;
     const md = (s)=>{ const [,m,d]=s.split("-"); return Number(m)+"/"+Number(d); };
-    periods.push({ a, b, label: gap > 1 ? md(a.date)+"~"+md(b.date) : md(a.date) });
+    const wd = (s)=>["일","월","화","수","목","금","토"][new Date(s+"T00:00:00").getDay()];
+    periods.push({ a, b, label: gap > 1 ? md(a.date)+"~"+md(b.date) : md(a.date)+"("+wd(a.date)+")" });
   }
   const recent = periods.slice(-10);
   if(recent.length === 0){
