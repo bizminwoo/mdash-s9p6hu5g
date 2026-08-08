@@ -88,7 +88,7 @@
   <div class="panel" id="twtPanel" style="display:none">
     <h2>🏢 트윗엔터테인먼트 <span class="muted">— 시간당 스트리밍 · 어제 동시간 대비 · 좋아요(데일리)</span></h2>
     <div id="twtWrap"></div>
-    <div class="note">📣 <b style="color:#ffd54a">노란 칸</b> = 그날 마케팅(구매·공유) 실행한 날 — 칸에 마우스 올리면 뭘 했는지 나옴. 그 오른쪽 칸들(그 뒤 날짜)로 스밍이 오르내린 효과를 본다.<br>"오늘" = 00시 이후 현재까지 스트리밍, % = 어제 같은 시각(정각 환산) 대비. "시간당" = 오늘 시간별 유입 미니 그래프 — 등록 시점부터 쌓여서 하루 뒤부터 온전히 보입니다. 좋아요는 일 단위(오늘 증가 / 어제 하루 증가).</div>
+    <div class="note"><b style="color:#ff5b8a">🛒 구매</b> · <b style="color:#3d9bff">🔗 공유</b> — 색칠된 칸 = 그날 마케팅한 날(왼쪽 색 테두리 = 시작점). 칸에 마우스 올리면 상세(수량 등). 바로 오른쪽 칸들로 그 뒤 스밍 증감(효과)을 본다.<br>"오늘" = 00시 이후 현재까지 스트리밍, % = 어제 같은 시각(정각 환산) 대비. "시간당" = 오늘 시간별 유입 미니 그래프 — 등록 시점부터 쌓여서 하루 뒤부터 온전히 보입니다. 좋아요는 일 단위(오늘 증가 / 어제 하루 증가).</div>
   </div>
   <div class="panel" id="likesPanel" style="display:none">
     <h2>🔎 시간 단위 상세 추적 <span class="muted">— 스트리밍·좋아요, 1시간마다 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
@@ -265,8 +265,14 @@ const TWT_EVENTS = {"j5cWxhNLFfI": [{"d": "2026-08-04", "n": "구매 5000"}, {"d
         const cells = days.map(d => {
           const n = dailyOf(id, d);
           const ev = (TWT_EVENTS[id] || []).filter(e => e.d === d);
-          const mk = ev.length ? ` style="background:rgba(255,213,74,0.22);box-shadow:inset 0 0 0 2px #ffd54a" title="${ev.map(e => e.n).join(', ')}"` : "";
-          return `<td class="${d === _td ? "today" : (n == null ? "zero" : "")}"${mk}>${ev.length ? "📣" : ""}${fmt(n)}</td>`;
+          let mk = "", badge = "";
+          if (ev.length) {
+            const hasBuy = ev.some(e => /구매/.test(e.n));
+            const col = hasBuy ? "#ff5b8a" : "#3d9bff";
+            mk = ` style="background:${col}20;border-left:3px solid ${col}" title="${ev.map(e => e.n).join(' · ')}"`;
+            badge = `<span style="font-size:11px;margin-right:2px">${hasBuy ? "🛒" : "🔗"}</span>`;
+          }
+          return `<td class="${d === _td ? "today" : (n == null ? "zero" : "")}"${mk}>${badge}${fmt(n)}</td>`;
         }).join("");
         html += `<tr><td class="song"><a href="https://youtu.be/${id}" target="_blank">${v2.title || id}</a></td>${cells}</tr>`;
       }
