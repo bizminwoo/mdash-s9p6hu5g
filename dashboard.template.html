@@ -380,12 +380,14 @@ function render(){
       })()}</td>
       <td class="delta up">${r.dViews!=null ? "+"+nf.format(r.dViews) : "<span class='muted'>—</span>"}</td>
       <td class="delta money">${
-        r.share === 0 ? `<span class='muted'>선급 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
+        r.adViews ? `<span class='muted' title='광고 조회 — 합계·예상에서 제외'>광고 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
+        : r.share === 0 ? `<span class='muted'>선급 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
         : r.revenue!=null ? won(r.revenue) + (r.share !== 1 ? ` <span class='muted'>(${r.share*100}%)</span>` : "")
         : "<span class='muted'>—</span>"
       }</td>
       <td class="delta money">${
-        r.share === 0 ? `<span class='muted'>제외${r.mtdRevenueFull ? ` (≈${won(r.mtdRevenueFull)})` : ""}</span>`
+        r.adViews ? `<span class='muted' title='광고 조회 — 제외'>광고 제외</span>`
+        : r.share === 0 ? `<span class='muted'>제외${r.mtdRevenueFull ? ` (≈${won(r.mtdRevenueFull)})` : ""}</span>`
         : r.mtdRevenue!=null ? won(r.mtdRevenue)
         : "<span class='muted'>—</span>"
       }</td>
