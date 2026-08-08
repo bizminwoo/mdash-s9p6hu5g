@@ -99,6 +99,7 @@
   <div class="panel">
     <h2>📅 일자별 스트리밍 (최근 10일) <span class="muted">— 각 칸: 그날 하루 스트리밍, ▲▼ 전일 대비 증감</span></h2>
     <div id="matrixWrap"></div>
+    <div class="note"><b style="color:#ff5b8a">🛒 색칠된 칸</b> = 그날 마케팅(좋아요 구매 등) 실행한 날 — 마우스 올리면 상세. 바로 오른쪽 칸들(그 뒤 날짜)로 스밍 효과를 추적.</div>
   </div>
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
@@ -705,7 +706,9 @@ function renderSmallMultiples(snaps, songs, ids, opts = {}){
   }
 }
 
-// 일자별 스트리밍 매트릭스 (곡 × 최근 7일, 전일 대비 증감 표시)
+// 마케팅 이벤트 마킹 (곡 videoId → [{d:날짜, n:내용}])
+const MAIN_EVENTS = {"THGi-LLhbxM":[{"d":"2026-08-08","n":"좋아요 5000 구매 (TEST, 14:26)"}]};
+// 일자별 스트리밍 매트릭스 (곡 × 최근 10일, 전일 대비 증감 표시)
 function renderDailyMatrix(snaps, songs, ids){
   const wrap = document.getElementById("matrixWrap");
   // 연속 스냅샷 쌍 → 하루치 구간
@@ -726,8 +729,15 @@ function renderDailyMatrix(snaps, songs, ids){
     const x = p.a.stats[id], y = p.b.stats[id];
     return (x && y && x.views!=null && y.views!=null) ? y.views - x.views : null;
   };
-  const cell = (v, prevV) => {
-    if(v == null) return "<td><span class='muted'>—</span></td>";
+  const cell = (v, prevV, ev) => {
+    let mk = "", badge = "";
+    if(ev && ev.length){
+      const hasBuy = ev.some(e => /구매/.test(e.n));
+      const col = hasBuy ? "#ff5b8a" : "#3d9bff";
+      mk = ` style="background:${col}20;border-left:3px solid ${col}" title="${ev.map(e => e.n).join(' · ')}"`;
+      badge = `<span style="font-size:11px;margin-right:2px">${hasBuy ? "🛒" : "🔗"}</span>`;
+    }
+    if(v == null) return `<td${mk}>${badge}<span class='muted'>—</span></td>`;
     let chg = "";
     if(prevV != null){
       const d = v - prevV;
@@ -735,7 +745,7 @@ function renderDailyMatrix(snaps, songs, ids){
       else if(d < 0) chg = `<div class="dchg neg">▼ ${nf.format(-d)}</div>`;
       else chg = `<div class="dchg flat">－ 0</div>`;
     }
-    return `<td><div class="dval">${nf.format(v)}</div>${chg}</td>`;
+    return `<td${mk}><div class="dval">${badge}${nf.format(v)}</div>${chg}</td>`;
   };
   // 곡 정렬: 가장 최근 하루치 기준 내림차순
   const last = recent[recent.length-1];
@@ -748,7 +758,8 @@ function renderDailyMatrix(snaps, songs, ids){
     for(let i=0;i<recent.length;i++){
       const v = daily(recent[i], id);
       const pv = i>0 ? daily(recent[i-1], id) : null;
-      html += cell(v, pv);
+      const ev = (MAIN_EVENTS[id] || []).filter(e => e.d === recent[i].a.date);
+      html += cell(v, pv, ev);
     }
     html += `</tr>`;
   }
