@@ -74,6 +74,30 @@ async function main() {
   } else {
     console.log("[신곡감지] 새 곡 없음");
   }
+
+  // ── 우리 종이별 신곡 자동 등록 (종이별-Topic 채널 → ai-songs.json) ──
+  try {
+    const OWN_CHANNEL = "UCum1OD1aymgqmu8Xo7DgNNw"; // 종이별 - Topic
+    const AI = join(ROOT, "ai-songs.json");
+    const ai = JSON.parse(readFileSync(AI, "utf8"));
+    const aiHave = new Set(ai.map((s) => (typeof s === "string" ? vidOf(s) : vidOf(s.url))).filter(Boolean));
+    const vids = await feed(OWN_CHANNEL);
+    const ownAdded = [];
+    for (const v of vids) {
+      if (aiHave.has(v.id) || isInst(v.title)) continue;
+      const pub = Date.parse(v.published);
+      if (Number.isFinite(pub) && pub < cutoff) continue; // 최근 발행분만
+      ai.push({ url: "https://www.youtube.com/watch?v=" + v.id, title: "종이별 - " + v.title, share: 1 });
+      aiHave.add(v.id);
+      ownAdded.push("종이별 - " + v.title);
+    }
+    if (ownAdded.length) {
+      writeFileSync(AI, JSON.stringify(ai, null, 2) + "\n", "utf8");
+      console.log(`[종이별 신곡] ${ownAdded.length}곡 ai.html 등록: ` + ownAdded.join(", "));
+    } else {
+      console.log("[종이별 신곡] 새 곡 없음");
+    }
+  } catch (e) { console.log("[종이별 신곡] 실패:", String(e.message).split("\n")[0]); }
 }
 
 await main();
