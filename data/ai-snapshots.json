@@ -588,115 +588,115 @@
     }
   ],
   "current": {
-    "time": "2026-08-10 03:56",
+    "time": "2026-08-10 04:01",
     "stats": {
       "po-4BGAk5hw": {
-        "views": 122,
+        "views": 124,
         "likes": 3031
       },
       "28Ws29oWn0E": {
         "views": 0,
-        "likes": 0
+        "likes": null
       },
       "-cXNHfsE5jA": {
         "views": 0,
-        "likes": 0
+        "likes": null
       },
       "a05wD_wBYqk": {
         "views": 0,
-        "likes": 0
+        "likes": null
       },
       "H5a91tLWuUU": {
         "views": 4,
-        "likes": 0
+        "likes": null
       },
       "wUIWG0PBGQs": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "i1Ozv0GpurU": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "YTyj0EKI2gc": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "l8pqHxVnADU": {
         "views": 2,
-        "likes": 0
+        "likes": null
       },
       "iCoZ2M5gPck": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "eEVtRsJjtqY": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "Gt2w5KXW9Fo": {
         "views": 2,
-        "likes": 0
+        "likes": null
       },
       "0xo2Yq-OIy4": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "CW34v_xzNII": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "SuClkDLAxBE": {
         "views": 6,
-        "likes": 0
+        "likes": null
       },
       "jfn6qRHagWE": {
         "views": 11,
-        "likes": 0
+        "likes": null
       },
       "ak5xZdmG7mE": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "nb6W9tYLhy0": {
-        "views": 6,
-        "likes": 0
+        "views": 5,
+        "likes": null
       },
       "tpEUL1laXr4": {
         "views": 2,
-        "likes": 0
+        "likes": null
       },
       "7LpfX3sxvDA": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "6PX4R0A7-lo": {
         "views": 8,
-        "likes": 0
+        "likes": null
       },
       "G73vX89wuCg": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "KYpYKkzecmc": {
         "views": 3,
-        "likes": 0
+        "likes": null
       },
       "jaW05Ffvloc": {
         "views": 0,
-        "likes": 0
+        "likes": null
       },
       "rXaFZNCweyA": {
         "views": 12,
-        "likes": 0
+        "likes": null
       },
       "0FkdnXnDvBE": {
         "views": 2,
-        "likes": 0
+        "likes": null
       },
       "4mg5Hfu2T_w": {
         "views": 2,
-        "likes": 0
+        "likes": null
       },
       "QeEmBJ0ORYE": {
         "views": 4,
@@ -704,11 +704,11 @@
       },
       "e1UZpD5TVH0": {
         "views": 6,
-        "likes": 0
+        "likes": null
       },
       "s5BO9ufA5m8": {
         "views": 2,
-        "likes": 0
+        "likes": null
       }
     }
   },
@@ -2236,6 +2236,38 @@
         "QeEmBJ0ORYE": 4,
         "e1UZpD5TVH0": 6,
         "s5BO9ufA5m8": 2
+      },
+      "04": {
+        "po-4BGAk5hw": 124,
+        "28Ws29oWn0E": 0,
+        "-cXNHfsE5jA": 0,
+        "a05wD_wBYqk": 0,
+        "H5a91tLWuUU": 4,
+        "wUIWG0PBGQs": 1,
+        "i1Ozv0GpurU": 1,
+        "YTyj0EKI2gc": 1,
+        "l8pqHxVnADU": 2,
+        "iCoZ2M5gPck": 1,
+        "eEVtRsJjtqY": 1,
+        "Gt2w5KXW9Fo": 2,
+        "0xo2Yq-OIy4": 1,
+        "CW34v_xzNII": 1,
+        "SuClkDLAxBE": 6,
+        "jfn6qRHagWE": 11,
+        "ak5xZdmG7mE": 1,
+        "nb6W9tYLhy0": 5,
+        "tpEUL1laXr4": 2,
+        "7LpfX3sxvDA": 1,
+        "6PX4R0A7-lo": 8,
+        "G73vX89wuCg": 1,
+        "KYpYKkzecmc": 3,
+        "jaW05Ffvloc": 0,
+        "rXaFZNCweyA": 12,
+        "0FkdnXnDvBE": 2,
+        "4mg5Hfu2T_w": 2,
+        "QeEmBJ0ORYE": 4,
+        "e1UZpD5TVH0": 6,
+        "s5BO9ufA5m8": 2
       }
     }
   },
@@ -2332,7 +2364,8 @@
       "00": 1,
       "01": 1,
       "02": 1,
-      "03": 1
+      "03": 1,
+      "04": 1
     }
   }
 }
