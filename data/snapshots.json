@@ -1682,26 +1682,26 @@
     }
   ],
   "current": {
-    "time": "2026-08-10 11:26",
+    "time": "2026-08-10 12:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1198843,
+        "views": 1198914,
         "likes": 3302
       },
       "RsQDAygpF6k": {
-        "views": 590702,
-        "likes": 11023
+        "views": 591088,
+        "likes": 11024
       },
       "grqTg6WOJII": {
-        "views": 598902,
+        "views": 599381,
         "likes": 25813
       },
       "THGi-LLhbxM": {
-        "views": 413809,
+        "views": 413996,
         "likes": 13394
       },
       "Jsm2uVtQhmY": {
-        "views": 285169,
+        "views": 285419,
         "likes": 15902
       },
       "K_viUNQs5lc": {
@@ -1709,20 +1709,20 @@
         "likes": 3050
       },
       "VCqKgW6Lvb4": {
-        "views": 445031,
-        "likes": 6241
+        "views": 445513,
+        "likes": 6242
       },
       "h8JV2rw7QOc": {
-        "views": 88,
-        "likes": 3055
+        "views": 89,
+        "likes": null
       },
       "qmF8dPz22nU": {
         "views": 52926,
-        "likes": 822
+        "likes": null
       },
       "gTG9evSpuWg": {
-        "views": 19924059,
-        "likes": 75560
+        "views": 19924779,
+        "likes": 75562
       },
       "D7VsFDJx4zw": {
         "views": 98379,
@@ -4160,6 +4160,19 @@
         "gTG9evSpuWg": 19923600,
         "D7VsFDJx4zw": 98379
       },
+      "12": {
+        "tUcWwAO5zU8": 1198914,
+        "RsQDAygpF6k": 591088,
+        "grqTg6WOJII": 599381,
+        "THGi-LLhbxM": 413996,
+        "Jsm2uVtQhmY": 285419,
+        "K_viUNQs5lc": 31194,
+        "VCqKgW6Lvb4": 445513,
+        "h8JV2rw7QOc": 89,
+        "qmF8dPz22nU": 52926,
+        "gTG9evSpuWg": 19924779,
+        "D7VsFDJx4zw": 98379
+      },
       "00": {
         "tUcWwAO5zU8": 1197784,
         "RsQDAygpF6k": 587165,
@@ -4504,6 +4517,7 @@
     "2026-08-10": {
       "10": 0,
       "11": 0,
+      "12": 0,
       "00": 0,
       "01": 0,
       "02": 0,
