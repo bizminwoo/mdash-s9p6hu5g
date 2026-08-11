@@ -714,115 +714,115 @@
     }
   ],
   "current": {
-    "time": "2026-08-11 09:34",
+    "time": "2026-08-11 10:01",
     "stats": {
       "po-4BGAk5hw": {
-        "views": 1272,
+        "views": 1212,
         "likes": 3030
       },
       "28Ws29oWn0E": {
         "views": 0,
-        "likes": 0
+        "likes": null
       },
       "-cXNHfsE5jA": {
         "views": 0,
-        "likes": 0
+        "likes": null
       },
       "a05wD_wBYqk": {
         "views": 0,
-        "likes": 0
+        "likes": null
       },
       "H5a91tLWuUU": {
         "views": 4,
-        "likes": 0
+        "likes": null
       },
       "wUIWG0PBGQs": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "i1Ozv0GpurU": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "YTyj0EKI2gc": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "l8pqHxVnADU": {
         "views": 2,
-        "likes": 0
+        "likes": null
       },
       "iCoZ2M5gPck": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "eEVtRsJjtqY": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "Gt2w5KXW9Fo": {
         "views": 3,
-        "likes": 0
+        "likes": null
       },
       "0xo2Yq-OIy4": {
         "views": 2,
-        "likes": 0
+        "likes": null
       },
       "CW34v_xzNII": {
         "views": 2,
-        "likes": 0
+        "likes": null
       },
       "SuClkDLAxBE": {
         "views": 7,
-        "likes": 0
+        "likes": null
       },
       "jfn6qRHagWE": {
         "views": 12,
-        "likes": 0
+        "likes": null
       },
       "ak5xZdmG7mE": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "nb6W9tYLhy0": {
         "views": 6,
-        "likes": 0
+        "likes": null
       },
       "tpEUL1laXr4": {
         "views": 2,
-        "likes": 0
+        "likes": null
       },
       "7LpfX3sxvDA": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "6PX4R0A7-lo": {
         "views": 9,
-        "likes": 0
+        "likes": null
       },
       "G73vX89wuCg": {
         "views": 2,
-        "likes": 0
+        "likes": null
       },
       "KYpYKkzecmc": {
         "views": 4,
-        "likes": 0
+        "likes": null
       },
       "jaW05Ffvloc": {
         "views": 1,
-        "likes": 0
+        "likes": null
       },
       "rXaFZNCweyA": {
         "views": 13,
-        "likes": 0
+        "likes": null
       },
       "0FkdnXnDvBE": {
         "views": 3,
-        "likes": 0
+        "likes": null
       },
       "4mg5Hfu2T_w": {
         "views": 3,
-        "likes": 0
+        "likes": null
       },
       "QeEmBJ0ORYE": {
         "views": 5,
@@ -830,11 +830,11 @@
       },
       "e1UZpD5TVH0": {
         "views": 7,
-        "likes": 0
+        "likes": null
       },
       "s5BO9ufA5m8": {
         "views": 3,
-        "likes": 0
+        "likes": null
       }
     }
   },
@@ -3005,6 +3005,38 @@
       }
     },
     "2026-08-11": {
+      "10": {
+        "po-4BGAk5hw": 1212,
+        "28Ws29oWn0E": 0,
+        "-cXNHfsE5jA": 0,
+        "a05wD_wBYqk": 0,
+        "H5a91tLWuUU": 4,
+        "wUIWG0PBGQs": 1,
+        "i1Ozv0GpurU": 1,
+        "YTyj0EKI2gc": 1,
+        "l8pqHxVnADU": 2,
+        "iCoZ2M5gPck": 1,
+        "eEVtRsJjtqY": 1,
+        "Gt2w5KXW9Fo": 3,
+        "0xo2Yq-OIy4": 2,
+        "CW34v_xzNII": 2,
+        "SuClkDLAxBE": 7,
+        "jfn6qRHagWE": 12,
+        "ak5xZdmG7mE": 1,
+        "nb6W9tYLhy0": 6,
+        "tpEUL1laXr4": 2,
+        "7LpfX3sxvDA": 1,
+        "6PX4R0A7-lo": 9,
+        "G73vX89wuCg": 2,
+        "KYpYKkzecmc": 4,
+        "jaW05Ffvloc": 1,
+        "rXaFZNCweyA": 13,
+        "0FkdnXnDvBE": 3,
+        "4mg5Hfu2T_w": 3,
+        "QeEmBJ0ORYE": 5,
+        "e1UZpD5TVH0": 7,
+        "s5BO9ufA5m8": 3
+      },
       "00": {
         "po-4BGAk5hw": 981,
         "28Ws29oWn0E": 0,
@@ -3443,6 +3475,7 @@
       "09": 1
     },
     "2026-08-11": {
+      "10": 1,
       "00": 1,
       "01": 1,
       "02": 1,
