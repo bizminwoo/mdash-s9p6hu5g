@@ -37,6 +37,38 @@ async function feed(cid) {
   })).filter((v) => v.id);
 }
 
+// 유튜브 검색 (업로드 날짜순) — 제목 키워드 감지용
+async function ytSearch(query) {
+  const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/126.0 Safari/537.36";
+  const res = await fetch("https://www.youtube.com/youtubei/v1/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "User-Agent": UA },
+    body: JSON.stringify({ context: { client: { clientName: "WEB", clientVersion: "2.20260101.00.00", hl: "ko", gl: "KR" } }, query, params: "CAISAhAB" }),
+  });
+  if (!res.ok) throw new Error("search HTTP " + res.status);
+  const d = await res.json();
+  const out = [];
+  (function walk(o) {
+    if (!o || typeof o !== "object") return;
+    if (o.videoRenderer) {
+      const v = o.videoRenderer;
+      out.push({ id: v.videoId, title: (v.title && v.title.runs && v.title.runs[0] && v.title.runs[0].text) || "",
+        published: (v.publishedTimeText && v.publishedTimeText.simpleText) || "" });
+    }
+    for (const k in o) walk(o[k]);
+  })(d);
+  return out;
+}
+// 발행이 최근(~14일/2주)인지 — "3일 전"/"1주 전"/"2시간 전" 등 파싱
+function recencyOK(text) {
+  if (!text) return false;
+  if (/개월|년/.test(text)) return false;
+  const m = text.match(/(\d+)\s*(일|주)/);
+  if (!m) return /시간|분|초|오늘|방금/.test(text);
+  const n = parseInt(m[1], 10);
+  return m[2] === "일" ? n <= 14 : n <= 2;
+}
+
 async function main() {
   const comps = JSON.parse(readFileSync(COMP, "utf8"));
   const have = new Set(
@@ -98,6 +130,27 @@ async function main() {
       console.log("[종이별 신곡] 새 곡 없음");
     }
   } catch (e) { console.log("[종이별 신곡] 실패:", String(e.message).split("\n")[0]); }
+
+  // ── 로코베리 키워드 감지 (제목에 '로코베리'/'prod.로코베리' 포함된 신곡 → competitors.json) ──
+  try {
+    const KEYWORD = "로코베리";
+    const results = await ytSearch(KEYWORD);
+    const c2 = JSON.parse(readFileSync(COMP, "utf8"));
+    const have2 = new Set(c2.map((c) => (typeof c === "string" ? vidOf(c) : vidOf(c.url))).filter(Boolean));
+    const kwAdded = [];
+    for (const v of results) {
+      if (!v.id || have2.has(v.id) || isInst(v.title)) continue;
+      if (!v.title.includes(KEYWORD)) continue;   // 제목(또는 prod.)에 로코베리 포함
+      if (!recencyOK(v.published)) continue;       // 최근 발행분만
+      c2.push({ url: "https://www.youtube.com/watch?v=" + v.id, title: v.title.slice(0, 80), likes: true, kw: KEYWORD, addedAt: localDate() });
+      have2.add(v.id);
+      kwAdded.push(v.title.slice(0, 40));
+    }
+    if (kwAdded.length) {
+      writeFileSync(COMP, JSON.stringify(c2, null, 2) + "\n", "utf8");
+      console.log(`[로코베리] ${kwAdded.length}곡 추가: ` + kwAdded.join(" | "));
+    } else { console.log("[로코베리] 새 곡 없음"); }
+  } catch (e) { console.log("[로코베리] 실패:", String(e.message).split("\n")[0]); }
 }
 
 await main();
