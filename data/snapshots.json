@@ -1832,50 +1832,50 @@
     }
   ],
   "current": {
-    "time": "2026-08-13 15:05",
+    "time": "2026-08-13 16:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1206553,
+        "views": 1206767,
         "likes": 3317
       },
       "RsQDAygpF6k": {
-        "views": 609918,
-        "likes": 11059
+        "views": 610058,
+        "likes": 11061
       },
       "grqTg6WOJII": {
-        "views": 621405,
-        "likes": 25841
+        "views": 621741,
+        "likes": 25840
       },
       "THGi-LLhbxM": {
-        "views": 426002,
-        "likes": 13406
+        "views": 426213,
+        "likes": 13407
       },
       "Jsm2uVtQhmY": {
-        "views": 292062,
+        "views": 292194,
         "likes": 16556
       },
       "K_viUNQs5lc": {
-        "views": 31198,
+        "views": 31197,
         "likes": 3048
       },
       "VCqKgW6Lvb4": {
-        "views": 491091,
-        "likes": 6353
+        "views": 491773,
+        "likes": 6354
       },
       "h8JV2rw7QOc": {
         "views": 91,
-        "likes": 3052
+        "likes": null
       },
       "qmF8dPz22nU": {
         "views": 52603,
-        "likes": 4480
+        "likes": null
       },
       "gTG9evSpuWg": {
-        "views": 20010465,
-        "likes": 75776
+        "views": 20011663,
+        "likes": 75778
       },
       "D7VsFDJx4zw": {
-        "views": 100595,
+        "views": 100618,
         "likes": 1207
       }
     }
@@ -4434,6 +4434,19 @@
         "gTG9evSpuWg": 20010356,
         "D7VsFDJx4zw": 100594
       },
+      "16": {
+        "tUcWwAO5zU8": 1206767,
+        "RsQDAygpF6k": 610058,
+        "grqTg6WOJII": 621741,
+        "THGi-LLhbxM": 426213,
+        "Jsm2uVtQhmY": 292194,
+        "K_viUNQs5lc": 31197,
+        "VCqKgW6Lvb4": 491773,
+        "h8JV2rw7QOc": 91,
+        "qmF8dPz22nU": 52603,
+        "gTG9evSpuWg": 20011663,
+        "D7VsFDJx4zw": 100618
+      },
       "00": {
         "tUcWwAO5zU8": 1205328,
         "RsQDAygpF6k": 608104,
@@ -4782,6 +4795,7 @@
       "13": 0,
       "14": 0,
       "15": 0,
+      "16": 0,
       "00": 0,
       "01": 0,
       "02": 0,
