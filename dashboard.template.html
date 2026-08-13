@@ -202,6 +202,7 @@ function render(){
   const snaps = [...DATA.snapshots].sort(byDate);
   const latest = snaps[snaps.length-1];
   const prev = snaps.length >= 2 ? snaps[snaps.length-2] : null;
+  const prev2 = snaps.length >= 3 ? snaps[snaps.length-3] : null;
   const songs = DATA.songs;
   const allIds = Object.keys(songs);
   const ids = allIds.filter(id => !songs[id].marketing);   // 내 곡 (수익/합계 포함)
@@ -277,11 +278,13 @@ function render(){
   const rows = ids.map(id => {
     const cur = latest.stats[id] || {};
     const pv = prev ? (prev.stats[id] || {}) : {};
+    const pv2 = prev2 ? (prev2.stats[id] || {}) : {};
     const dViews = (prev && cur.views!=null && pv.views!=null) ? cur.views - pv.views : null;
+    const dViewsPrev = (prev2 && pv.views!=null && pv2.views!=null) ? pv.views - pv2.views : null; // 그 전날 하루치
     const dLikes = (prev && cur.likes!=null && pv.likes!=null) ? cur.likes - pv.likes : null;
     const share = songs[id].share == null ? 1 : songs[id].share; // 수익 지분 (0=선급 제외)
     return { id, title: songs[id].title, url: songs[id].url, share, w: wOf(songs, id), adViews: songs[id].adViews,
-      views: cur.views, likes: cur.likes, dViews, dLikes };
+      views: cur.views, likes: cur.likes, dViews, dViewsPrev, dLikes };
   }).sort((a,b) => (b.dViews??-1) - (a.dViews??-1));
 
   // 예상 월 수익: 이번 달 "실제 누적"을 기반으로 추정 (월이 지날수록 실제 수익에 수렴)
@@ -314,6 +317,14 @@ function render(){
   // 요약 카드 (광고 조회 곡은 모든 합계에서 제외)
   const sRows = rows.filter(r => !r.adViews);
   const sumDViews = Math.round(sRows.reduce((s,r)=> s + (r.dViews||0) * r.w, 0));
+  const sumDViewsPrev = Math.round(sRows.reduce((s,r)=> s + (r.dViewsPrev||0) * r.w, 0));
+  let dViewsPctBadge = "";
+  if(sumDViewsPrev > 0){
+    const pct = (sumDViews - sumDViewsPrev) / sumDViewsPrev * 100;
+    const cls = pct>0 ? "pos" : pct<0 ? "neg" : "flat";
+    const arrow = pct>0 ? "▲" : pct<0 ? "▼" : "－";
+    dViewsPctBadge = ` <span class="dchg ${cls}" style="font-size:13px">${arrow}${Math.abs(pct).toFixed(1)}% <span class="muted">전일비</span></span>`;
+  }
   const sumDLikes = sRows.reduce((s,r)=> s + (r.dLikes||0), 0);
   const sumViews = Math.round(sRows.reduce((s,r)=> s + (r.views||0) * r.w, 0));
   const sumRevenue = Math.round(sRows.reduce((s,r)=> s + (r.revenue||0), 0));
@@ -331,7 +342,7 @@ function render(){
     ["오늘 현재까지"+(liveHour!=null ? ` (00시→${liveHour}시 기준)` : ""), (liveSum!=null ? nf.format(liveSum) : "—") + liveCmp, "회"],
     ["어제 동시간대"+(ydayHour!=null ? ` (00시→${ydayHour}시 기준)` : ""), ydaySum!=null ? nf.format(ydaySum) : "—", "회"],
     ["오늘 하루 예상 (추정)", projSum!=null ? "≈ "+nf.format(projSum) : "—", "회"],
-    ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) : "—", "회"],
+    ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) + dViewsPctBadge : "—", "회"],
     [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
     ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
     ["누적 총 조회수", nf.format(sumViews), "회"],
@@ -379,7 +390,13 @@ function render(){
         }
         return `<b>≈ ${nf.format(p)}</b>${chg}`;
       })()}</td>
-      <td class="delta up">${r.dViews!=null ? "+"+nf.format(r.dViews) : "<span class='muted'>—</span>"}</td>
+      <td class="delta up">${r.dViews!=null ? "+"+nf.format(r.dViews) : "<span class='muted'>—</span>"}${(() => {
+        if(r.dViews==null || r.dViewsPrev==null || r.dViewsPrev<=0) return "";
+        const pct = (r.dViews - r.dViewsPrev) / r.dViewsPrev * 100;
+        const cls = pct>0 ? "pos" : pct<0 ? "neg" : "flat";
+        const arrow = pct>0 ? "▲" : pct<0 ? "▼" : "－";
+        return `<div class="dchg ${cls}">${arrow} ${Math.abs(pct).toFixed(0)}%<span class="muted" style="font-weight:400"> 전일비</span></div>`;
+      })()}</td>
       <td class="delta money">${
         r.adViews ? `<span class='muted' title='광고 조회 — 합계·예상에서 제외'>광고 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
         : r.share === 0 ? `<span class='muted'>선급 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
