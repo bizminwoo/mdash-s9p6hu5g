@@ -1882,50 +1882,50 @@
     }
   ],
   "current": {
-    "time": "2026-08-14 00:26",
+    "time": "2026-08-14 01:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1208040,
-        "likes": 3318
+        "views": 1208100,
+        "likes": 3319
       },
       "RsQDAygpF6k": {
-        "views": 611660,
+        "views": 611725,
         "likes": 11063
       },
       "grqTg6WOJII": {
-        "views": 625168,
-        "likes": 25839
+        "views": 625299,
+        "likes": 25841
       },
       "THGi-LLhbxM": {
-        "views": 428017,
+        "views": 428128,
         "likes": 13410
       },
       "Jsm2uVtQhmY": {
-        "views": 293258,
-        "likes": 16949
+        "views": 293417,
+        "likes": 17001
       },
       "K_viUNQs5lc": {
         "views": 31198,
         "likes": 3044
       },
       "VCqKgW6Lvb4": {
-        "views": 498435,
-        "likes": 6361
+        "views": 498746,
+        "likes": 6362
       },
       "h8JV2rw7QOc": {
         "views": 92,
-        "likes": 3049
+        "likes": null
       },
       "qmF8dPz22nU": {
         "views": 52608,
-        "likes": 4479
+        "likes": null
       },
       "gTG9evSpuWg": {
-        "views": 20024310,
-        "likes": 75819
+        "views": 20024996,
+        "likes": 75821
       },
       "D7VsFDJx4zw": {
-        "views": 100980,
+        "views": 100994,
         "likes": 1209
       }
     }
@@ -4442,6 +4442,19 @@
         "qmF8dPz22nU": 52608,
         "gTG9evSpuWg": 20023701,
         "D7VsFDJx4zw": 100976
+      },
+      "01": {
+        "tUcWwAO5zU8": 1208100,
+        "RsQDAygpF6k": 611725,
+        "grqTg6WOJII": 625299,
+        "THGi-LLhbxM": 428128,
+        "Jsm2uVtQhmY": 293417,
+        "K_viUNQs5lc": 31198,
+        "VCqKgW6Lvb4": 498746,
+        "h8JV2rw7QOc": 92,
+        "qmF8dPz22nU": 52608,
+        "gTG9evSpuWg": 20024996,
+        "D7VsFDJx4zw": 100994
       }
     }
   },
@@ -4655,7 +4668,8 @@
       "09": 0
     },
     "2026-08-14": {
-      "00": 0
+      "00": 0,
+      "01": 0
     }
   }
 }
