@@ -1829,29 +1829,79 @@
           "likes": 1204
         }
       }
+    },
+    {
+      "date": "2026-08-14",
+      "time": "2026-08-14 00:00",
+      "stats": {
+        "tUcWwAO5zU8": {
+          "views": 1207975,
+          "likes": 3318
+        },
+        "RsQDAygpF6k": {
+          "views": 611589,
+          "likes": 11063
+        },
+        "grqTg6WOJII": {
+          "views": 625016,
+          "likes": 25838
+        },
+        "THGi-LLhbxM": {
+          "views": 427940,
+          "likes": 13411
+        },
+        "Jsm2uVtQhmY": {
+          "views": 293258,
+          "likes": 16949
+        },
+        "K_viUNQs5lc": {
+          "views": 31198,
+          "likes": 3044
+        },
+        "VCqKgW6Lvb4": {
+          "views": 498083,
+          "likes": 6360
+        },
+        "h8JV2rw7QOc": {
+          "views": 92,
+          "likes": null
+        },
+        "qmF8dPz22nU": {
+          "views": 52608,
+          "likes": null
+        },
+        "gTG9evSpuWg": {
+          "views": 20023701,
+          "likes": 75817
+        },
+        "D7VsFDJx4zw": {
+          "views": 100976,
+          "likes": 1208
+        }
+      }
     }
   ],
   "current": {
-    "time": "2026-08-13 23:07",
+    "time": "2026-08-14 00:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1207859,
+        "views": 1207975,
         "likes": 3318
       },
       "RsQDAygpF6k": {
-        "views": 611442,
+        "views": 611589,
         "likes": 11063
       },
       "grqTg6WOJII": {
-        "views": 624661,
-        "likes": 25839
+        "views": 625016,
+        "likes": 25838
       },
       "THGi-LLhbxM": {
-        "views": 427769,
+        "views": 427940,
         "likes": 13411
       },
       "Jsm2uVtQhmY": {
-        "views": 293218,
+        "views": 293258,
         "likes": 16949
       },
       "K_viUNQs5lc": {
@@ -1859,318 +1909,28 @@
         "likes": 3044
       },
       "VCqKgW6Lvb4": {
-        "views": 497522,
-        "likes": 6359
+        "views": 498083,
+        "likes": 6360
       },
       "h8JV2rw7QOc": {
         "views": 92,
-        "likes": 3049
+        "likes": null
       },
       "qmF8dPz22nU": {
         "views": 52608,
-        "likes": 4479
+        "likes": null
       },
       "gTG9evSpuWg": {
-        "views": 20022443,
-        "likes": 75810
+        "views": 20023701,
+        "likes": 75817
       },
       "D7VsFDJx4zw": {
-        "views": 100904,
-        "likes": 1207
+        "views": 100976,
+        "likes": 1208
       }
     }
   },
   "hourly": {
-    "2026-08-05": {
-      "10": {
-        "tUcWwAO5zU8": 1185890,
-        "RsQDAygpF6k": 532627,
-        "grqTg6WOJII": 502785,
-        "THGi-LLhbxM": 384904,
-        "Jsm2uVtQhmY": 278704,
-        "K_viUNQs5lc": 31142,
-        "VCqKgW6Lvb4": 349047,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19779456,
-        "D7VsFDJx4zw": 94810
-      },
-      "11": {
-        "tUcWwAO5zU8": 1185890,
-        "RsQDAygpF6k": 533391,
-        "grqTg6WOJII": 503884,
-        "THGi-LLhbxM": 385198,
-        "Jsm2uVtQhmY": 278836,
-        "K_viUNQs5lc": 31143,
-        "VCqKgW6Lvb4": 351523,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19781148,
-        "D7VsFDJx4zw": 94810
-      },
-      "12": {
-        "tUcWwAO5zU8": 1186233,
-        "RsQDAygpF6k": 534144,
-        "grqTg6WOJII": 505009,
-        "THGi-LLhbxM": 385539,
-        "Jsm2uVtQhmY": 278924,
-        "K_viUNQs5lc": 31143,
-        "VCqKgW6Lvb4": 353822,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19782575,
-        "D7VsFDJx4zw": 94878
-      },
-      "13": {
-        "tUcWwAO5zU8": 1186378,
-        "RsQDAygpF6k": 534982,
-        "grqTg6WOJII": 506338,
-        "THGi-LLhbxM": 385799,
-        "Jsm2uVtQhmY": 279023,
-        "K_viUNQs5lc": 31146,
-        "VCqKgW6Lvb4": 356308,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19784352,
-        "D7VsFDJx4zw": 94878
-      },
-      "14": {
-        "tUcWwAO5zU8": 1186515,
-        "RsQDAygpF6k": 535747,
-        "grqTg6WOJII": 507481,
-        "THGi-LLhbxM": 386115,
-        "Jsm2uVtQhmY": 278998,
-        "K_viUNQs5lc": 31146,
-        "VCqKgW6Lvb4": 358952,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19785985,
-        "D7VsFDJx4zw": 94878
-      },
-      "15": {
-        "tUcWwAO5zU8": 1186583,
-        "RsQDAygpF6k": 536616,
-        "grqTg6WOJII": 509045,
-        "THGi-LLhbxM": 386467,
-        "Jsm2uVtQhmY": 279172,
-        "K_viUNQs5lc": 31146,
-        "VCqKgW6Lvb4": 361382,
-        "h8JV2rw7QOc": 60,
-        "gTG9evSpuWg": 19787495,
-        "D7VsFDJx4zw": 94960
-      },
-      "16": {
-        "tUcWwAO5zU8": 1186761,
-        "RsQDAygpF6k": 537453,
-        "grqTg6WOJII": 510256,
-        "THGi-LLhbxM": 386827,
-        "Jsm2uVtQhmY": 279272,
-        "K_viUNQs5lc": 31147,
-        "VCqKgW6Lvb4": 363588,
-        "h8JV2rw7QOc": 60,
-        "gTG9evSpuWg": 19789018,
-        "D7VsFDJx4zw": 95024
-      },
-      "17": {
-        "tUcWwAO5zU8": 1186652,
-        "RsQDAygpF6k": 538237,
-        "grqTg6WOJII": 511504,
-        "THGi-LLhbxM": 387097,
-        "Jsm2uVtQhmY": 279189,
-        "K_viUNQs5lc": 31147,
-        "VCqKgW6Lvb4": 365548,
-        "h8JV2rw7QOc": 60,
-        "gTG9evSpuWg": 19790402,
-        "D7VsFDJx4zw": 95024
-      },
-      "18": {
-        "tUcWwAO5zU8": 1186652,
-        "RsQDAygpF6k": 538435,
-        "grqTg6WOJII": 513035,
-        "THGi-LLhbxM": 387548,
-        "Jsm2uVtQhmY": 279394,
-        "K_viUNQs5lc": 31147,
-        "VCqKgW6Lvb4": 367668,
-        "h8JV2rw7QOc": 60,
-        "gTG9evSpuWg": 19792189,
-        "D7VsFDJx4zw": 95094
-      },
-      "19": {
-        "tUcWwAO5zU8": 1187241,
-        "RsQDAygpF6k": 540464,
-        "grqTg6WOJII": 515037,
-        "THGi-LLhbxM": 388078,
-        "Jsm2uVtQhmY": 279486,
-        "K_viUNQs5lc": 31154,
-        "VCqKgW6Lvb4": 370209,
-        "h8JV2rw7QOc": 64,
-        "gTG9evSpuWg": 19794533,
-        "D7VsFDJx4zw": 95168
-      },
-      "20": {
-        "tUcWwAO5zU8": 1187241,
-        "RsQDAygpF6k": 541201,
-        "grqTg6WOJII": 516089,
-        "THGi-LLhbxM": 388370,
-        "Jsm2uVtQhmY": 279670,
-        "K_viUNQs5lc": 31154,
-        "VCqKgW6Lvb4": 371421,
-        "h8JV2rw7QOc": 64,
-        "gTG9evSpuWg": 19795959,
-        "D7VsFDJx4zw": 95168
-      },
-      "21": {
-        "tUcWwAO5zU8": 1187241,
-        "RsQDAygpF6k": 541915,
-        "grqTg6WOJII": 517331,
-        "THGi-LLhbxM": 388678,
-        "Jsm2uVtQhmY": 279731,
-        "K_viUNQs5lc": 31154,
-        "VCqKgW6Lvb4": 372753,
-        "h8JV2rw7QOc": 66,
-        "gTG9evSpuWg": 19797660,
-        "D7VsFDJx4zw": 95242
-      },
-      "22": {
-        "tUcWwAO5zU8": 1187623,
-        "RsQDAygpF6k": 542852,
-        "grqTg6WOJII": 518749,
-        "THGi-LLhbxM": 388824,
-        "Jsm2uVtQhmY": 279835,
-        "K_viUNQs5lc": 31156,
-        "VCqKgW6Lvb4": 374222,
-        "h8JV2rw7QOc": 66,
-        "gTG9evSpuWg": 19799419,
-        "D7VsFDJx4zw": 95248
-      },
-      "23": {
-        "tUcWwAO5zU8": 1187764,
-        "RsQDAygpF6k": 543768,
-        "grqTg6WOJII": 520149,
-        "THGi-LLhbxM": 389313,
-        "Jsm2uVtQhmY": 279928,
-        "K_viUNQs5lc": 31157,
-        "VCqKgW6Lvb4": 375496,
-        "h8JV2rw7QOc": 66,
-        "gTG9evSpuWg": 19801301,
-        "D7VsFDJx4zw": 95248
-      },
-      "00": {
-        "tUcWwAO5zU8": 1184767,
-        "RsQDAygpF6k": 528992,
-        "grqTg6WOJII": 498454,
-        "THGi-LLhbxM": 383050,
-        "Jsm2uVtQhmY": 278500,
-        "K_viUNQs5lc": 31141,
-        "VCqKgW6Lvb4": 338333,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19770349,
-        "D7VsFDJx4zw": 94649
-      },
-      "01": {
-        "tUcWwAO5zU8": 1185213,
-        "RsQDAygpF6k": 529573,
-        "grqTg6WOJII": 499093,
-        "THGi-LLhbxM": 383329,
-        "Jsm2uVtQhmY": 278568,
-        "K_viUNQs5lc": 31141,
-        "VCqKgW6Lvb4": 339981,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19771908,
-        "D7VsFDJx4zw": 94686
-      },
-      "02": {
-        "tUcWwAO5zU8": 1185213,
-        "RsQDAygpF6k": 530076,
-        "grqTg6WOJII": 499691,
-        "THGi-LLhbxM": 383606,
-        "Jsm2uVtQhmY": 278611,
-        "K_viUNQs5lc": 31142,
-        "VCqKgW6Lvb4": 341367,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19773229,
-        "D7VsFDJx4zw": 94720
-      },
-      "03": {
-        "tUcWwAO5zU8": 1185213,
-        "RsQDAygpF6k": 530441,
-        "grqTg6WOJII": 500143,
-        "THGi-LLhbxM": 383818,
-        "Jsm2uVtQhmY": 278614,
-        "K_viUNQs5lc": 31141,
-        "VCqKgW6Lvb4": 342589,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19774333,
-        "D7VsFDJx4zw": 94720
-      },
-      "04": {
-        "tUcWwAO5zU8": 1185509,
-        "RsQDAygpF6k": 530758,
-        "grqTg6WOJII": 500498,
-        "THGi-LLhbxM": 384013,
-        "Jsm2uVtQhmY": 278655,
-        "K_viUNQs5lc": 31142,
-        "VCqKgW6Lvb4": 343543,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19775171,
-        "D7VsFDJx4zw": 94769
-      },
-      "05": {
-        "tUcWwAO5zU8": 1185509,
-        "RsQDAygpF6k": 531030,
-        "grqTg6WOJII": 500842,
-        "THGi-LLhbxM": 384206,
-        "Jsm2uVtQhmY": 278660,
-        "K_viUNQs5lc": 31142,
-        "VCqKgW6Lvb4": 344376,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19775906,
-        "D7VsFDJx4zw": 94790
-      },
-      "06": {
-        "tUcWwAO5zU8": 1185509,
-        "RsQDAygpF6k": 531275,
-        "grqTg6WOJII": 501109,
-        "THGi-LLhbxM": 384353,
-        "Jsm2uVtQhmY": 278660,
-        "K_viUNQs5lc": 31142,
-        "VCqKgW6Lvb4": 345012,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19776370,
-        "D7VsFDJx4zw": 94790
-      },
-      "07": {
-        "tUcWwAO5zU8": 1185659,
-        "RsQDAygpF6k": 531499,
-        "grqTg6WOJII": 501358,
-        "THGi-LLhbxM": 384459,
-        "Jsm2uVtQhmY": 278660,
-        "K_viUNQs5lc": 31143,
-        "VCqKgW6Lvb4": 345650,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19776831,
-        "D7VsFDJx4zw": 94790
-      },
-      "08": {
-        "tUcWwAO5zU8": 1185659,
-        "RsQDAygpF6k": 531682,
-        "grqTg6WOJII": 501574,
-        "THGi-LLhbxM": 384546,
-        "Jsm2uVtQhmY": 278704,
-        "K_viUNQs5lc": 31143,
-        "VCqKgW6Lvb4": 346166,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19777207,
-        "D7VsFDJx4zw": 94810
-      },
-      "09": {
-        "tUcWwAO5zU8": 1185775,
-        "RsQDAygpF6k": 532049,
-        "grqTg6WOJII": 502043,
-        "THGi-LLhbxM": 384694,
-        "Jsm2uVtQhmY": 278704,
-        "K_viUNQs5lc": 31143,
-        "VCqKgW6Lvb4": 347320,
-        "h8JV2rw7QOc": 59,
-        "gTG9evSpuWg": 19778035,
-        "D7VsFDJx4zw": 94810
-      }
-    },
     "2026-08-06": {
       "10": {
         "tUcWwAO5zU8": 1188609,
@@ -4668,35 +4428,24 @@
         "gTG9evSpuWg": 20002185,
         "D7VsFDJx4zw": 100415
       }
+    },
+    "2026-08-14": {
+      "00": {
+        "tUcWwAO5zU8": 1207975,
+        "RsQDAygpF6k": 611589,
+        "grqTg6WOJII": 625016,
+        "THGi-LLhbxM": 427940,
+        "Jsm2uVtQhmY": 293258,
+        "K_viUNQs5lc": 31198,
+        "VCqKgW6Lvb4": 498083,
+        "h8JV2rw7QOc": 92,
+        "qmF8dPz22nU": 52608,
+        "gTG9evSpuWg": 20023701,
+        "D7VsFDJx4zw": 100976
+      }
     }
   },
   "hourlyMin": {
-    "2026-08-05": {
-      "10": 0,
-      "11": 0,
-      "12": 0,
-      "13": 0,
-      "14": 0,
-      "15": 0,
-      "16": 0,
-      "17": 0,
-      "18": 0,
-      "19": 0,
-      "20": 0,
-      "21": 0,
-      "22": 0,
-      "23": 0,
-      "00": 0,
-      "01": 0,
-      "02": 0,
-      "03": 0,
-      "04": 0,
-      "05": 0,
-      "06": 0,
-      "07": 0,
-      "08": 0,
-      "09": 0
-    },
     "2026-08-06": {
       "10": 0,
       "11": 0,
@@ -4904,6 +4653,9 @@
       "07": 0,
       "08": 0,
       "09": 0
+    },
+    "2026-08-14": {
+      "00": 0
     }
   }
 }
