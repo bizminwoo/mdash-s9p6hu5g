@@ -1882,51 +1882,51 @@
     }
   ],
   "current": {
-    "time": "2026-08-14 08:07",
+    "time": "2026-08-14 09:00",
     "stats": {
       "tUcWwAO5zU8": {
         "views": 1208434,
         "likes": 3320
       },
       "RsQDAygpF6k": {
-        "views": 612212,
-        "likes": 11064
+        "views": 612367,
+        "likes": 11063
       },
       "grqTg6WOJII": {
-        "views": 626442,
-        "likes": 25838
+        "views": 626673,
+        "likes": 25835
       },
       "THGi-LLhbxM": {
-        "views": 428831,
+        "views": 429362,
         "likes": 13411
       },
       "Jsm2uVtQhmY": {
-        "views": 293826,
-        "likes": 17310
+        "views": 293896,
+        "likes": 17374
       },
       "K_viUNQs5lc": {
         "views": 31198,
         "likes": 3044
       },
       "VCqKgW6Lvb4": {
-        "views": 500909,
-        "likes": 6364
+        "views": 501385,
+        "likes": 6365
       },
       "h8JV2rw7QOc": {
         "views": 93,
-        "likes": 3048
+        "likes": null
       },
       "qmF8dPz22nU": {
         "views": 52612,
-        "likes": 4478
+        "likes": null
       },
       "gTG9evSpuWg": {
-        "views": 20028941,
-        "likes": 75830
+        "views": 20029520,
+        "likes": 75832
       },
       "D7VsFDJx4zw": {
-        "views": 101120,
-        "likes": 1209
+        "views": 101145,
+        "likes": 1210
       }
     }
   },
@@ -4546,6 +4546,19 @@
         "qmF8dPz22nU": 52612,
         "gTG9evSpuWg": 20028920,
         "D7VsFDJx4zw": 101120
+      },
+      "09": {
+        "tUcWwAO5zU8": 1208434,
+        "RsQDAygpF6k": 612367,
+        "grqTg6WOJII": 626673,
+        "THGi-LLhbxM": 429362,
+        "Jsm2uVtQhmY": 293896,
+        "K_viUNQs5lc": 31198,
+        "VCqKgW6Lvb4": 501385,
+        "h8JV2rw7QOc": 93,
+        "qmF8dPz22nU": 52612,
+        "gTG9evSpuWg": 20029520,
+        "D7VsFDJx4zw": 101145
       }
     }
   },
@@ -4767,7 +4780,8 @@
       "05": 0,
       "06": 0,
       "07": 0,
-      "08": 0
+      "08": 0,
+      "09": 0
     }
   }
 }
