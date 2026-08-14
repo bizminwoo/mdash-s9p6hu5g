@@ -1882,26 +1882,26 @@
     }
   ],
   "current": {
-    "time": "2026-08-14 15:04",
+    "time": "2026-08-14 16:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1209332,
-        "likes": 3320
+        "views": 1209444,
+        "likes": 3321
       },
       "RsQDAygpF6k": {
-        "views": 613457,
+        "views": 613652,
         "likes": 11064
       },
       "grqTg6WOJII": {
-        "views": 633062,
-        "likes": 25831
+        "views": 634997,
+        "likes": 25834
       },
       "THGi-LLhbxM": {
-        "views": 439680,
-        "likes": 13414
+        "views": 441105,
+        "likes": 13416
       },
       "Jsm2uVtQhmY": {
-        "views": 295193,
+        "views": 295409,
         "likes": 17541
       },
       "K_viUNQs5lc": {
@@ -1909,20 +1909,20 @@
         "likes": 3044
       },
       "VCqKgW6Lvb4": {
-        "views": 507680,
-        "likes": 6369
+        "views": 508625,
+        "likes": 6370
       },
       "h8JV2rw7QOc": {
-        "views": 93,
-        "likes": 3047
+        "views": 92,
+        "likes": null
       },
       "qmF8dPz22nU": {
-        "views": 52611,
-        "likes": 4478
+        "views": 52613,
+        "likes": null
       },
       "gTG9evSpuWg": {
-        "views": 20037783,
-        "likes": 75847
+        "views": 20038957,
+        "likes": 75846
       },
       "D7VsFDJx4zw": {
         "views": 101290,
@@ -4508,6 +4508,19 @@
         "gTG9evSpuWg": 20037685,
         "D7VsFDJx4zw": 101290
       },
+      "16": {
+        "tUcWwAO5zU8": 1209444,
+        "RsQDAygpF6k": 613652,
+        "grqTg6WOJII": 634997,
+        "THGi-LLhbxM": 441105,
+        "Jsm2uVtQhmY": 295409,
+        "K_viUNQs5lc": 31198,
+        "VCqKgW6Lvb4": 508625,
+        "h8JV2rw7QOc": 92,
+        "qmF8dPz22nU": 52613,
+        "gTG9evSpuWg": 20038957,
+        "D7VsFDJx4zw": 101290
+      },
       "00": {
         "tUcWwAO5zU8": 1207975,
         "RsQDAygpF6k": 611589,
@@ -4856,6 +4869,7 @@
       "13": 0,
       "14": 0,
       "15": 0,
+      "16": 0,
       "00": 0,
       "01": 0,
       "02": 0,
