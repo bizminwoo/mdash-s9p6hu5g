@@ -16,6 +16,7 @@ const ARTISTS = [
   { name: "도코",     channelId: "UCu90gJfilAG-rj7M5AngKaA" },
   { name: "웨이브 콜", channelId: "UC8H__2h-a0OpwINMII-pLFA" },
   { name: "오연하",   channelId: "UCWl28XjlBtHl_ucicFqLSAg" },
+  { name: "서열무",   channelId: "UCNW05ubAXDiMayu8dW4v-Jg" }, // Seo Yeolmu - Topic
 ];
 
 const vidOf = (u) => (u.match(/[?&]v=([\w-]{11})/) || u.match(/youtu\.be\/([\w-]{11})/) || [])[1];
@@ -52,7 +53,10 @@ async function ytSearch(query) {
     if (!o || typeof o !== "object") return;
     if (o.videoRenderer) {
       const v = o.videoRenderer;
+      const owner = (v.ownerText && v.ownerText.runs && v.ownerText.runs[0])
+        || (v.longBylineText && v.longBylineText.runs && v.longBylineText.runs[0]) || {};
       out.push({ id: v.videoId, title: (v.title && v.title.runs && v.title.runs[0] && v.title.runs[0].text) || "",
+        ch: owner.text || "",
         published: (v.publishedTimeText && v.publishedTimeText.simpleText) || "" });
     }
     for (const k in o) walk(o[k]);
@@ -142,6 +146,7 @@ async function main() {
       if (!v.id || have2.has(v.id) || isInst(v.title)) continue;
       if (!v.title.includes(KEYWORD)) continue;   // 제목(또는 prod.)에 로코베리 포함
       if (!recencyOK(v.published)) continue;       // 최근 발행분만
+      if (!/(-\s*topic|토픽)\s*$/i.test((v.ch || "").trim())) continue; // 아트트랙(Topic 채널)만 — 플레이리스트/믹스 제외
       c2.push({ url: "https://www.youtube.com/watch?v=" + v.id, title: v.title.slice(0, 80), likes: true, kw: KEYWORD, addedAt: localDate() });
       have2.add(v.id);
       kwAdded.push(v.title.slice(0, 40));
