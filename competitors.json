@@ -64,7 +64,8 @@
   {
     "url": "https://www.youtube.com/watch?v=pjvG81FjfA4",
     "title": "류민희 - Happier Than Me",
-    "likes": true
+    "likes": true,
+    "likesTrack": true
   },
   {
     "url": "https://www.youtube.com/watch?v=OgN9HY8YcYI",
@@ -125,7 +126,8 @@
   {
     "url": "https://www.youtube.com/watch?v=JBfwh3xPtJw",
     "title": "도코 - 파란 밤 끝",
-    "likes": true
+    "likes": true,
+    "likesTrack": true
   },
   {
     "url": "https://youtu.be/ZaMdlGqjPpA",
@@ -308,6 +310,7 @@
     "url": "https://www.youtube.com/watch?v=d2b9OwP4PFU",
     "title": "웨이브 콜 - 미안 (SORRY)",
     "likes": true,
-    "addedAt": "2026-08-19"
+    "addedAt": "2026-08-19",
+    "likesTrack": true
   }
 ]
