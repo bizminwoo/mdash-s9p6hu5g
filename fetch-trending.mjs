@@ -85,7 +85,8 @@ async function fetchAllViewsAPI(ids) {
     for (const item of d.items || []) {
       const n = Number(item.statistics?.viewCount);
       const lk = Number(item.statistics?.likeCount);
-      if (Number.isFinite(n)) stats[item.id] = { views: n, ...(Number.isFinite(lk) ? { likes: lk } : {}) };
+      const cm = Number(item.statistics?.commentCount);
+      if (Number.isFinite(n)) stats[item.id] = { views: n, ...(Number.isFinite(lk) ? { likes: lk } : {}), ...(Number.isFinite(cm) ? { comments: cm } : {}) };
       meta[item.id] = { title: item.snippet?.title || null, author: item.snippet?.channelTitle || null };
     }
   }

@@ -38,7 +38,7 @@ async function fetchStatsAPI(ids) {
     if (!res.ok) throw new Error(`Data API HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`);
     const d = await res.json();
     for (const item of d.items || []) {
-      out[item.id] = { views: num(item.statistics?.viewCount), likes: num(item.statistics?.likeCount) };
+      out[item.id] = { views: num(item.statistics?.viewCount), likes: num(item.statistics?.likeCount), comments: num(item.statistics?.commentCount) };
     }
   }
   return out;
@@ -51,11 +51,11 @@ async function fetchStatsYtdlp(ids, urlOf) {
   for (const id of ids) {
     try {
       const line = execFileSync(YTDLP,
-        ["--skip-download", "--no-warnings", "--print", "%(view_count)s\t%(like_count)s", urlOf(id)],
+        ["--skip-download", "--no-warnings", "--print", "%(view_count)s\t%(like_count)s\t%(comment_count)s", urlOf(id)],
         { encoding: "utf8", timeout: 120000,
           env: { ...process.env, PYTHONUTF8: "1", PYTHONIOENCODING: "utf-8" } }).trim();
-      const [views, likes] = line.split("\t");
-      out[id] = { views: num(views), likes: num(likes) };
+      const [views, likes, comments] = line.split("\t");
+      out[id] = { views: num(views), likes: num(likes), comments: num(comments) };
     } catch (e) {
       console.log(`  ✗ 실패: ${id} — ${String(e.message).split("\n")[0]}`);
     }
