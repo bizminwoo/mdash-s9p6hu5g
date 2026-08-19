@@ -40,13 +40,18 @@
   .chg.pos { color: var(--up); } .chg.neg { color: var(--down); } .chg.flat { color: var(--muted); }
   /* 시간단위 그래프 */
   .sectlbl { font-size: 12.5px; color: var(--muted); font-weight: 700; margin: 4px 0 8px; }
-  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+  .charts { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 18px; }
   .facet { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
   .facet .ft { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; }
   .facet .fbig { font-size: 18px; font-weight: 800; margin: 4px 0 6px; }
   .facet .fbig .s2 { font-size: 11.5px; color: var(--muted); font-weight: 400; margin-left: 6px; }
-  .fchart { position: relative; height: 150px; }
-  @media (max-width: 720px) { .charts { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr; } }
+  .fchart { position: relative; height: 200px; }
+  .sectrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .modes { display: inline-flex; gap: 6px; }
+  .modes button { font-size: 11.5px; font-weight: 700; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; cursor: pointer; font-family: inherit; }
+  .modes button:hover { color: var(--text); }
+  .modes button.on { color: var(--text); background: var(--panel2); border-color: #3a4150; }
+  @media (max-width: 720px) { .stats { grid-template-columns: 1fr; } .fchart { height: 170px; } }
   /* 일자별 표 */
   .wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
   table { width: 100%; border-collapse: collapse; font-size: 13.5px; white-space: nowrap; }
@@ -171,7 +176,11 @@ for (let i = 0; i < tracked.length; i++) {
       stat('var(--like)','좋아요', lTot, lChg) +
       stat('var(--cmt)','댓글', cTot, cChg) +
     '</div>' +
-    '<div class="sectlbl">⏱️ 시간단위 — 직전 1시간 증가량 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</div>' +
+    '<div class="sectlbl sectrow"><span>⏱️ 시간단위 — 직전 1시간 증가량</span>' +
+      '<span class="modes" id="modes-'+id+'">' +
+        '<button class="on" onclick="setMode(\''+id+'\',\'full\',this)">전체 시간대 흐름</button>' +
+        '<button onclick="setMode(\''+id+'\',\'cmp\',this)">오늘 vs 어제</button>' +
+      '</span></div>' +
     '<div class="charts" id="charts-'+id+'"></div>' +
     '<div class="sectlbl">📅 일자별 추이</div>' +
     '<div id="table-'+id+'"></div>';
@@ -211,7 +220,22 @@ for (let i = 0; i < tracked.length; i++) {
       '<div class="fbig">'+(gain!=null?"+"+gain.toLocaleString("ko-KR"):"—")+'<span class="s2">오늘'+(total!=null?" · 총 "+total.toLocaleString("ko-KR"):"")+'</span></div>' +
       '<div class="fchart"><canvas></canvas></div>';
     cwrap.appendChild(facet);
-    chartJobs.push({ canvas: facet.querySelector("canvas"), tS, yS, raw: m.raw });
+    // 전체 시간대 흐름: 수집한 모든 날짜×매시간의 "직전 1시간 증가량"을 시간순으로 이어붙임
+    const fL = [], fD = [];
+    for (const d of daysH) {
+      const md = d.slice(5).replace("-","/");
+      for (let h = 0; h < 24; h++) {
+        const a = m.s.at(id,d,h-1), b = m.s.at(id,d,h);
+        fL.push(md + " " + h + "시");
+        fD.push((a==null||b==null) ? null : (m.key==="views" ? Math.max(0,b-a) : b-a));
+      }
+    }
+    let s0 = 0, e0 = fD.length - 1;
+    while (s0 <= e0 && fD[s0] == null) s0++;
+    while (e0 >= s0 && fD[e0] == null) e0--;
+    chartJobs.push({ canvas: facet.querySelector("canvas"), key: id, raw: m.raw,
+      full: { labels: fL.slice(s0, e0+1), data: fD.slice(s0, e0+1) },
+      cmp: { today: tS, yday: yS } });
   }
 
   // ── 일자별 표 ──
@@ -239,26 +263,44 @@ for (let i = 0; i < tracked.length; i++) {
   }
 }
 
-// 차트 렌더 (한 번에)
+// 차트 렌더 + 모드 토글 (기본: 전체 시간대 흐름)
+const gray = "#8b93a3";
+const CHARTS = {};
+function optsFor(mode) {
+  return { responsive:true, maintainAspectRatio:false,
+    interaction:{ mode:"index", intersect:false },
+    plugins:{ legend:{ display:false },
+      tooltip:{ callbacks:{ label:(c)=> c.dataset.label+": "+(c.parsed.y==null?"–":(c.parsed.y>=0?"+":"")+c.parsed.y.toLocaleString("ko-KR")) } } },
+    scales:{
+      x:{ ticks:{ color:gray, maxTicksLimit: mode==="full"?9:7, autoSkip:true, maxRotation:0, font:{size:10} }, grid:{ display:false } },
+      y:{ beginAtZero:true, ticks:{ color:gray, maxTicksLimit:4, font:{size:10} }, grid:{ color:"#232833" } }
+    } };
+}
+function dsFull(j) {
+  return [{ label:"시간당 증가", data:j.full.data, borderColor:j.raw, backgroundColor:j.raw+"2e",
+    fill:true, tension:0.2, spanGaps:true, borderWidth:2, pointRadius:0, pointHitRadius:6 }];
+}
+function dsCmp(j) {
+  const pts = j.cmp.today.filter(x => x!=null).length;
+  return [
+    { label:"오늘", data:j.cmp.today, borderColor:j.raw, backgroundColor:j.raw+"2e", fill:true, tension:0.25, spanGaps:true, borderWidth:2, pointRadius: pts<2?3:0, pointHitRadius:8 },
+    { label:"어제", data:j.cmp.yday, borderColor:gray, borderDash:[5,4], fill:false, tension:0.25, spanGaps:true, borderWidth:1.5, pointRadius:0, pointHitRadius:8 },
+  ];
+}
 if (typeof Chart !== "undefined") {
-  const gray = "#8b93a3";
   for (const j of chartJobs) {
-    const pts = j.tS.filter(x => x!=null).length;
-    new Chart(j.canvas, {
-      type: "line",
-      data: { labels, datasets: [
-        { label:"오늘", data:j.tS, borderColor:j.raw, backgroundColor:j.raw+"2e", fill:true, tension:0.25, spanGaps:true, borderWidth:2, pointRadius: pts<2?3:0, pointHitRadius:8 },
-        { label:"어제", data:j.yS, borderColor:gray, borderDash:[5,4], fill:false, tension:0.25, spanGaps:true, borderWidth:1.5, pointRadius:0, pointHitRadius:8 },
-      ] },
-      options: { responsive:true, maintainAspectRatio:false,
-        interaction:{ mode:"index", intersect:false },
-        plugins:{ legend:{ display:false },
-          tooltip:{ callbacks:{ label:(c)=> c.dataset.label+": "+(c.parsed.y==null?"–":"+"+c.parsed.y.toLocaleString("ko-KR")) } } },
-        scales:{
-          x:{ ticks:{ color:gray, maxTicksLimit:7, font:{size:10} }, grid:{ display:false } },
-          y:{ beginAtZero:true, ticks:{ color:gray, maxTicksLimit:3, font:{size:10} }, grid:{ color:"#232833" } }
-        } }
-    });
+    const ch = new Chart(j.canvas, { type:"line", data:{ labels:j.full.labels, datasets:dsFull(j) }, options:optsFor("full") });
+    (CHARTS[j.key] = CHARTS[j.key] || []).push({ chart: ch, job: j });
+  }
+}
+function setMode(key, mode, btn) {
+  if (btn && btn.parentElement) btn.parentElement.querySelectorAll("button").forEach(b => b.classList.toggle("on", b === btn));
+  for (const ref of (CHARTS[key] || [])) {
+    const j = ref.job, ch = ref.chart;
+    ch.data.labels = mode==="full" ? j.full.labels : labels;
+    ch.data.datasets = mode==="full" ? dsFull(j) : dsCmp(j);
+    ch.options = optsFor(mode);
+    ch.update();
   }
 }
 </script>
