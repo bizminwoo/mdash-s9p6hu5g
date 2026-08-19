@@ -148,8 +148,8 @@ async function main() {
       const id = compIds[i];
       const v = db.videos[id] || {};
       const nv = { ...v, watch: true, order: i, ...(c.title ? { title: c.title } : {}),
-        ...(c.likes ? { likesTrack: true } : {}), ...(c.group ? { group: c.group } : {}) };
-      if (!c.likes) delete nv.likesTrack; // 파일에서 likes 플래그를 빼면 좋아요 추적 중단
+        ...(c.likesTrack ? { likesTrack: true } : {}), ...(c.group ? { group: c.group } : {}) };
+      if (!c.likesTrack) delete nv.likesTrack; // 상세 추적(시간/일 단위)은 competitors.json 의 "likesTrack": true 곡만
       if (!c.group) delete nv.group;
       db.videos[id] = nv;
     });
@@ -211,14 +211,16 @@ async function main() {
       for (const d of Object.keys(db[store])) if (d < cutoff) delete db[store][d];
       for (const d of Object.keys(db[minStore])) if (d < cutoff) delete db[minStore][d];
     };
-    const lk = {}, hv = {};
+    const lk = {}, hv = {}, cm = {};
     for (const [id, v] of Object.entries(db.videos)) {
       if (!v.likesTrack && !v.group) continue; // 상세추적 곡 + 그룹(트윗엔터) 곡은 시간별 조회수 기록
       if (v.likesTrack && stats[id]?.likes != null) lk[id] = stats[id].likes;
+      if (v.likesTrack && stats[id]?.comments != null) cm[id] = stats[id].comments;
       if (stats[id]?.views != null) hv[id] = stats[id].views;
     }
     writeHourly("hourlyLikes", "hourlyLikesMin", lk);
     writeHourly("hourlyViews", "hourlyViewsMin", hv);
+    writeHourly("hourlyComments", "hourlyCommentsMin", cm);
 
     // 보관 기간 정리
     const snapCutoff = localDate(new Date(Date.now() - SNAP_DAYS * 86400000));
@@ -243,7 +245,18 @@ async function main() {
        .replace("/*__OWN__*/ null", () => JSON.stringify(ownIds))
        .replace("/*__SP__*/ null", () => sp)
        .replace("<!--__NAV__-->", () => navHtml("trending.html")), "utf8");
-  console.log(`[완료] 저장: data/trending.json, 페이지: trending.html`);
+
+  // 🔎 상세 추적 전용 페이지 (likesTrack 곡: 일단위 표 + 시간단위 그래프)
+  const DETAIL_TPL = join(ROOT, "detail.template.html");
+  if (existsSync(DETAIL_TPL)) {
+    const dtpl = readFileSync(DETAIL_TPL, "utf8");
+    writeFileSync(join(ROOT, "detail.html"),
+      dtpl.replace("/*__DATA__*/ null", () => JSON.stringify(db))
+          .replace("/*__OWN__*/ null", () => JSON.stringify(ownIds))
+          .replace("<!--__NAV__-->", () => navHtml("detail.html")), "utf8");
+  }
+
+  console.log(`[완료] 저장: data/trending.json, 페이지: trending.html, detail.html`);
 }
 
 await main();

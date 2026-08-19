@@ -5,6 +5,7 @@ export const TABS = [
   ["ai.html", "🤖 AI 음원"],
   ["funds.html", "💼 자금 현황"],
   ["trending.html", "🎯 경쟁사 분석"],
+  ["detail.html", "🔎 상세 추적"],
   // 구보 BEP(bep.html)는 안 써서 탭에서 뺐다. 페이지 자체는 계속 생성되니 주소로는 접근 가능.
 ];
 
