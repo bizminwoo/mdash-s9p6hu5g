@@ -20,6 +20,13 @@
     padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); }
   #sitetabs a:hover { color: var(--text); }
   #sitetabs a.on { color: var(--text); background: var(--panel2); border-color: #3a4150; }
+  #subtabs { display: flex; gap: 8px; margin: 4px 0 20px; flex-wrap: wrap; }
+  #subtabs button { color: var(--muted); background: transparent; cursor: pointer; font-size: 13.5px; font-weight: 700;
+    padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); font-family: inherit; }
+  #subtabs button:hover { color: var(--text); }
+  #subtabs button.on { color: var(--text); background: var(--panel2); border-color: #3a4150; }
+  body[data-view="chart"] .comp-view { display: none !important; }
+  body[data-view="comp"] .chart-view { display: none !important; }
   .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
   .sub a { color: var(--muted); }
   .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 22px; }
@@ -72,34 +79,38 @@
   @media (max-width: 640px) { body { padding: 14px; } }
 </style>
 </head>
-<body>
+<body data-view="comp">
   <!--__NAV__-->
-  <h1>🔥 인기 급상승 뮤직비디오 · 한국</h1>
+  <h1>🔥 인기 급상승 · 경쟁사 분석 · 한국</h1>
   <div class="sub" id="updated"></div>
-  <div class="panel">
+  <div id="subtabs">
+    <button data-view="chart" onclick="setView('chart')">📈 현재차트</button>
+    <button data-view="comp" onclick="setView('comp')">🎯 경쟁사 분석</button>
+  </div>
+  <div class="panel chart-view">
     <h2>현재 차트 <span class="muted">— 각 칸: 그날 하루 스트리밍(조회수 증가분)</span></h2>
     <div class="wrap" id="chartWrap"></div>
     <div class="note">순위 출처: <a href="https://charts.youtube.com/charts/TrendingVideos/kr" target="_blank">YouTube Charts 인기 급상승 뮤직비디오(한국)</a>. 매시간 수집하며, 하루 스트리밍 = 그날 00시 대비 다음날 00시 조회수 증가분. ★ 표시는 내 등록곡. 추적 시작일 이전 날짜는 데이터가 없어 "–"로 표시됩니다.</div>
   </div>
-  <div class="panel" id="compPanel" style="display:none">
+  <div class="panel comp-view" id="compPanel" style="display:none">
     <h2>🎯 경쟁사·관심 곡 추적 <span class="muted">— 기간 제한 없이 계속 수집 (competitors.json 에 링크 추가/삭제)</span></h2>
     <div class="wrap" id="compWrap"></div>
   </div>
-  <div class="panel" id="twtPanel" style="display:none">
+  <div class="panel comp-view" id="twtPanel" style="display:none">
     <h2>🏢 트윗엔터테인먼트 <span class="muted">— 시간당 스트리밍 · 어제 동시간 대비 · 좋아요(데일리)</span></h2>
     <div id="twtWrap"></div>
     <div class="note"><b style="color:#ff5b8a">🛒 구매</b> · <b style="color:#3d9bff">🔗 공유</b> — 색칠된 칸 = 그날 마케팅한 날(왼쪽 색 테두리 = 시작점). 칸에 마우스 올리면 상세(수량 등). 바로 오른쪽 칸들로 그 뒤 스밍 증감(효과)을 본다.<br>"오늘" = 00시 이후 현재까지 스트리밍, % = 어제 같은 시각(정각 환산) 대비. "시간당" = 오늘 시간별 유입 미니 그래프 — 등록 시점부터 쌓여서 하루 뒤부터 온전히 보입니다. 좋아요는 일 단위(오늘 증가 / 어제 하루 증가).</div>
   </div>
-  <div class="panel" id="likesPanel" style="display:none">
+  <div class="panel comp-view" id="likesPanel" style="display:none">
     <h2>🔎 시간 단위 상세 추적 <span class="muted">— 스트리밍·좋아요, 1시간마다 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
     <div id="likesGrid"></div>
     <div class="note">각 점 = 직전 1시간 동안의 증가량 (수집이 몇 분에 되든 정각 값으로 환산). 큰 숫자 = 오늘 00시 이후 증가(첫날은 발매 후 증가), 옆 = 총계. competitors.json 에서 해당 곡에 <code>"likes": true</code> 를 붙이면 이 상세 추적에 추가됩니다.</div>
   </div>
-  <div class="panel" id="testPanel" style="display:none">
+  <div class="panel comp-view" id="testPanel" style="display:none">
     <h2>🧪 TEST <span class="muted">— competitors.json 에서 <code>"group": "test"</code> 곡</span></h2>
     <div class="wrap" id="testWrap"></div>
   </div>
-  <div class="panel" id="droppedPanel" style="display:none">
+  <div class="panel comp-view" id="droppedPanel" style="display:none">
     <h2>차트 아웃 후 추적 중 <span class="muted">— 차트에서 빠진 뒤 14일간 계속 수집</span></h2>
     <div class="wrap" id="droppedWrap"></div>
   </div>
@@ -410,6 +421,13 @@ if (dropped.length) {
     "<table><thead>" + headRow(false) + "</thead><tbody>" +
     dropped.map((id) => bodyRow(id, null)).join("") + "</tbody></table>";
 }
+
+// 서브탭 토글: 📈 현재차트 / 🎯 경쟁사 분석
+function setView(v){
+  document.body.dataset.view = v;
+  document.querySelectorAll("#subtabs button").forEach(function(b){ b.classList.toggle("on", b.dataset.view === v); });
+}
+setView(document.body.dataset.view || "comp");
 </script>
 </body>
 </html>
