@@ -91,7 +91,7 @@ async function main() {
       const entry = {
         url: "https://www.youtube.com/watch?v=" + v.id,
         title: `${a.name} - ${v.title}`,
-        likes: true, autoAdded: true, addedAt: localDate(),
+        likes: true, likesTrack: true, autoAdded: true, addedAt: localDate(),
       };
       comps.push(entry);
       have.add(v.id);
@@ -135,25 +135,29 @@ async function main() {
     }
   } catch (e) { console.log("[종이별 신곡] 실패:", String(e.message).split("\n")[0]); }
 
-  // ── 로코베리 키워드 감지 (제목에 '로코베리'/'prod.로코베리' 포함된 신곡 → competitors.json) ──
+  // ── 로코베리 키워드 감지 — 자동 등록하지 않고 "후보"만 출력 (2026-08-19 민우님 지시: 발견되면 물어보고, 등록은 직접 준 링크로만)
   try {
     const KEYWORD = "로코베리";
     const results = await ytSearch(KEYWORD);
     const c2 = JSON.parse(readFileSync(COMP, "utf8"));
     const have2 = new Set(c2.map((c) => (typeof c === "string" ? vidOf(c) : vidOf(c.url))).filter(Boolean));
-    const kwAdded = [];
+    const CAND = join(ROOT, "data", "rocoberry-candidates.json");
+    let seenCand = [];
+    if (existsSync(CAND)) { try { seenCand = JSON.parse(readFileSync(CAND, "utf8")); } catch {} }
+    const seenIds = new Set(seenCand.map((x) => x.id));
+    const found = [];
     for (const v of results) {
-      if (!v.id || have2.has(v.id) || isInst(v.title)) continue;
+      if (!v.id || have2.has(v.id) || seenIds.has(v.id) || isInst(v.title)) continue;
       if (!v.title.includes(KEYWORD)) continue;   // 제목(또는 prod.)에 로코베리 포함
       if (!recencyOK(v.published)) continue;       // 최근 발행분만
       if (!/(-\s*topic|토픽)\s*$/i.test((v.ch || "").trim())) continue; // 아트트랙(Topic 채널)만 — 플레이리스트/믹스 제외
-      c2.push({ url: "https://www.youtube.com/watch?v=" + v.id, title: v.title.slice(0, 80), likes: true, kw: KEYWORD, addedAt: localDate() });
-      have2.add(v.id);
-      kwAdded.push(v.title.slice(0, 40));
+      found.push({ id: v.id, title: v.title.slice(0, 80), foundAt: localDate() });
+      seenIds.add(v.id);
     }
-    if (kwAdded.length) {
-      writeFileSync(COMP, JSON.stringify(c2, null, 2) + "\n", "utf8");
-      console.log(`[로코베리] ${kwAdded.length}곡 추가: ` + kwAdded.join(" | "));
+    if (found.length) {
+      writeFileSync(CAND, JSON.stringify([...seenCand, ...found], null, 2) + "\n", "utf8");
+      console.log(`[로코베리 후보] ${found.length}곡 발견 — 자동등록 안 함, 민우님 확인 필요:`);
+      for (const x of found) console.log(`  ? ${x.title} https://www.youtube.com/watch?v=${x.id}`);
     } else { console.log("[로코베리] 새 곡 없음"); }
   } catch (e) { console.log("[로코베리] 실패:", String(e.message).split("\n")[0]); }
 }
