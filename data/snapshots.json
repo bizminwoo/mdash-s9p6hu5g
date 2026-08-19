@@ -59,6 +59,21 @@
       "title": "블린 - 이별을 준비해",
       "share": 0.33,
       "adViews": true
+    },
+    "pjvG81FjfA4": {
+      "url": "https://www.youtube.com/watch?v=pjvG81FjfA4",
+      "title": "류민희 - 나보다 꼭 행복해야 해 (Happier Than Me)",
+      "share": 0
+    },
+    "JBfwh3xPtJw": {
+      "url": "https://www.youtube.com/watch?v=JBfwh3xPtJw",
+      "title": "도코 - 파란 밤 끝",
+      "share": 0
+    },
+    "d2b9OwP4PFU": {
+      "url": "https://www.youtube.com/watch?v=d2b9OwP4PFU",
+      "title": "웨이브 콜 - 미안 (SORRY)",
+      "share": 0
     }
   },
   "snapshots": [
@@ -2127,30 +2142,45 @@
         "D7VsFDJx4zw": {
           "views": 103670,
           "likes": 1229
+        },
+        "pjvG81FjfA4": {
+          "views": 431932,
+          "likes": 14214,
+          "comments": 323
+        },
+        "JBfwh3xPtJw": {
+          "views": 432908,
+          "likes": 11201,
+          "comments": 39
+        },
+        "d2b9OwP4PFU": {
+          "views": 56,
+          "likes": 1,
+          "comments": 0
         }
       }
     }
   ],
   "current": {
-    "time": "2026-08-19 14:00",
+    "time": "2026-08-19 14:08",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1220446,
+        "views": 1220593,
         "likes": 8461,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 653354,
+        "views": 653355,
         "likes": 16248,
         "comments": 4
       },
       "grqTg6WOJII": {
-        "views": 742364,
+        "views": 742429,
         "likes": 25936,
         "comments": 7
       },
       "THGi-LLhbxM": {
-        "views": 493556,
+        "views": 493561,
         "likes": 13490,
         "comments": 12
       },
@@ -2162,32 +2192,47 @@
       "K_viUNQs5lc": {
         "views": 31208,
         "likes": 3091,
-        "comments": null
+        "comments": 0
       },
       "VCqKgW6Lvb4": {
-        "views": 568925,
+        "views": 569001,
         "likes": 6451,
         "comments": 13
       },
       "h8JV2rw7QOc": {
         "views": 96,
         "likes": 3043,
-        "comments": null
+        "comments": 0
       },
       "qmF8dPz22nU": {
         "views": 52627,
         "likes": 4464,
-        "comments": null
+        "comments": 0
+      },
+      "pjvG81FjfA4": {
+        "views": 431932,
+        "likes": 14214,
+        "comments": 323
+      },
+      "JBfwh3xPtJw": {
+        "views": 432908,
+        "likes": 11201,
+        "comments": 39
+      },
+      "d2b9OwP4PFU": {
+        "views": 56,
+        "likes": 1,
+        "comments": 0
       },
       "gTG9evSpuWg": {
-        "views": 20138623,
+        "views": 20138644,
         "likes": 76095,
         "comments": 225
       },
       "D7VsFDJx4zw": {
         "views": 103969,
         "likes": 1230,
-        "comments": null
+        "comments": 0
       }
     }
   },
