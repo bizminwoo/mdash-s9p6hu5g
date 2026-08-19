@@ -10,6 +10,7 @@
   :root {
     --bg: #0f1115; --panel: #181b22; --panel2: #1f232c; --line: #2a2f3a;
     --text: #e7eaf0; --muted: #8b93a3; --accent: #ff4d6d; --up: #35d07f; --down: #ff6b6b;
+    --strm: #3987e5; --like: #ff8fab; --cmt: #f5c451;
   }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text);
@@ -20,83 +21,78 @@
     padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); }
   #sitetabs a:hover { color: var(--text); }
   #sitetabs a.on { color: var(--text); background: var(--panel2); border-color: #3a4150; }
-  .sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 22px; }
-  .panel h2 { font-size: 15px; margin: 0 0 16px; }
-  .muted { color: var(--muted); font-weight: 400; font-size: 12px; }
-  .wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; white-space: nowrap; }
-  th, td { text-align: right; padding: 9px 12px; border-bottom: 1px solid var(--line); }
-  th.day, td.day { text-align: left; }
-  th { color: var(--muted); font-weight: 500; font-size: 12px; }
-  td.day { font-weight: 600; }
-  .zero { color: var(--muted); }
-  .today { color: var(--up); font-weight: 700; }
-  .pos { color: var(--up); } .neg { color: var(--down); }
-  .note { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.6; }
-  .empty { color: var(--muted); text-align: center; padding: 40px; }
-  .songblock { margin-bottom: 26px; }
-  .songblock:last-child { margin-bottom: 0; }
-  .sbhead { font-size: 15px; font-weight: 700; margin: 0 0 12px; padding-left: 10px; border-left: 3px solid var(--accent); }
-  .sbhead a { color: var(--text); text-decoration: none; }
-  .sbhead a:hover { color: var(--accent); }
-  .sbhead .muted2 { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+  /* 곡 카드 */
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; margin-bottom: 20px; }
+  .cardhead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 0 0 16px; }
+  .cardhead .num { font-size: 13px; color: var(--muted); font-weight: 700; }
+  .cardhead .name { font-size: 17px; font-weight: 800; }
+  .cardhead .name a { color: var(--text); text-decoration: none; }
+  .cardhead .name a:hover { color: var(--accent); }
+  .cardhead .artist { font-size: 12.5px; color: var(--muted); font-weight: 400; }
+  /* 현재 숫자 타일 */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
+  .stat { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .stat .lbl { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 6px; font-weight: 600; }
+  .stat .dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+  .stat .val { font-size: 23px; font-weight: 800; margin-top: 5px; letter-spacing: -0.3px; }
+  .stat .chg { font-size: 12.5px; font-weight: 700; margin-left: 7px; }
+  .chg.pos { color: var(--up); } .chg.neg { color: var(--down); } .chg.flat { color: var(--muted); }
   /* 시간단위 그래프 */
-  .songrow { margin-bottom: 18px; }
-  .srgrid { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
-  .srgrid .fchart { height: 170px; }
-  @media (max-width: 760px) { .srgrid { grid-template-columns: 1fr; } .srgrid .fchart { height: 140px; } }
-  .facet { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
-  .fhead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .ftitle { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .fbig { font-size: 22px; font-weight: 700; margin: 6px 0 8px; }
-  .fbig .sub2 { font-size: 12px; color: var(--muted); font-weight: 400; margin-left: 6px; }
-  .fchart { position: relative; height: 120px; }
-  @media (max-width: 640px) { body { padding: 14px; } }
+  .sectlbl { font-size: 12.5px; color: var(--muted); font-weight: 700; margin: 4px 0 8px; }
+  .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+  .facet { background: var(--panel2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .facet .ft { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; }
+  .facet .fbig { font-size: 18px; font-weight: 800; margin: 4px 0 6px; }
+  .facet .fbig .s2 { font-size: 11.5px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .fchart { position: relative; height: 150px; }
+  @media (max-width: 720px) { .charts { grid-template-columns: 1fr; } .stats { grid-template-columns: 1fr; } }
+  /* 일자별 표 */
+  .wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; white-space: nowrap; }
+  th, td { text-align: right; padding: 9px 14px; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: none; }
+  th.day, td.day { text-align: left; }
+  thead th { color: var(--muted); font-weight: 600; font-size: 11.5px; background: var(--panel2); position: sticky; top: 0; }
+  tbody tr.today td { background: rgba(53,208,127,0.06); }
+  td.day { font-weight: 700; }
+  td .sub2 { color: var(--muted); font-size: 11px; margin-left: 6px; }
+  .zero { color: var(--muted); }
+  .pos { color: var(--up); } .neg { color: var(--down); }
+  .note { color: var(--muted); font-size: 12px; margin-top: 14px; line-height: 1.6; }
+  .empty { color: var(--muted); text-align: center; padding: 30px; }
+  @media (max-width: 640px) { body { padding: 14px; } .card { padding: 16px; } }
 </style>
 </head>
 <body>
   <!--__NAV__-->
   <h1>🔎 상세 추적</h1>
   <div class="sub" id="updated"></div>
-
-  <div class="panel">
-    <h2>📅 일 단위 추적 <span class="muted">— 곡별 · 날짜별 스밍(그날 조회수 증가) · 좋아요(누적/증가) · 댓글(누적/증가)</span></h2>
-    <div id="dailyGrid"></div>
-    <div class="note">"스밍(그날)" = 그날 00시부터 다음날 00시까지 조회수 증가분(오늘은 현재까지). "좋아요/댓글 누적" = 그날 기준 총량, "증가" = 그날 하루 늘어난 양. 유튜브가 과거 좋아요 수를 알려주지 않아, 우리가 매시간 수집한 값으로 복원한 기록입니다. 댓글은 수집 시작 이후 날짜부터 채워집니다.</div>
-  </div>
-
-  <div class="panel">
-    <h2>⏱️ 시간 단위 추적 <span class="muted">— 스트리밍·좋아요, 1시간마다 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
-    <div id="likesGrid"></div>
-    <div class="note">각 점 = 직전 1시간 동안의 증가량(수집이 몇 분에 되든 정각 값으로 환산). 큰 숫자 = 오늘 00시 이후 증가(첫날은 발매 후 증가), 옆 = 총계. competitors.json 에서 곡에 <code>"likesTrack": true</code> 를 붙이면 이 상세 추적에 들어옵니다.</div>
-  </div>
+  <div id="cards"></div>
+  <div class="note">곡마다 <b>현재 숫자 → 시간단위 그래프(오늘 vs 어제) → 일자별 표</b> 순서로 한 장에 모았습니다. 시간 그래프의 점 = 직전 1시간 증가량(정각 환산). 표의 "증가" = 그날 하루 늘어난 양. 유튜브가 과거 좋아요·댓글 수는 안 줘서, 우리가 매시간 수집한 값으로 복원한 기록입니다(댓글은 수집 시작 이후부터).</div>
 
 <script>
 const DB = /*__DATA__*/ null;
-const OWN = new Set(/*__OWN__*/ null || []);
-
 const fmt = (n) => n == null ? "–" : n.toLocaleString("ko-KR");
 const sgn = (n) => n == null ? "–" : (n > 0 ? "+" : "") + n.toLocaleString("ko-KR");
-const dstr = (d) => { const p = (n) => String(n).padStart(2, "0");
-  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); };
 
 const snaps = (DB.snapshots || []).slice().sort((a, b) => a.date < b.date ? -1 : 1);
 const byDate = Object.fromEntries(snaps.map((s) => [s.date, s]));
-const today = snaps.length ? snaps[snaps.length - 1].date : dstr(new Date());
-const nextDay = (d) => dstr(new Date(new Date(d + "T00:00:00").getTime() + 86400000));
+const today = snaps.length ? snaps[snaps.length - 1].date : null;
+const nextDay = (d) => { const t = new Date(d + "T00:00:00").getTime() + 86400000;
+  const x = new Date(t); const p = (n) => String(n).padStart(2, "0");
+  return x.getFullYear() + "-" + p(x.getMonth()+1) + "-" + p(x.getDate()); };
 
-document.getElementById("updated").innerHTML =
-  "업데이트: " + (DB.current?.time || "-") + " · 상세 추적 곡";
+document.getElementById("updated").innerHTML = "업데이트: " + (DB.current?.time || "-");
 
-// 그날 하루 스밍(조회수 증가) — 00시 스냅샷 기준(다른 탭과 동일)
+// 그날 하루 스밍(조회수 증가) — 00시 스냅샷 기준
 function strmOf(id, d) {
   const a = byDate[d]?.stats?.[id]?.views;
   if (a == null) return null;
   const b = d === today ? DB.current?.stats?.[id]?.views : byDate[nextDay(d)]?.stats?.[id]?.views;
   return b == null ? null : b - a;
 }
-// 좋아요·댓글은 스냅샷에 없고 시간별 수집(hourly)에만 있음 → 그날 "마지막 수집값"을 누적으로 사용
+// 좋아요·댓글은 시간별 수집(hourly)에만 있음 → 그날 "마지막 수집값"을 누적으로
 function lastOfDay(H, id) {
   const map = {};
   for (const d of Object.keys(H || {})) {
@@ -104,146 +100,167 @@ function lastOfDay(H, id) {
     for (const hh of Object.keys(H[d]).sort()) { const val = H[d][hh]?.[id]; if (val != null) last = val; }
     if (last != null) map[d] = last;
   }
-  return map; // { "2026-08-18": 14012, ... }
+  return map;
 }
+const prevPresent = (map, d) => { const ks = Object.keys(map).filter(k => k < d).sort(); return ks.length ? map[ks[ks.length-1]] : null; };
 
-const tracked = Object.keys(DB.videos || {}).filter((id) => DB.videos[id].likesTrack)
-  .sort((a, b) => (DB.videos[a].order ?? 99) - (DB.videos[b].order ?? 99));
-
-// ── 📅 일 단위 표 ──
-(function renderDaily(){
-  const grid = document.getElementById("dailyGrid");
-  if(!tracked.length){ grid.innerHTML = '<div class="empty">상세 추적으로 지정된 곡이 없습니다.</div>'; return; }
-  grid.innerHTML = "";
-  for(const id of tracked){
-    const v = DB.videos[id] || {};
-    const likeMap = lastOfDay(DB.hourlyLikes, id);
-    const cmtMap = lastOfDay(DB.hourlyComments, id);
-    // 이 곡의 데이터가 있는 날짜(스냅샷 뷰 or 시간별 좋아요), 오래된→최신
-    const dset = new Set([...snaps.map(s => s.date).filter(d => byDate[d]?.stats?.[id]?.views != null), ...Object.keys(likeMap)]);
-    const dl = [...dset].sort();
-    const block = document.createElement("div");
-    block.className = "songblock";
-    const head = `<div class="sbhead"><a href="https://youtu.be/${id}" target="_blank">${v.title || id}</a>` +
-      `<span class="muted2">${v.artist || ""}</span></div>`;
-    if(!dl.length){ block.innerHTML = head + '<div class="empty">아직 수집된 일자별 데이터가 없습니다.</div>'; grid.appendChild(block); continue; }
-    const prevPresent = (map, d) => { const ks = Object.keys(map).filter(k => k < d).sort(); return ks.length ? map[ks[ks.length-1]] : null; };
-    const rows = dl.slice().reverse().map((d) => {
-      const strm = strmOf(id, d);
-      const likeCum = likeMap[d] ?? null;
-      const lp = prevPresent(likeMap, d);
-      const likeD = (likeCum != null && lp != null) ? likeCum - lp : null;
-      const cmtCum = cmtMap[d] ?? null;
-      const cp = prevPresent(cmtMap, d);
-      const cmtD = (cmtCum != null && cp != null) ? cmtCum - cp : null;
-      const tcls = d === today ? " today" : "";
-      const dd = (n) => n == null ? '<span class="zero">–</span>' : (n > 0 ? '<span class="pos">'+sgn(n)+'</span>' : (n < 0 ? '<span class="neg">'+sgn(n)+'</span>' : '<span class="zero">0</span>'));
-      return `<tr><td class="day${tcls}">${d.slice(5).replace("-","/")}${d===today?" (오늘)":""}</td>` +
-        `<td class="${d===today?"today":(strm==null?"zero":"")}">${fmt(strm)}</td>` +
-        `<td>${fmt(likeCum)}</td><td>${dd(likeD)}</td>` +
-        `<td>${fmt(cmtCum)}</td><td>${dd(cmtD)}</td></tr>`;
-    }).join("");
-    block.innerHTML = head +
-      '<div class="wrap"><table><thead><tr>' +
-      '<th class="day">날짜</th><th>스밍(그날)</th><th>좋아요 누적</th><th>좋아요 증가</th><th>댓글 누적</th><th>댓글 증가</th>' +
-      '</tr></thead><tbody>' + rows + '</tbody></table></div>';
-    grid.appendChild(block);
-  }
-})();
-
-// ── ⏱️ 시간 단위 그래프 (mkSampler 정각 환산) ──
+// 정각 환산 샘플러 (시간 그래프용)
 function mkSampler(H, M){
   const cache = {};
   const samples = (id) => {
     if(cache[id]) return cache[id];
     const out = [];
-    for(const d of Object.keys(H || {}).sort()){
+    for(const d of Object.keys(H || {}).sort())
       for(const hh of Object.keys(H[d]).sort()){
-        const val = H[d][hh]?.[id];
-        if(val == null) continue;
+        const val = H[d][hh]?.[id]; if(val == null) continue;
         out.push({ t: new Date(d + "T" + hh + ":00:00").getTime()/60000 + (M?.[d]?.[hh] ?? 0), v: val });
       }
-    }
     return cache[id] = out;
   };
   const at = (id, dateStr, hour) => {
     const target = new Date(dateStr + "T00:00:00").getTime()/60000 + hour*60;
     let lo = null, hi = null;
-    for(const p of samples(id)){
-      if(p.t <= target) lo = p; else { hi = p; break; }
-    }
+    for(const p of samples(id)){ if(p.t <= target) lo = p; else { hi = p; break; } }
     if(lo && lo.t === target) return lo.v;
-    if(lo && hi && hi.t - lo.t <= 150)
-      return Math.round(lo.v + (hi.v - lo.v) * (target - lo.t) / (hi.t - lo.t));
+    if(lo && hi && hi.t - lo.t <= 150) return Math.round(lo.v + (hi.v - lo.v) * (target - lo.t) / (hi.t - lo.t));
     return null;
   };
   return { samples, at };
 }
+const SV = mkSampler(DB.hourlyViews, DB.hourlyViewsMin);
+const SL = mkSampler(DB.hourlyLikes, DB.hourlyLikesMin);
 
-(function renderDetail(){
-  if(!tracked.length || typeof Chart === "undefined") return;
-  const grid = document.getElementById("likesGrid");
-  grid.innerHTML = "";
-  const gray = "#8b93a3";
+const tracked = Object.keys(DB.videos || {}).filter((id) => DB.videos[id].likesTrack)
+  .sort((a, b) => (DB.videos[a].order ?? 99) - (DB.videos[b].order ?? 99));
+
+const cards = document.getElementById("cards");
+if (!tracked.length) { cards.innerHTML = '<div class="card"><div class="empty">상세 추적으로 지정된 곡이 없습니다.</div></div>'; }
+
+const chgHtml = (n) => n == null ? '' : '<span class="chg ' + (n>0?'pos':(n<0?'neg':'flat')) + '">' + (n===0?'±0':sgn(n)) + '</span>';
+const deltaCell = (n) => n == null ? '<span class="zero">–</span>' : (n>0?'<span class="pos">'+sgn(n)+'</span>':(n<0?'<span class="neg">'+sgn(n)+'</span>':'<span class="zero">0</span>'));
+
+const labels = Array.from({length:24}, (_,h) => h + "시");
+const chartJobs = [];
+
+for (let i = 0; i < tracked.length; i++) {
+  const id = tracked[i];
+  const v = DB.videos[id] || {};
+  const likeMap = lastOfDay(DB.hourlyLikes, id);
+  const cmtMap = lastOfDay(DB.hourlyComments, id);
+
+  // 현재 숫자 + 오늘 증가
+  const vTot = DB.current?.stats?.[id]?.views ?? null;
+  const vChg = strmOf(id, today);
+  const lTot = likeMap[today] ?? (SL.samples(id).slice(-1)[0]?.v ?? null);
+  const lChg = (likeMap[today] != null) ? (likeMap[today] - (prevPresent(likeMap, today) ?? likeMap[today])) : null;
+  const cTot = cmtMap[today] ?? null;
+  const cChg = (cmtMap[today] != null) ? (cmtMap[today] - (prevPresent(cmtMap, today) ?? cmtMap[today])) : null;
+
+  const stat = (dot, lbl, val, chg) =>
+    '<div class="stat"><div class="lbl"><span class="dot" style="background:'+dot+'"></span>'+lbl+'</div>' +
+    '<div class="val">'+fmt(val)+chgHtml(chg)+'</div></div>';
+
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML =
+    '<div class="cardhead"><span class="num">#'+(i+1)+'</span>' +
+      '<span class="name"><a href="https://youtu.be/'+id+'" target="_blank">'+(v.title||id)+'</a></span>' +
+      (v.artist ? '<span class="artist">'+v.artist+'</span>' : '') + '</div>' +
+    '<div class="stats">' +
+      stat('var(--strm)','스트리밍(조회수)', vTot, vChg) +
+      stat('var(--like)','좋아요', lTot, lChg) +
+      stat('var(--cmt)','댓글', cTot, cChg) +
+    '</div>' +
+    '<div class="sectlbl">⏱️ 시간단위 — 직전 1시간 증가량 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</div>' +
+    '<div class="charts" id="charts-'+id+'"></div>' +
+    '<div class="sectlbl">📅 일자별 추이</div>' +
+    '<div id="table-'+id+'"></div>';
+  cards.appendChild(card);
+
+  // ── 시간단위 그래프 (스트리밍 / 좋아요) ──
+  const cwrap = card.querySelector('#charts-'+id);
   const METRICS = [
-    { label: "스트리밍", key: "views", color: "#3987e5", s: mkSampler(DB.hourlyViews, DB.hourlyViewsMin), H: DB.hourlyViews },
-    { label: "좋아요",   key: "likes", color: "#ff8fab", s: mkSampler(DB.hourlyLikes, DB.hourlyLikesMin), H: DB.hourlyLikes },
+    { label:"스트리밍", key:"views", color:"var(--strm)", raw:"#3987e5", s:SV, H:DB.hourlyViews },
+    { label:"좋아요",   key:"likes", color:"var(--like)", raw:"#ff8fab", s:SL, H:DB.hourlyLikes },
   ];
-  const labels = Array.from({length:24}, (_,h) => h + "시");
-  let drew = false;
-  for(const id of tracked){
-    const v = DB.videos[id];
-    const row = document.createElement("div");
-    row.className = "songrow";
-    row.innerHTML = `<div class="sbhead"><a href="https://youtu.be/${id}" target="_blank">${(v.title||id)}</a><span class="muted2">${v.artist ? v.artist : ""}</span></div>
-      <div class="srgrid"></div>`;
-    grid.appendChild(row);
-    const srgrid = row.querySelector(".srgrid");
-    for(const m of METRICS){
-      const daysH = Object.keys(m.H || {}).sort();
-      if(!daysH.length) continue;
-      drew = true;
-      const dToday = daysH[daysH.length - 1];
-      const dPrev = daysH.length > 1 ? daysH[daysH.length - 2] : null;
-      const dYday = dPrev && (new Date(dToday) - new Date(dPrev) === 86400000) ? dPrev : null;
-      const seriesOf = (d) => !d ? labels.map(()=>null) : labels.map((_, h) => {
-        const a = m.s.at(id, d, h - 1), b = m.s.at(id, d, h);
-        if(a == null || b == null) return null;
-        return m.key === "views" ? Math.max(0, b - a) : b - a;
-      });
-      const tSeries = seriesOf(dToday), ySeries = seriesOf(dYday);
-      const all = m.s.samples(id);
-      const total = DB.current?.stats?.[id]?.[m.key] ?? (all.length ? all[all.length-1].v : null);
-      const todayFirst = all.find(p => p.t >= new Date(dToday + "T00:00:00").getTime()/60000);
-      const base0 = m.s.at(id, dToday, 0) ?? todayFirst?.v;
-      const gain = (total != null && base0 != null) ? total - base0 : null;
-      const el = document.createElement("div");
-      el.className = "facet";
-      el.innerHTML = `<div class="fhead"><span class="ftitle" style="border-left:3px solid ${m.color};padding-left:8px">${m.label}</span></div>
-        <div class="fbig">${gain != null ? "+" + gain.toLocaleString("ko-KR") : "—"}<span class="sub2">오늘${total != null ? " · 총 " + total.toLocaleString("ko-KR") : ""}</span></div>
-        <div class="fchart"><canvas></canvas></div>`;
-      srgrid.appendChild(el);
-      const pts = tSeries.filter(x => x != null).length;
-      new Chart(el.querySelector("canvas"), {
-        type: "line",
-        data: { labels, datasets: [
-          { label: "오늘", data: tSeries, borderColor: m.color, backgroundColor: m.color + "2e",
-            fill: true, tension: 0.25, spanGaps: true, borderWidth: 2, pointRadius: pts < 2 ? 3 : 0, pointHitRadius: 8 },
-          { label: "어제", data: ySeries, borderColor: gray, borderDash: [5,4],
-            fill: false, tension: 0.25, spanGaps: true, borderWidth: 1.5, pointRadius: 0, pointHitRadius: 8 },
-        ] },
-        options: { responsive: true, maintainAspectRatio: false,
-          interaction: { mode: "index", intersect: false },
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { ticks: { color: gray, maxTicksLimit: 7, font: { size: 10 } }, grid: { display: false } },
-            y: { beginAtZero: true, ticks: { color: gray, maxTicksLimit: 3, font: { size: 10 } }, grid: { color: "#232833" } }
-          } }
-      });
+  for (const m of METRICS) {
+    const daysH = Object.keys(m.H || {}).sort();
+    const facet = document.createElement("div");
+    facet.className = "facet";
+    if (!daysH.length) {
+      facet.innerHTML = '<div class="ft"><span class="dot" style="width:9px;height:9px;border-radius:3px;background:'+m.color+'"></span>'+m.label+'</div><div class="empty" style="padding:20px;font-size:12px">다음 수집부터 그래프가 나타나요</div>';
+      cwrap.appendChild(facet);
+      continue;
     }
+    const dToday = daysH[daysH.length-1];
+    const dPrev = daysH.length>1 ? daysH[daysH.length-2] : null;
+    const dYday = dPrev && (new Date(dToday)-new Date(dPrev)===86400000) ? dPrev : null;
+    const seriesOf = (d) => !d ? labels.map(()=>null) : labels.map((_, h) => {
+      const a = m.s.at(id,d,h-1), b = m.s.at(id,d,h);
+      if (a==null||b==null) return null;
+      return m.key==="views" ? Math.max(0,b-a) : b-a;
+    });
+    const tS = seriesOf(dToday), yS = seriesOf(dYday);
+    const all = m.s.samples(id);
+    const total = DB.current?.stats?.[id]?.[m.key] ?? (all.length?all[all.length-1].v:null);
+    const todayFirst = all.find(p => p.t >= new Date(dToday+"T00:00:00").getTime()/60000);
+    const base0 = m.s.at(id,dToday,0) ?? todayFirst?.v;
+    const gain = (total!=null && base0!=null) ? total-base0 : null;
+    facet.innerHTML =
+      '<div class="ft"><span class="dot" style="width:9px;height:9px;border-radius:3px;background:'+m.color+'"></span>'+m.label+'</div>' +
+      '<div class="fbig">'+(gain!=null?"+"+gain.toLocaleString("ko-KR"):"—")+'<span class="s2">오늘'+(total!=null?" · 총 "+total.toLocaleString("ko-KR"):"")+'</span></div>' +
+      '<div class="fchart"><canvas></canvas></div>';
+    cwrap.appendChild(facet);
+    chartJobs.push({ canvas: facet.querySelector("canvas"), tS, yS, raw: m.raw });
   }
-  if(!drew) grid.innerHTML = '<div class="empty">다음 수집부터 데이터가 쌓입니다 — 몇 시간 뒤에 그래프가 나타나요.</div>';
-})();
+
+  // ── 일자별 표 ──
+  const dset = new Set([...snaps.map(s=>s.date).filter(d => byDate[d]?.stats?.[id]?.views != null), ...Object.keys(likeMap)]);
+  const dl = [...dset].sort();
+  const twrap = card.querySelector('#table-'+id);
+  if (!dl.length) { twrap.innerHTML = '<div class="empty">아직 일자별 데이터가 없습니다.</div>'; }
+  else {
+    const rows = dl.slice().reverse().map((d) => {
+      const strm = strmOf(id,d);
+      const lc = likeMap[d] ?? null, lp = prevPresent(likeMap,d);
+      const ld = (lc!=null && lp!=null) ? lc-lp : null;
+      const cc = cmtMap[d] ?? null, cp = prevPresent(cmtMap,d);
+      const cd = (cc!=null && cp!=null) ? cc-cp : null;
+      return '<tr class="'+(d===today?'today':'')+'">' +
+        '<td class="day">'+d.slice(5).replace("-","/")+(d===today?' <span class="sub2">오늘</span>':'')+'</td>' +
+        '<td class="'+(strm==null?'zero':'')+'">'+fmt(strm)+'</td>' +
+        '<td>'+fmt(lc)+'<span class="sub2">'+ (ld!=null?(ld>0?'+':'')+ld.toLocaleString("ko-KR"):'') +'</span></td>' +
+        '<td>'+fmt(cc)+'<span class="sub2">'+ (cd!=null?(cd>0?'+':'')+cd.toLocaleString("ko-KR"):'') +'</span></td>' +
+        '</tr>';
+    }).join("");
+    twrap.innerHTML = '<div class="wrap"><table><thead><tr>' +
+      '<th class="day">날짜</th><th>스밍(그날)</th><th>좋아요 <span style="font-weight:400">(누적·증가)</span></th><th>댓글 <span style="font-weight:400">(누적·증가)</span></th>' +
+      '</tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }
+}
+
+// 차트 렌더 (한 번에)
+if (typeof Chart !== "undefined") {
+  const gray = "#8b93a3";
+  for (const j of chartJobs) {
+    const pts = j.tS.filter(x => x!=null).length;
+    new Chart(j.canvas, {
+      type: "line",
+      data: { labels, datasets: [
+        { label:"오늘", data:j.tS, borderColor:j.raw, backgroundColor:j.raw+"2e", fill:true, tension:0.25, spanGaps:true, borderWidth:2, pointRadius: pts<2?3:0, pointHitRadius:8 },
+        { label:"어제", data:j.yS, borderColor:gray, borderDash:[5,4], fill:false, tension:0.25, spanGaps:true, borderWidth:1.5, pointRadius:0, pointHitRadius:8 },
+      ] },
+      options: { responsive:true, maintainAspectRatio:false,
+        interaction:{ mode:"index", intersect:false },
+        plugins:{ legend:{ display:false },
+          tooltip:{ callbacks:{ label:(c)=> c.dataset.label+": "+(c.parsed.y==null?"–":"+"+c.parsed.y.toLocaleString("ko-KR")) } } },
+        scales:{
+          x:{ ticks:{ color:gray, maxTicksLimit:7, font:{size:10} }, grid:{ display:false } },
+          y:{ beginAtZero:true, ticks:{ color:gray, maxTicksLimit:3, font:{size:10} }, grid:{ color:"#232833" } }
+        } }
+    });
+  }
+}
 </script>
 </body>
 </html>
