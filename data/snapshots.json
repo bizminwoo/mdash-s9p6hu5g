@@ -2193,37 +2193,37 @@
     }
   ],
   "current": {
-    "time": "2026-08-20 08:57",
+    "time": "2026-08-20 09:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1222698,
+        "views": 1222703,
         "likes": 8463,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 660532,
+        "views": 660553,
         "likes": 16262,
         "comments": 4
       },
       "grqTg6WOJII": {
-        "views": 754393,
+        "views": 754437,
         "likes": 25951,
         "comments": 7
       },
       "THGi-LLhbxM": {
-        "views": 498271,
+        "views": 498292,
         "likes": 13494,
         "comments": 12
       },
       "Jsm2uVtQhmY": {
-        "views": 309103,
+        "views": 309073,
         "likes": 17537,
         "comments": 5
       },
       "K_viUNQs5lc": {
         "views": 31208,
         "likes": 3089,
-        "comments": 0
+        "comments": null
       },
       "VCqKgW6Lvb4": {
         "views": 576372,
@@ -2233,22 +2233,22 @@
       "h8JV2rw7QOc": {
         "views": 96,
         "likes": 3042,
-        "comments": 0
+        "comments": null
       },
       "qmF8dPz22nU": {
         "views": 52628,
         "likes": 4463,
-        "comments": 0
+        "comments": null
       },
       "gTG9evSpuWg": {
-        "views": 20153209,
+        "views": 20153256,
         "likes": 76129,
         "comments": 225
       },
       "D7VsFDJx4zw": {
-        "views": 104440,
+        "views": 104446,
         "likes": 1234,
-        "comments": 0
+        "comments": null
       }
     }
   },
@@ -4882,6 +4882,19 @@
         "qmF8dPz22nU": 52628,
         "gTG9evSpuWg": 20152705,
         "D7VsFDJx4zw": 104446
+      },
+      "09": {
+        "tUcWwAO5zU8": 1222703,
+        "RsQDAygpF6k": 660553,
+        "grqTg6WOJII": 754437,
+        "THGi-LLhbxM": 498292,
+        "Jsm2uVtQhmY": 309073,
+        "K_viUNQs5lc": 31208,
+        "VCqKgW6Lvb4": 576372,
+        "h8JV2rw7QOc": 96,
+        "qmF8dPz22nU": 52628,
+        "gTG9evSpuWg": 20153256,
+        "D7VsFDJx4zw": 104446
       }
     }
   },
@@ -5103,7 +5116,8 @@
       "05": 0,
       "06": 0,
       "07": 0,
-      "08": 0
+      "08": 0,
+      "09": 0
     }
   }
 }
