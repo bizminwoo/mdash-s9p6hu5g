@@ -2254,62 +2254,62 @@
     }
   ],
   "current": {
-    "time": "2026-08-21 10:49",
+    "time": "2026-08-21 11:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1226131,
+        "views": 1226101,
         "likes": 8465,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 671033,
+        "views": 671153,
         "likes": 16279,
         "comments": 4
       },
       "grqTg6WOJII": {
-        "views": 771089,
+        "views": 771413,
         "likes": 25969,
         "comments": 7
       },
       "THGi-LLhbxM": {
-        "views": 505215,
+        "views": 505270,
         "likes": 13509,
         "comments": 12
       },
       "Jsm2uVtQhmY": {
-        "views": 311260,
+        "views": 311561,
         "likes": 17536,
         "comments": 5
       },
       "K_viUNQs5lc": {
         "views": 31210,
         "likes": 3088,
-        "comments": 0
+        "comments": null
       },
       "VCqKgW6Lvb4": {
-        "views": 587277,
+        "views": 587420,
         "likes": 6479,
         "comments": 13
       },
       "h8JV2rw7QOc": {
         "views": 97,
         "likes": 3041,
-        "comments": 0
+        "comments": null
       },
       "qmF8dPz22nU": {
-        "views": 52634,
+        "views": 52633,
         "likes": 4462,
-        "comments": 0
+        "comments": null
       },
       "gTG9evSpuWg": {
-        "views": 20174321,
+        "views": 20174499,
         "likes": 76173,
         "comments": 225
       },
       "D7VsFDJx4zw": {
-        "views": 105034,
+        "views": 105035,
         "likes": 1241,
-        "comments": 0
+        "comments": null
       }
     }
   },
@@ -4840,6 +4840,19 @@
         "gTG9evSpuWg": 20173252,
         "D7VsFDJx4zw": 105035
       },
+      "11": {
+        "tUcWwAO5zU8": 1226101,
+        "RsQDAygpF6k": 671153,
+        "grqTg6WOJII": 771413,
+        "THGi-LLhbxM": 505270,
+        "Jsm2uVtQhmY": 311561,
+        "K_viUNQs5lc": 31210,
+        "VCqKgW6Lvb4": 587420,
+        "h8JV2rw7QOc": 97,
+        "qmF8dPz22nU": 52633,
+        "gTG9evSpuWg": 20174499,
+        "D7VsFDJx4zw": 105035
+      },
       "00": {
         "tUcWwAO5zU8": 1224902,
         "RsQDAygpF6k": 668239,
@@ -5183,6 +5196,7 @@
     },
     "2026-08-21": {
       "10": 0,
+      "11": 0,
       "00": 0,
       "01": 0,
       "02": 0,
