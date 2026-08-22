@@ -2315,25 +2315,25 @@
     }
   ],
   "current": {
-    "time": "2026-08-22 20:57",
+    "time": "2026-08-22 21:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1230594,
+        "views": 1230606,
         "likes": 8465,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 684871,
-        "likes": 16304,
+        "views": 684894,
+        "likes": 16305,
         "comments": 4
       },
       "grqTg6WOJII": {
-        "views": 793956,
+        "views": 793974,
         "likes": 25984,
         "comments": 7
       },
       "THGi-LLhbxM": {
-        "views": 515036,
+        "views": 515049,
         "likes": 13526,
         "comments": 12
       },
@@ -2345,7 +2345,7 @@
       "K_viUNQs5lc": {
         "views": 31213,
         "likes": 3087,
-        "comments": 0
+        "comments": null
       },
       "VCqKgW6Lvb4": {
         "views": 602814,
@@ -2355,22 +2355,22 @@
       "h8JV2rw7QOc": {
         "views": 98,
         "likes": 3041,
-        "comments": 0
+        "comments": null
       },
       "qmF8dPz22nU": {
-        "views": 52645,
+        "views": 52646,
         "likes": 4457,
-        "comments": 0
+        "comments": null
       },
       "gTG9evSpuWg": {
-        "views": 20203997,
+        "views": 20204079,
         "likes": 76204,
         "comments": 227
       },
       "D7VsFDJx4zw": {
         "views": 105875,
         "likes": 1244,
-        "comments": 0
+        "comments": null
       }
     }
   },
@@ -5031,6 +5031,19 @@
         "gTG9evSpuWg": 20203061,
         "D7VsFDJx4zw": 105812
       },
+      "21": {
+        "tUcWwAO5zU8": 1230606,
+        "RsQDAygpF6k": 684894,
+        "grqTg6WOJII": 793974,
+        "THGi-LLhbxM": 515049,
+        "Jsm2uVtQhmY": 315051,
+        "K_viUNQs5lc": 31213,
+        "VCqKgW6Lvb4": 602814,
+        "h8JV2rw7QOc": 98,
+        "qmF8dPz22nU": 52646,
+        "gTG9evSpuWg": 20204079,
+        "D7VsFDJx4zw": 105875
+      },
       "00": {
         "tUcWwAO5zU8": 1228412,
         "RsQDAygpF6k": 677695,
@@ -5384,6 +5397,7 @@
       "18": 0,
       "19": 0,
       "20": 0,
+      "21": 0,
       "00": 0,
       "01": 0,
       "02": 0,
