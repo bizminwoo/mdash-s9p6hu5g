@@ -2376,10 +2376,10 @@
     }
   ],
   "current": {
-    "time": "2026-08-23 00:56",
+    "time": "2026-08-23 01:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1230995,
+        "views": 1231005,
         "likes": 8464,
         "comments": 2
       },
@@ -2389,49 +2389,49 @@
         "comments": 4
       },
       "grqTg6WOJII": {
-        "views": 796105,
+        "views": 796158,
         "likes": 25985,
         "comments": 7
       },
       "THGi-LLhbxM": {
-        "views": 516071,
+        "views": 516098,
         "likes": 13529,
         "comments": 12
       },
       "Jsm2uVtQhmY": {
-        "views": 315384,
+        "views": 315393,
         "likes": 17533,
         "comments": 5
       },
       "K_viUNQs5lc": {
         "views": 31213,
         "likes": 3087,
-        "comments": 0
+        "comments": null
       },
       "VCqKgW6Lvb4": {
-        "views": 604225,
+        "views": 604278,
         "likes": 6505,
         "comments": 13
       },
       "h8JV2rw7QOc": {
         "views": 100,
         "likes": 3041,
-        "comments": 0
+        "comments": null
       },
       "qmF8dPz22nU": {
         "views": 52646,
         "likes": 4457,
-        "comments": 0
+        "comments": null
       },
       "gTG9evSpuWg": {
-        "views": 20207613,
+        "views": 20207683,
         "likes": 76217,
         "comments": 227
       },
       "D7VsFDJx4zw": {
         "views": 105966,
         "likes": 1245,
-        "comments": 0
+        "comments": null
       }
     }
   },
@@ -4961,6 +4961,19 @@
         "qmF8dPz22nU": 52646,
         "gTG9evSpuWg": 20206814,
         "D7VsFDJx4zw": 105966
+      },
+      "01": {
+        "tUcWwAO5zU8": 1231005,
+        "RsQDAygpF6k": 686224,
+        "grqTg6WOJII": 796158,
+        "THGi-LLhbxM": 516098,
+        "Jsm2uVtQhmY": 315393,
+        "K_viUNQs5lc": 31213,
+        "VCqKgW6Lvb4": 604278,
+        "h8JV2rw7QOc": 100,
+        "qmF8dPz22nU": 52646,
+        "gTG9evSpuWg": 20207683,
+        "D7VsFDJx4zw": 105966
       }
     }
   },
@@ -5174,7 +5187,8 @@
       "09": 0
     },
     "2026-08-23": {
-      "00": 0
+      "00": 0,
+      "01": 0
     }
   }
 }
