@@ -2315,10 +2315,10 @@
     }
   ],
   "current": {
-    "time": "2026-08-22 22:58",
+    "time": "2026-08-22 23:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1230827,
+        "views": 1230832,
         "likes": 8464,
         "comments": 2
       },
@@ -2328,12 +2328,12 @@
         "comments": 4
       },
       "grqTg6WOJII": {
-        "views": 795088,
+        "views": 795129,
         "likes": 25985,
         "comments": 7
       },
       "THGi-LLhbxM": {
-        "views": 515616,
+        "views": 515628,
         "likes": 13528,
         "comments": 12
       },
@@ -2345,32 +2345,32 @@
       "K_viUNQs5lc": {
         "views": 31213,
         "likes": 3087,
-        "comments": 0
+        "comments": null
       },
       "VCqKgW6Lvb4": {
-        "views": 603620,
+        "views": 603567,
         "likes": 6504,
         "comments": 13
       },
       "h8JV2rw7QOc": {
         "views": 99,
         "likes": 3041,
-        "comments": 0
+        "comments": null
       },
       "qmF8dPz22nU": {
         "views": 52646,
         "likes": 4457,
-        "comments": 0
+        "comments": null
       },
       "gTG9evSpuWg": {
         "views": 20205907,
-        "likes": 76210,
+        "likes": 76209,
         "comments": 227
       },
       "D7VsFDJx4zw": {
         "views": 105875,
         "likes": 1244,
-        "comments": 0
+        "comments": null
       }
     }
   },
@@ -5057,6 +5057,19 @@
         "gTG9evSpuWg": 20205068,
         "D7VsFDJx4zw": 105875
       },
+      "23": {
+        "tUcWwAO5zU8": 1230832,
+        "RsQDAygpF6k": 685600,
+        "grqTg6WOJII": 795129,
+        "THGi-LLhbxM": 515628,
+        "Jsm2uVtQhmY": 315231,
+        "K_viUNQs5lc": 31213,
+        "VCqKgW6Lvb4": 603567,
+        "h8JV2rw7QOc": 99,
+        "qmF8dPz22nU": 52646,
+        "gTG9evSpuWg": 20205907,
+        "D7VsFDJx4zw": 105875
+      },
       "00": {
         "tUcWwAO5zU8": 1228412,
         "RsQDAygpF6k": 677695,
@@ -5412,6 +5425,7 @@
       "20": 0,
       "21": 0,
       "22": 0,
+      "23": 0,
       "00": 0,
       "01": 0,
       "02": 0,
