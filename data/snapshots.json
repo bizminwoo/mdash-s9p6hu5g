@@ -2437,25 +2437,25 @@
     }
   ],
   "current": {
-    "time": "2026-08-24 07:57",
+    "time": "2026-08-24 08:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1233424,
+        "views": 1233420,
         "likes": 8463,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 694859,
+        "views": 694870,
         "likes": 16314,
         "comments": 4
       },
       "grqTg6WOJII": {
-        "views": 809455,
+        "views": 809491,
         "likes": 25990,
         "comments": 7
       },
       "THGi-LLhbxM": {
-        "views": 522104,
+        "views": 522092,
         "likes": 13531,
         "comments": 12
       },
@@ -2465,9 +2465,9 @@
         "comments": 5
       },
       "K_viUNQs5lc": {
-        "views": 31220,
+        "views": 31218,
         "likes": 3087,
-        "comments": 0
+        "comments": null
       },
       "VCqKgW6Lvb4": {
         "views": 613161,
@@ -2477,22 +2477,22 @@
       "h8JV2rw7QOc": {
         "views": 101,
         "likes": 3040,
-        "comments": 0
+        "comments": null
       },
       "qmF8dPz22nU": {
         "views": 52661,
         "likes": 4455,
-        "comments": 0
+        "comments": null
       },
       "gTG9evSpuWg": {
-        "views": 20227615,
+        "views": 20227639,
         "likes": 76263,
         "comments": 227
       },
       "D7VsFDJx4zw": {
-        "views": 106518,
+        "views": 106517,
         "likes": 1246,
-        "comments": 0
+        "comments": null
       }
     }
   },
@@ -5113,6 +5113,19 @@
         "qmF8dPz22nU": 52659,
         "gTG9evSpuWg": 20227355,
         "D7VsFDJx4zw": 106485
+      },
+      "08": {
+        "tUcWwAO5zU8": 1233420,
+        "RsQDAygpF6k": 694870,
+        "grqTg6WOJII": 809491,
+        "THGi-LLhbxM": 522092,
+        "Jsm2uVtQhmY": 317540,
+        "K_viUNQs5lc": 31218,
+        "VCqKgW6Lvb4": 613161,
+        "h8JV2rw7QOc": 101,
+        "qmF8dPz22nU": 52661,
+        "gTG9evSpuWg": 20227639,
+        "D7VsFDJx4zw": 106517
       }
     }
   },
@@ -5333,7 +5346,8 @@
       "04": 0,
       "05": 0,
       "06": 0,
-      "07": 0
+      "07": 0,
+      "08": 0
     }
   }
 }
