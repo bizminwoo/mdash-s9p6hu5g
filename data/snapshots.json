@@ -2437,11 +2437,11 @@
     }
   ],
   "current": {
-    "time": "2026-08-24 00:57",
+    "time": "2026-08-24 01:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1233172,
-        "likes": 8464,
+        "views": 1233164,
+        "likes": 8465,
         "comments": 2
       },
       "RsQDAygpF6k": {
@@ -2450,12 +2450,12 @@
         "comments": 4
       },
       "grqTg6WOJII": {
-        "views": 807235,
+        "views": 807274,
         "likes": 25991,
         "comments": 7
       },
       "THGi-LLhbxM": {
-        "views": 521272,
+        "views": 521249,
         "likes": 13532,
         "comments": 12
       },
@@ -2467,32 +2467,32 @@
       "K_viUNQs5lc": {
         "views": 31218,
         "likes": 3087,
-        "comments": 0
+        "comments": null
       },
       "VCqKgW6Lvb4": {
         "views": 612027,
-        "likes": 6511,
+        "likes": 6512,
         "comments": 13
       },
       "h8JV2rw7QOc": {
         "views": 100,
         "likes": 3040,
-        "comments": 0
+        "comments": null
       },
       "qmF8dPz22nU": {
         "views": 52657,
         "likes": 4456,
-        "comments": 0
+        "comments": null
       },
       "gTG9evSpuWg": {
-        "views": 20224750,
+        "views": 20224808,
         "likes": 76256,
         "comments": 227
       },
       "D7VsFDJx4zw": {
         "views": 106424,
         "likes": 1246,
-        "comments": 0
+        "comments": null
       }
     }
   },
@@ -5022,6 +5022,19 @@
         "qmF8dPz22nU": 52656,
         "gTG9evSpuWg": 20224093,
         "D7VsFDJx4zw": 106419
+      },
+      "01": {
+        "tUcWwAO5zU8": 1233164,
+        "RsQDAygpF6k": 693596,
+        "grqTg6WOJII": 807274,
+        "THGi-LLhbxM": 521249,
+        "Jsm2uVtQhmY": 316983,
+        "K_viUNQs5lc": 31218,
+        "VCqKgW6Lvb4": 612027,
+        "h8JV2rw7QOc": 100,
+        "qmF8dPz22nU": 52657,
+        "gTG9evSpuWg": 20224808,
+        "D7VsFDJx4zw": 106424
       }
     }
   },
@@ -5235,7 +5248,8 @@
       "09": 0
     },
     "2026-08-24": {
-      "00": 0
+      "00": 0,
+      "01": 0
     }
   }
 }
