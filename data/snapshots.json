@@ -2376,25 +2376,25 @@
     }
   ],
   "current": {
-    "time": "2026-08-23 20:57",
+    "time": "2026-08-23 21:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1232734,
-        "likes": 8465,
+        "views": 1232742,
+        "likes": 8464,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 692243,
+        "views": 692258,
         "likes": 16313,
         "comments": 4
       },
       "grqTg6WOJII": {
-        "views": 805021,
+        "views": 805049,
         "likes": 25989,
         "comments": 7
       },
       "THGi-LLhbxM": {
-        "views": 520296,
+        "views": 520306,
         "likes": 13528,
         "comments": 12
       },
@@ -2406,7 +2406,7 @@
       "K_viUNQs5lc": {
         "views": 31214,
         "likes": 3087,
-        "comments": 0
+        "comments": null
       },
       "VCqKgW6Lvb4": {
         "views": 610655,
@@ -2416,22 +2416,22 @@
       "h8JV2rw7QOc": {
         "views": 100,
         "likes": 3040,
-        "comments": 0
+        "comments": null
       },
       "qmF8dPz22nU": {
-        "views": 52655,
+        "views": 52656,
         "likes": 4456,
-        "comments": 0
+        "comments": null
       },
       "gTG9evSpuWg": {
-        "views": 20221239,
+        "views": 20221353,
         "likes": 76249,
         "comments": 227
       },
       "D7VsFDJx4zw": {
-        "views": 106312,
+        "views": 106351,
         "likes": 1245,
-        "comments": 0
+        "comments": null
       }
     }
   },
@@ -5092,6 +5092,19 @@
         "gTG9evSpuWg": 20220381,
         "D7VsFDJx4zw": 106314
       },
+      "21": {
+        "tUcWwAO5zU8": 1232742,
+        "RsQDAygpF6k": 692258,
+        "grqTg6WOJII": 805049,
+        "THGi-LLhbxM": 520306,
+        "Jsm2uVtQhmY": 316843,
+        "K_viUNQs5lc": 31214,
+        "VCqKgW6Lvb4": 610655,
+        "h8JV2rw7QOc": 100,
+        "qmF8dPz22nU": 52656,
+        "gTG9evSpuWg": 20221353,
+        "D7VsFDJx4zw": 106351
+      },
       "00": {
         "tUcWwAO5zU8": 1230931,
         "RsQDAygpF6k": 685955,
@@ -5445,6 +5458,7 @@
       "18": 0,
       "19": 0,
       "20": 0,
+      "21": 0,
       "00": 0,
       "01": 0,
       "02": 0,
