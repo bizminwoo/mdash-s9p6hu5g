@@ -14,6 +14,10 @@ const OUTPUT = join(ROOT, "index.html");
 const AI_SONGS_FILE = join(ROOT, "ai-songs.json");
 const AI_DATA_FILE = join(ROOT, "data", "ai-snapshots.json");
 const AI_OUTPUT = join(ROOT, "ai.html");
+// 💛 좋아요 구매 이력 — 대시보드 그래프에 "구매한 날"을 표시하기 위한 목록
+// 저장소 파일(likes-purchases.json)이 원본. 주 PC에서 돌 때는 구매봇 장부에서 새 기록을 합쳐 넣는다.
+const BUYS_FILE = join(ROOT, "likes-purchases.json");
+const BUY_LEDGERS = ["C:/snshelper-bot/likes_purchased.json"];
 
 function localDate(d = new Date()) {
   const p = (n) => String(n).padStart(2, "0");
@@ -96,6 +100,33 @@ function applyStats(db, stats) {
   for (const d of Object.keys(db.hourlyMin || {})) if (d < cutoff) delete db.hourlyMin[d];
 }
 
+// 좋아요 구매 이력 { 영상id: ["YYYY-MM-DD", ...] } 을 읽고, 구매봇 장부가 있으면 새 기록을 합친다.
+// GitHub Actions 처럼 장부가 없는 환경에서는 저장소 파일만 읽고 끝낸다.
+function loadLikesBuys() {
+  let buys = {};
+  if (existsSync(BUYS_FILE)) {
+    try { buys = JSON.parse(readFileSync(BUYS_FILE, "utf8")) || {}; } catch { buys = {}; }
+  }
+  let added = 0;
+  for (const led of BUY_LEDGERS) {
+    if (!existsSync(led)) continue;
+    try {
+      const rows = JSON.parse(readFileSync(led, "utf8"))?.purchased || [];
+      for (const r of rows) {
+        if (!r?.v || !r?.at) continue;
+        const list = (buys[r.v] = buys[r.v] || []);
+        if (!list.includes(r.at)) { list.push(r.at); added++; }
+      }
+    } catch { /* 장부가 깨져 있어도 대시보드 생성은 계속 */ }
+  }
+  if (added) {
+    for (const k of Object.keys(buys)) buys[k].sort();
+    writeFileSync(BUYS_FILE, JSON.stringify(buys, null, 1), "utf8");
+    console.log(`  💛 좋아요 구매 이력 ${added}건 새로 반영`);
+  }
+  return buys;
+}
+
 // 대시보드 템플릿의 자리표시자 채우기 (데이터 + 상단 탭 + 제목)
 function fillPage(tpl, db, sp, { nav, h1, title }) {
   return tpl
@@ -142,6 +173,7 @@ async function buildAi(renderOnly, tpl) {
     writeFileSync(AI_DATA_FILE, JSON.stringify(db, null, 2), "utf8");
   }
 
+  db.likesBuys = loadLikesBuys();   // 화면 표시용 (data/ai-snapshots.json 에는 저장 안 됨)
   writeFileSync(AI_OUTPUT, fillPage(tpl, db, "null", {
     nav: navHtml("ai.html"),
     h1: "🤖 AI 음원 대시보드 · 유튜브뮤직",

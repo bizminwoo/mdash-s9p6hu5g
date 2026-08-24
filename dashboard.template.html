@@ -121,6 +121,7 @@
     <div class="togglerow" id="songToggles"></div>
     <div class="togglerow" id="rangeToggles"></div>
     <div class="chartbox"><canvas id="detail"></canvas></div>
+    <div class="note" id="buyNote" style="display:none">💛 <b>노란 세로줄·큰 점 = 좋아요 구매일</b> — 그날 해당 곡에 좋아요 구매가 들어갔습니다. 전체 합계를 보고 있을 땐 "구매가 있었던 날" 전부를 표시합니다.</div>
   </div>
   <div class="panel" id="mktPanel" style="display:none">
     <h2>📣 마케팅 트래킹 (최근 3개월) <span class="muted">— 감상 수치·증감만 표시, 수익/합계에는 포함 안 됨</span></h2>
@@ -486,10 +487,15 @@ function renderDetail(snaps, songs, ids){
   const songBox = document.getElementById("songToggles");
   const rangeBox = document.getElementById("rangeToggles");
   // 일별 데이터 전체 구성
-  const dates = [], daily = {};
+  const dates = [], rawDates = [], daily = {};
+  // 좋아요 구매 이력 (data 안의 likesBuys: { 영상id: ["YYYY-MM-DD", ...] })
+  const BUYS = DATA.likesBuys || {};
+  const anyBuy = new Set(Object.values(BUYS).flat());
+  const buySetOf = (sel) => sel === "__total__" ? anyBuy : new Set(BUYS[sel] || []);
   ids.forEach(id => daily[id] = []);
   for(let i=1;i<snaps.length;i++){
     dates.push(mdShort(snaps[i-1].date));
+    rawDates.push(snaps[i-1].date);
     for(const id of ids){
       const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
       daily[id].push((a && b && a.views!=null && b.views!=null) ? b.views - a.views : null);
@@ -516,7 +522,13 @@ function renderDetail(snaps, songs, ids){
     if(dates.length === 0) return;
     const n = state.range === Infinity ? dates.length : Math.min(state.range, dates.length);
     const lbl = dates.slice(-n), d = dataOf(state.sel).slice(-n);
+    const rd = rawDates.slice(-n);
     const c = colorOf(state.sel);
+    // 좋아요를 구매한 날 → 그래프에서 노란 세로줄 + 큰 노란 점으로 눈에 띄게
+    const buys = buySetOf(state.sel);
+    const buyIdx = new Set(rd.map((dt,i) => buys.has(dt) ? i : -1).filter(i => i >= 0));
+    const BUY_C = "#ffc94a";
+    document.getElementById("buyNote").style.display = anyBuy.size ? "" : "none";
     if(chart) chart.destroy();
     chart = new Chart(document.getElementById("detail"), {
       type: "line",
@@ -524,14 +536,37 @@ function renderDetail(snaps, songs, ids){
         label: state.sel === "__total__" ? "전체 합계 (지분 반영)" : songs[state.sel].title,
         data: d, borderColor: c, backgroundColor: c+"2e", fill: true,
         tension: 0.3, spanGaps: true, borderWidth: 2,
-        pointRadius: lbl.length > 60 ? 0 : 2.5 }] },
+        pointRadius: (ctx) => buyIdx.has(ctx.dataIndex) ? 5.5 : (lbl.length > 60 ? 0 : 2.5),
+        pointHoverRadius: (ctx) => buyIdx.has(ctx.dataIndex) ? 7.5 : 4,
+        pointBackgroundColor: (ctx) => buyIdx.has(ctx.dataIndex) ? BUY_C : c,
+        pointBorderColor: (ctx) => buyIdx.has(ctx.dataIndex) ? "#8a6200" : c,
+        pointBorderWidth: (ctx) => buyIdx.has(ctx.dataIndex) ? 1.5 : 1 }] },
       options: { responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { afterLabel: (ctx) =>
+            buyIdx.has(ctx.dataIndex) ? "💛 좋아요 구매일" : undefined } } },
         scales: {
           x: { ticks: { color: "#8b93a3", maxTicksLimit: 12 }, grid: { display: false } },
           y: { beginAtZero: false,
             ticks: { color: "#8b93a3", callback: v => nf.format(v) }, grid: { color: "#232833" } }
-        } }
+        } },
+      plugins: [{
+        id: "buyBands",
+        beforeDatasetsDraw(ch){
+          if(!buyIdx.size) return;
+          const { ctx: g, chartArea: a, scales } = ch;
+          g.save();
+          for(const i of buyIdx){
+            const x = scales.x.getPixelForValue(i);
+            g.fillStyle = "rgba(255,201,74,0.13)";
+            g.fillRect(x - 3, a.top, 6, a.bottom - a.top);
+            g.strokeStyle = "rgba(255,201,74,0.55)";
+            g.lineWidth = 1;
+            g.beginPath(); g.moveTo(x, a.top); g.lineTo(x, a.bottom); g.stroke();
+          }
+          g.restore();
+        }
+      }]
     });
   }
 
