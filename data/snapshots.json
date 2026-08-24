@@ -2513,7 +2513,7 @@
     }
   ],
   "current": {
-    "time": "2026-08-25 07:35",
+    "time": "2026-08-25 08:01",
     "stats": {
       "tUcWwAO5zU8": {
         "views": 1236232,
@@ -2521,23 +2521,23 @@
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 703948,
-        "likes": 16328,
+        "views": 704037,
+        "likes": 16329,
         "comments": 4
       },
       "grqTg6WOJII": {
-        "views": 826831,
+        "views": 826981,
         "likes": 26001,
         "comments": 7
       },
       "THGi-LLhbxM": {
-        "views": 527982,
-        "likes": 13537,
+        "views": 528039,
+        "likes": 13538,
         "comments": 12
       },
       "Jsm2uVtQhmY": {
-        "views": 320242,
-        "likes": 17529,
+        "views": 320283,
+        "likes": 17530,
         "comments": 5
       },
       "K_viUNQs5lc": {
@@ -2546,7 +2546,7 @@
         "comments": 0
       },
       "VCqKgW6Lvb4": {
-        "views": 622916,
+        "views": 622988,
         "likes": 6522,
         "comments": 13
       },
@@ -2561,13 +2561,13 @@
         "comments": 0
       },
       "vD5_vs-ODsA": {
-        "views": 306672,
+        "views": 306670,
         "likes": 969,
         "comments": 10
       },
       "gTG9evSpuWg": {
-        "views": 20246467,
-        "likes": 76292,
+        "views": 20246625,
+        "likes": 76295,
         "comments": 227
       },
       "D7VsFDJx4zw": {
@@ -5202,6 +5202,20 @@
         "vD5_vs-ODsA": 306672,
         "gTG9evSpuWg": 20246313,
         "D7VsFDJx4zw": 107038
+      },
+      "08": {
+        "tUcWwAO5zU8": 1236232,
+        "RsQDAygpF6k": 704037,
+        "grqTg6WOJII": 826981,
+        "THGi-LLhbxM": 528039,
+        "Jsm2uVtQhmY": 320283,
+        "K_viUNQs5lc": 31221,
+        "VCqKgW6Lvb4": 622988,
+        "h8JV2rw7QOc": 101,
+        "qmF8dPz22nU": 52665,
+        "vD5_vs-ODsA": 306670,
+        "gTG9evSpuWg": 20246625,
+        "D7VsFDJx4zw": 107038
       }
     }
   },
@@ -5422,7 +5436,8 @@
       "04": 0,
       "05": 0,
       "06": 0,
-      "07": 0
+      "07": 0,
+      "08": 1
     }
   }
 }
