@@ -2437,62 +2437,62 @@
     }
   ],
   "current": {
-    "time": "2026-08-24 17:07",
+    "time": "2026-08-24 18:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1234699,
-        "likes": 8463,
+        "views": 1234853,
+        "likes": 8464,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 699077,
-        "likes": 16320,
+        "views": 699526,
+        "likes": 16321,
         "comments": 4
       },
       "grqTg6WOJII": {
-        "views": 817691,
+        "views": 818481,
         "likes": 25994,
         "comments": 7
       },
       "THGi-LLhbxM": {
-        "views": 524851,
-        "likes": 13531,
+        "views": 525116,
+        "likes": 13532,
         "comments": 12
       },
       "Jsm2uVtQhmY": {
-        "views": 318833,
+        "views": 318945,
         "likes": 17527,
         "comments": 5
       },
       "K_viUNQs5lc": {
         "views": 31220,
         "likes": 3087,
-        "comments": 0
+        "comments": null
       },
       "VCqKgW6Lvb4": {
-        "views": 617859,
-        "likes": 6516,
+        "views": 618293,
+        "likes": 6517,
         "comments": 13
       },
       "h8JV2rw7QOc": {
         "views": 101,
         "likes": 3039,
-        "comments": 0
+        "comments": null
       },
       "qmF8dPz22nU": {
         "views": 52662,
         "likes": 4455,
-        "comments": 0
+        "comments": null
       },
       "gTG9evSpuWg": {
-        "views": 20235812,
-        "likes": 76276,
+        "views": 20236574,
+        "likes": 76277,
         "comments": 227
       },
       "D7VsFDJx4zw": {
-        "views": 106717,
+        "views": 106744,
         "likes": 1250,
-        "comments": 0
+        "comments": null
       }
     }
   },
@@ -5114,6 +5114,19 @@
         "gTG9evSpuWg": 20235717,
         "D7VsFDJx4zw": 106711
       },
+      "18": {
+        "tUcWwAO5zU8": 1234853,
+        "RsQDAygpF6k": 699526,
+        "grqTg6WOJII": 818481,
+        "THGi-LLhbxM": 525116,
+        "Jsm2uVtQhmY": 318945,
+        "K_viUNQs5lc": 31220,
+        "VCqKgW6Lvb4": 618293,
+        "h8JV2rw7QOc": 101,
+        "qmF8dPz22nU": 52662,
+        "gTG9evSpuWg": 20236574,
+        "D7VsFDJx4zw": 106744
+      },
       "00": {
         "tUcWwAO5zU8": 1232875,
         "RsQDAygpF6k": 693355,
@@ -5464,6 +5477,7 @@
       "15": 0,
       "16": 0,
       "17": 0,
+      "18": 0,
       "00": 0,
       "01": 0,
       "02": 0,
