@@ -2513,10 +2513,10 @@
     }
   ],
   "current": {
-    "time": "2026-08-25 05:01",
+    "time": "2026-08-25 05:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1236132,
+        "views": 1236029,
         "likes": 8465,
         "comments": 2
       },
@@ -2536,32 +2536,32 @@
         "comments": 12
       },
       "Jsm2uVtQhmY": {
-        "views": 320146,
+        "views": 320144,
         "likes": 17528,
         "comments": 5
       },
       "K_viUNQs5lc": {
         "views": 31221,
         "likes": 3087,
-        "comments": 0
+        "comments": null
       },
       "VCqKgW6Lvb4": {
-        "views": 622217,
+        "views": 622321,
         "likes": 6521,
         "comments": 13
       },
       "h8JV2rw7QOc": {
         "views": 101,
         "likes": 3039,
-        "comments": 0
+        "comments": null
       },
       "qmF8dPz22nU": {
         "views": 52664,
         "likes": 4456,
-        "comments": 0
+        "comments": null
       },
       "vD5_vs-ODsA": {
-        "views": 306659,
+        "views": 306662,
         "likes": 969,
         "comments": 10
       },
@@ -2571,9 +2571,9 @@
         "comments": 227
       },
       "D7VsFDJx4zw": {
-        "views": 107021,
+        "views": 107022,
         "likes": 1251,
-        "comments": 0
+        "comments": null
       }
     }
   },
@@ -5162,18 +5162,18 @@
         "D7VsFDJx4zw": 106990
       },
       "05": {
-        "tUcWwAO5zU8": 1236132,
+        "tUcWwAO5zU8": 1236029,
         "RsQDAygpF6k": 703573,
         "grqTg6WOJII": 826150,
         "THGi-LLhbxM": 527721,
-        "Jsm2uVtQhmY": 320146,
+        "Jsm2uVtQhmY": 320144,
         "K_viUNQs5lc": 31221,
-        "VCqKgW6Lvb4": 622217,
+        "VCqKgW6Lvb4": 622321,
         "h8JV2rw7QOc": 101,
         "qmF8dPz22nU": 52664,
-        "vD5_vs-ODsA": 306659,
+        "vD5_vs-ODsA": 306662,
         "gTG9evSpuWg": 20245770,
-        "D7VsFDJx4zw": 107021
+        "D7VsFDJx4zw": 107022
       }
     }
   },
@@ -5392,7 +5392,7 @@
       "02": 0,
       "03": 0,
       "04": 0,
-      "05": 1
+      "05": 0
     }
   }
 }
