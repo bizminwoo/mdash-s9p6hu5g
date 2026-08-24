@@ -107,6 +107,11 @@ function loadLikesBuys() {
   if (existsSync(BUYS_FILE)) {
     try { buys = JSON.parse(readFileSync(BUYS_FILE, "utf8")) || {}; } catch { buys = {}; }
   }
+  // 항목 형식: { at: "좋아요가 다 들어온 완료일", from: "주문 접수일(다르면)" }
+  // 예전 형식(문자열)도 그대로 읽는다.
+  for (const k of Object.keys(buys)) {
+    buys[k] = (buys[k] || []).map((e) => (typeof e === "string" ? { at: e } : e)).filter((e) => e && e.at);
+  }
   let added = 0;
   for (const led of BUY_LEDGERS) {
     if (!existsSync(led)) continue;
@@ -115,12 +120,12 @@ function loadLikesBuys() {
       for (const r of rows) {
         if (!r?.v || !r?.at) continue;
         const list = (buys[r.v] = buys[r.v] || []);
-        if (!list.includes(r.at)) { list.push(r.at); added++; }
+        if (!list.some((e) => e.at === r.at)) { list.push({ at: r.at }); added++; }
       }
     } catch { /* 장부가 깨져 있어도 대시보드 생성은 계속 */ }
   }
   if (added) {
-    for (const k of Object.keys(buys)) buys[k].sort();
+    for (const k of Object.keys(buys)) buys[k].sort((a, b) => (a.at < b.at ? -1 : 1));
     writeFileSync(BUYS_FILE, JSON.stringify(buys, null, 1), "utf8");
     console.log(`  💛 좋아요 구매 이력 ${added}건 새로 반영`);
   }
