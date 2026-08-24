@@ -121,7 +121,7 @@
     <div class="togglerow" id="songToggles"></div>
     <div class="togglerow" id="rangeToggles"></div>
     <div class="chartbox"><canvas id="detail"></canvas></div>
-    <div class="note" id="buyNote" style="display:none">💛 <b>노란 세로줄·큰 점 = 좋아요 구매일</b> — 그날 해당 곡에 좋아요 구매가 들어갔습니다. 전체 합계를 보고 있을 땐 "구매가 있었던 날" 전부를 표시합니다.</div>
+    <div class="note" id="buyNote" style="display:none">💛 <b>노란 표시 = 좋아요를 산 날</b>. <b>실선 세로줄 + 꽉 찬 점</b> = 구매봇 장부에 남은 <b>확정 기록</b>. <b>점선 세로줄 + 빈 점</b> = 장부가 없던 시절 건이라 <b>좋아요 급증으로 추정</b>한 날입니다(평소의 20배 이상 + 하루 50개 이상 튄 날). 전체 합계를 볼 땐 어느 곡이든 해당되는 날을 모두 표시합니다.</div>
   </div>
   <div class="panel" id="mktPanel" style="display:none">
     <h2>📣 마케팅 트래킹 (최근 3개월) <span class="muted">— 감상 수치·증감만 표시, 수익/합계에는 포함 안 됨</span></h2>
@@ -487,20 +487,35 @@ function renderDetail(snaps, songs, ids){
   const songBox = document.getElementById("songToggles");
   const rangeBox = document.getElementById("rangeToggles");
   // 일별 데이터 전체 구성
-  const dates = [], rawDates = [], daily = {};
-  // 좋아요 구매 이력 (data 안의 likesBuys: { 영상id: ["YYYY-MM-DD", ...] })
+  const dates = [], rawDates = [], daily = {}, likeUp = {};
+  // 좋아요 구매 이력 (data 안의 likesBuys: { 영상id: ["YYYY-MM-DD", ...] }) — 구매봇 장부에 남은 "확정 기록"
   const BUYS = DATA.likesBuys || {};
   const anyBuy = new Set(Object.values(BUYS).flat());
   const buySetOf = (sel) => sel === "__total__" ? anyBuy : new Set(BUYS[sel] || []);
-  ids.forEach(id => daily[id] = []);
+  ids.forEach(id => { daily[id] = []; likeUp[id] = []; });
   for(let i=1;i<snaps.length;i++){
     dates.push(mdShort(snaps[i-1].date));
     rawDates.push(snaps[i-1].date);
     for(const id of ids){
       const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
       daily[id].push((a && b && a.views!=null && b.views!=null) ? b.views - a.views : null);
+      likeUp[id].push((a && b && a.likes!=null && b.likes!=null) ? b.likes - a.likes : null);
     }
   }
+  // 장부가 없던 시절의 구매는 "좋아요가 평소의 20배 이상 + 하루 50개 이상 튄 날"로 추정해 따로 표시한다.
+  // (기록이 아니라 추정이므로 화면에서도 '구매 추정'으로 구분해 보여준다)
+  const spikeOf = {};
+  for(const id of ids){
+    const pos = likeUp[id].filter(v => v != null && v > 0).sort((a,b) => a-b);
+    const med = pos.length ? pos[Math.floor(pos.length/2)] : 0;
+    const set = new Set();
+    likeUp[id].forEach((v,i) => {
+      if(v != null && v >= 50 && v >= 20*(med+1)) set.add(rawDates[i]);
+    });
+    spikeOf[id] = set;
+  }
+  const anySpike = new Set([].concat(...ids.map(id => [...spikeOf[id]])));
+  const spikeSetOf = (sel) => sel === "__total__" ? anySpike : (spikeOf[sel] || new Set());
   if(dates.length === 0){
     songBox.parentElement.querySelector(".chartbox").innerHTML =
       '<div class="empty">이틀 이상 데이터가 쌓이면 나타납니다.</div>';
@@ -525,10 +540,14 @@ function renderDetail(snaps, songs, ids){
     const rd = rawDates.slice(-n);
     const c = colorOf(state.sel);
     // 좋아요를 구매한 날 → 그래프에서 노란 세로줄 + 큰 노란 점으로 눈에 띄게
-    const buys = buySetOf(state.sel);
-    const buyIdx = new Set(rd.map((dt,i) => buys.has(dt) ? i : -1).filter(i => i >= 0));
+    // (기록: 구매봇 장부 / 추정: 좋아요 급증일 — 세로줄 모양으로 구분)
+    const buys = buySetOf(state.sel), spikes = spikeSetOf(state.sel);
+    const buyIdx = new Set(), spikeIdx = new Set();
+    rd.forEach((dt,i) => { if(buys.has(dt)) buyIdx.add(i); else if(spikes.has(dt)) spikeIdx.add(i); });
+    const markIdx = new Set([...buyIdx, ...spikeIdx]);
     const BUY_C = "#ffc94a";
-    document.getElementById("buyNote").style.display = anyBuy.size ? "" : "none";
+    document.getElementById("buyNote").style.display =
+      (anyBuy.size || anySpike.size) ? "" : "none";
     if(chart) chart.destroy();
     chart = new Chart(document.getElementById("detail"), {
       type: "line",
@@ -536,15 +555,17 @@ function renderDetail(snaps, songs, ids){
         label: state.sel === "__total__" ? "전체 합계 (지분 반영)" : songs[state.sel].title,
         data: d, borderColor: c, backgroundColor: c+"2e", fill: true,
         tension: 0.3, spanGaps: true, borderWidth: 2,
-        pointRadius: (ctx) => buyIdx.has(ctx.dataIndex) ? 5.5 : (lbl.length > 60 ? 0 : 2.5),
-        pointHoverRadius: (ctx) => buyIdx.has(ctx.dataIndex) ? 7.5 : 4,
-        pointBackgroundColor: (ctx) => buyIdx.has(ctx.dataIndex) ? BUY_C : c,
-        pointBorderColor: (ctx) => buyIdx.has(ctx.dataIndex) ? "#8a6200" : c,
-        pointBorderWidth: (ctx) => buyIdx.has(ctx.dataIndex) ? 1.5 : 1 }] },
+        pointRadius: (ctx) => markIdx.has(ctx.dataIndex) ? 5.5 : (lbl.length > 60 ? 0 : 2.5),
+        pointHoverRadius: (ctx) => markIdx.has(ctx.dataIndex) ? 7.5 : 4,
+        pointBackgroundColor: (ctx) => buyIdx.has(ctx.dataIndex) ? BUY_C
+          : (spikeIdx.has(ctx.dataIndex) ? "#2b2f1d" : c),
+        pointBorderColor: (ctx) => markIdx.has(ctx.dataIndex) ? BUY_C : c,
+        pointBorderWidth: (ctx) => markIdx.has(ctx.dataIndex) ? 2 : 1 }] },
       options: { responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false },
           tooltip: { callbacks: { afterLabel: (ctx) =>
-            buyIdx.has(ctx.dataIndex) ? "💛 좋아요 구매일" : undefined } } },
+            buyIdx.has(ctx.dataIndex) ? "💛 좋아요 구매일 (구매 기록)"
+            : (spikeIdx.has(ctx.dataIndex) ? "💛 좋아요 급증일 (구매 추정)" : undefined) } } },
         scales: {
           x: { ticks: { color: "#8b93a3", maxTicksLimit: 12 }, grid: { display: false } },
           y: { beginAtZero: false,
@@ -553,17 +574,21 @@ function renderDetail(snaps, songs, ids){
       plugins: [{
         id: "buyBands",
         beforeDatasetsDraw(ch){
-          if(!buyIdx.size) return;
+          if(!markIdx.size) return;
           const { ctx: g, chartArea: a, scales } = ch;
           g.save();
-          for(const i of buyIdx){
+          const band = (i, solid) => {
             const x = scales.x.getPixelForValue(i);
-            g.fillStyle = "rgba(255,201,74,0.13)";
+            g.fillStyle = solid ? "rgba(255,201,74,0.15)" : "rgba(255,201,74,0.07)";
             g.fillRect(x - 3, a.top, 6, a.bottom - a.top);
-            g.strokeStyle = "rgba(255,201,74,0.55)";
+            g.strokeStyle = solid ? "rgba(255,201,74,0.6)" : "rgba(255,201,74,0.45)";
             g.lineWidth = 1;
+            g.setLineDash(solid ? [] : [4, 4]);
             g.beginPath(); g.moveTo(x, a.top); g.lineTo(x, a.bottom); g.stroke();
-          }
+          };
+          for(const i of spikeIdx) band(i, false);
+          for(const i of buyIdx) band(i, true);
+          g.setLineDash([]);
           g.restore();
         }
       }]

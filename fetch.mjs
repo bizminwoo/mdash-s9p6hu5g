@@ -240,6 +240,7 @@ async function main() {
   const SP_FILE = join(ROOT, "data", "spotify.json");
   const sp = existsSync(SP_FILE) ? readFileSync(SP_FILE, "utf8") : "null";
   const tpl = readFileSync(TEMPLATE, "utf8");
+  db.likesBuys = loadLikesBuys();   // 화면 표시용 (data/snapshots.json 에는 저장 안 됨)
   writeFileSync(OUTPUT, fillPage(tpl, db, sp, {
     nav: navHtml("index.html"),
     h1: "🎵 내 음원 대시보드 · 유튜브뮤직",
