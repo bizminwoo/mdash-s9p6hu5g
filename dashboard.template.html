@@ -347,6 +347,33 @@ function render(){
     const arrow = d>0 ? "▲" : d<0 ? "▼" : "·";
     liveCmp = ` <span class="dchg ${cls}" style="font-size:13px">${arrow}${nf.format(Math.abs(d))} (${d>=0?"+":"-"}${Math.abs(d/ydaySum*100).toFixed(1)}%)</span>`;
   }
+  // 🗓️ 이번 달 총 스트리밍 (지분 반영) + 전달 같은 기간 대비
+  //   "이번 달"은 위 monthProj 와 같은 기준(Y년 M월, 어제까지 확정분)을 쓴다.
+  const monthSum = (yy, mm, maxDay) => {
+    let sum = 0, any = false, last = 0;
+    for(let i=1;i<snaps.length;i++){
+      const [y,m,d] = snaps[i-1].date.split("-").map(Number);
+      if(y !== yy || m !== mm) continue;
+      if(maxDay && d > maxDay) continue;
+      for(const r of sRows){
+        const a = snaps[i-1].stats[r.id], b = snaps[i].stats[r.id];
+        if(a && b && a.views!=null && b.views!=null){ sum += (b.views - a.views) * r.w; any = true; }
+      }
+      last = Math.max(last, d);
+    }
+    return any ? { sum: Math.round(sum), lastDay: last } : null;
+  };
+  const thisMonth = monthSum(Y, M, null);
+  const pm = M === 1 ? { y: Y-1, m: 12 } : { y: Y, m: M-1 };
+  const prevSameSpan = thisMonth ? monthSum(pm.y, pm.m, thisMonth.lastDay) : null;
+  let monthBadge = "";
+  if(thisMonth && prevSameSpan && prevSameSpan.sum > 0){
+    const pct = (thisMonth.sum - prevSameSpan.sum) / prevSameSpan.sum * 100;
+    const cls = pct>0 ? "pos" : pct<0 ? "neg" : "flat";
+    const arrow = pct>0 ? "▲" : pct<0 ? "▼" : "－";
+    monthBadge = ` <span class="dchg ${cls}" style="font-size:13px">${arrow}${Math.abs(pct).toFixed(1)}% <span class="muted">${pm.m}월 같은 기간비</span></span>`;
+  }
+
   const cards = [
     ["오늘 현재까지"+(liveHour!=null ? ` (00시→${liveHour}시 기준)` : ""), (liveSum!=null ? nf.format(liveSum) : "—") + liveCmp, "회"],
     ["어제 동시간대"+(ydayHour!=null ? ` (00시→${ydayHour}시 기준)` : ""), ydaySum!=null ? nf.format(ydaySum) : "—", "회"],
@@ -355,6 +382,8 @@ function render(){
     [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
     ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
     ["누적 총 조회수", nf.format(sumViews), "회"],
+    [`이번 달 총 스트리밍 (${M}월${thisMonth ? `, 1~${thisMonth.lastDay}일` : ""})`,
+      thisMonth ? nf.format(thisMonth.sum) + monthBadge : "—", "회"],
   ];
   document.getElementById("cards").innerHTML = cards.map(c =>
     `<div class="card"><div class="label">${c[0]}</div><div class="value">${c[1]}<span class="unit">${c[2]}</span></div></div>`).join("");
