@@ -154,11 +154,12 @@ async function buildAi(renderOnly, tpl) {
   let db = { songs: {}, snapshots: [] };
   if (existsSync(AI_DATA_FILE)) db = JSON.parse(readFileSync(AI_DATA_FILE, "utf8"));
 
-  for (const { url, title, share, adViews } of songs) {
+  for (const { url, title, share, adViews, pending } of songs) {
     const vid = vidOf(url);
     db.songs[vid] = { ...(db.songs[vid] || {}), url,
       ...(title ? { title } : {}), share: share == null ? 1 : share };
     if (adViews) db.songs[vid].adViews = true; else delete db.songs[vid].adViews;
+    if (pending) db.songs[vid].pending = true; else delete db.songs[vid].pending;
   }
   // ai-songs.json 에서 지운 곡은 목록에서 빠진다 (과거 스냅샷 수치는 그대로 남음)
   const keep = new Set(songs.map((e) => vidOf(e.url)));
@@ -204,12 +205,13 @@ async function main() {
   let db = { songs: {}, snapshots: [] };
   if (existsSync(DATA_FILE)) db = JSON.parse(readFileSync(DATA_FILE, "utf8"));
 
-  // songs.json 의 제목/수익비율(share)/광고플래그(adViews)를 항상 반영
-  for (const { url, title, share, adViews } of songs) {
+  // songs.json 의 제목/수익비율(share)/광고플래그(adViews)/보류플래그(pending)를 항상 반영
+  for (const { url, title, share, adViews, pending } of songs) {
     const vid = vidOf(url);
     db.songs[vid] = { ...(db.songs[vid] || {}), url,
       ...(title ? { title } : {}), share: share == null ? 1 : share };
     if (adViews) db.songs[vid].adViews = true; else delete db.songs[vid].adViews;
+    if (pending) db.songs[vid].pending = true; else delete db.songs[vid].pending;
   }
   // 마케팅 트랙 반영 + marketing.json 에서 빠진 트랙은 목록에서 제거
   for (const { url, title, start } of marketing) {

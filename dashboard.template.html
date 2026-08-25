@@ -104,7 +104,7 @@
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
     <div id="tableWrap"></div>
-    <div class="note">🧮 <b>합계는 지분(share) 반영</b> — 공동제작 50% 곡은 조회수도 절반만, 33% 곡은 1/3만 합계에 들어갑니다. <b>선급 곡(지분 0)은 스트리밍 합계에 100% 반영</b>하고 수익에서만 제외합니다. 곡별 칸의 숫자는 유튜브 실제 수치 그대로라, 곡별 값을 그냥 더한 것보다 전체 합계가 작습니다.<br>📢 표시 곡 = 광고 조회 포함이라 수치가 부정확 — 개별 기록은 표시하되 <b>모든 합계에서 제외</b> (카드 전체 + 일자별 전체 합계 행 + 그래프의 전체 합계).<br>📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분. <b>이번 달 실측 수익</b> = 이번 달 1일부터 어제까지 <b>실제 확정된 스트리밍만</b>으로 계산한 수익 (오늘 진행분 미포함 — 날이 갈수록 예상 월 수익에 다가감).<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
+    <div class="note">🧮 <b>합계는 지분(share) 반영</b> — 공동제작 50% 곡은 조회수도 절반만, 33% 곡은 1/3만 합계에 들어갑니다. <b>선급 곡(지분 0)은 스트리밍 합계에 100% 반영</b>하고 수익에서만 제외합니다. 곡별 칸의 숫자는 유튜브 실제 수치 그대로라, 곡별 값을 그냥 더한 것보다 전체 합계가 작습니다.<br>📢 표시 곡 = 광고 조회 포함이라 수치가 부정확 — 개별 기록은 표시하되 <b>모든 합계에서 제외</b> (카드 전체 + 일자별 전체 합계 행 + 그래프의 전체 합계).<br>⏸ 표시 곡 = <b>인접권 정리 전</b>이라 추적만 하는 곡 — 곡별 수치는 그대로 쌓이지만 <b>모든 합계·수익에서 제외</b>합니다. 정리되면 표시를 떼고 합산에 넣습니다.<br>📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분. <b>이번 달 실측 수익</b> = 이번 달 1일부터 어제까지 <b>실제 확정된 스트리밍만</b>으로 계산한 수익 (오늘 진행분 미포함 — 날이 갈수록 예상 월 수익에 다가감).<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
   </div>
   <div class="panel" id="hourlyPanel">
     <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
@@ -184,6 +184,9 @@ const nf = new Intl.NumberFormat("ko-KR");
 // 다크 배경 검증 통과 팔레트 (곡 순서 고정 배정 — 정렬이 바뀌어도 곡 색은 유지)
 const palette = ["#3987e5","#199e70","#c98500","#008300","#9085e9","#e66767","#d55181","#d95926"];
 
+// 합계·수익에서 빼야 하는 곡 — 광고 조회 곡(adViews) + 인접권 정리 전 보류 곡(pending)
+function exSum(songs, id){ return !!(songs[id] && (songs[id].adViews || songs[id].pending)); }
+
 function byDate(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }
 function mdShort(s){ const [,m,d] = s.split("-"); return Number(m)+"/"+Number(d); }
 
@@ -228,7 +231,7 @@ function render(){
         const a = estAt(id, latest.date, 0) ?? latest.stats[id]?.views;
         const b = estAt(id, latest.date, H);
         if(a!=null && b!=null){ by[id] = b - a;
-          if(!songs[id].adViews) sum = (sum||0) + (b - a) * wOf(songs, id); } // 광고 조회 곡은 합계 제외
+          if(!exSum(songs, id)) sum = (sum||0) + (b - a) * wOf(songs, id); } // 광고 조회·보류 곡은 합계 제외
       }
       if(sum != null){ liveHour = H; Object.assign(liveBy, by); liveSum = Math.round(sum); break; }
     }
@@ -246,7 +249,7 @@ function render(){
       const a = estAt(id, ydate, 0) ?? base?.stats?.[id]?.views;
       const b = estAt(id, ydate, liveHour);
       if(a!=null && b!=null){ ydayBy[id] = b - a;
-        if(!songs[id].adViews) ydaySum = (ydaySum||0) + (b - a) * wOf(songs, id); }
+        if(!exSum(songs, id)) ydaySum = (ydaySum||0) + (b - a) * wOf(songs, id); }
     }
     if(ydaySum != null){ ydaySum = Math.round(ydaySum); ydayHour = liveHour; }
   }
@@ -270,7 +273,7 @@ function render(){
       if(live == null) continue;
       const f = fracs.length ? fracs.reduce((a,b)=>a+b,0) / fracs.length : liveHour / 24; // 프로필 없으면 단순 선형
       projOf[id] = Math.round(live / f);
-      if(!songs[id].adViews) projSum = (projSum || 0) + projOf[id] * wOf(songs, id); // 광고 조회 곡은 합계 제외
+      if(!exSum(songs, id)) projSum = (projSum || 0) + projOf[id] * wOf(songs, id); // 광고 조회·보류 곡은 합계 제외
     }
     if(projSum != null) projSum = Math.round(projSum);
   }
@@ -284,7 +287,7 @@ function render(){
     const dViewsPrev = (prev2 && pv.views!=null && pv2.views!=null) ? pv.views - pv2.views : null; // 그 전날 하루치
     const dLikes = (prev && cur.likes!=null && pv.likes!=null) ? cur.likes - pv.likes : null;
     const share = songs[id].share == null ? 1 : songs[id].share; // 수익 지분 (0=선급 제외)
-    return { id, title: songs[id].title, url: songs[id].url, share, w: wOf(songs, id), adViews: songs[id].adViews,
+    return { id, title: songs[id].title, url: songs[id].url, share, w: wOf(songs, id), adViews: songs[id].adViews, pending: songs[id].pending,
       views: cur.views, likes: cur.likes, dViews, dViewsPrev, dLikes };
   }).sort((a,b) => (b.dViews??-1) - (a.dViews??-1));
 
@@ -315,8 +318,8 @@ function render(){
     else { r.revenue = null; r.revenueFull = null; r.mtdRevenue = null; r.mtdRevenueFull = null; }
   });
 
-  // 요약 카드 (광고 조회 곡은 모든 합계에서 제외)
-  const sRows = rows.filter(r => !r.adViews);
+  // 요약 카드 (광고 조회 곡·보류 곡은 모든 합계에서 제외)
+  const sRows = rows.filter(r => !r.adViews && !r.pending);
   const sumDViews = Math.round(sRows.reduce((s,r)=> s + (r.dViews||0) * r.w, 0));
   const sumDViewsPrev = Math.round(sRows.reduce((s,r)=> s + (r.dViewsPrev||0) * r.w, 0));
   let dViewsPctBadge = "";
@@ -378,7 +381,7 @@ function render(){
       <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>오늘 예상(추정)</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>이번 달 실측 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
     </tr></thead><tbody>` +
     rows.map(r => `<tr>
-      <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a>${r.adViews ? " <span class='muted' title='광고 조회 포함 — 합계·예상에서 제외'>📢</span>" : ""}</td>
+      <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a>${r.adViews ? " <span class='muted' title='광고 조회 포함 — 합계·예상에서 제외'>📢</span>" : ""}${r.pending ? " <span class='muted' title='인접권 정리 전 — 추적만, 합계·수익에서 제외'>⏸</span>" : ""}</td>
       <td class="delta up">${liveBy[r.id]!=null ? "+"+nf.format(liveBy[r.id]) : "<span class='muted'>—</span>"}</td>
       <td class="delta" style="color:var(--muted)">${ydayBy[r.id]!=null ? "+"+nf.format(ydayBy[r.id]) : "<span class='muted'>—</span>"}</td>
       <td>${(() => {
@@ -399,13 +402,15 @@ function render(){
         return `<div class="dchg ${cls}">${arrow} ${Math.abs(pct).toFixed(0)}%<span class="muted" style="font-weight:400"> 전일비</span></div>`;
       })()}</td>
       <td class="delta money">${
-        r.adViews ? `<span class='muted' title='광고 조회 — 합계·예상에서 제외'>광고 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
+        r.pending ? `<span class='muted' title='인접권 정리 전 — 합계·수익에서 제외'>정리 전 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
+        : r.adViews ? `<span class='muted' title='광고 조회 — 합계·예상에서 제외'>광고 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
         : r.share === 0 ? `<span class='muted'>선급 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
         : r.revenue!=null ? won(r.revenue) + (r.share !== 1 ? ` <span class='muted'>(${r.share*100}%)</span>` : "")
         : "<span class='muted'>—</span>"
       }</td>
       <td class="delta money">${
-        r.adViews ? `<span class='muted' title='광고 조회 — 제외'>광고 제외</span>`
+        r.pending ? `<span class='muted' title='인접권 정리 전 — 제외'>정리 전 제외</span>`
+        : r.adViews ? `<span class='muted' title='광고 조회 — 제외'>광고 제외</span>`
         : r.share === 0 ? `<span class='muted'>제외${r.mtdRevenueFull ? ` (≈${won(r.mtdRevenueFull)})` : ""}</span>`
         : r.mtdRevenue!=null ? won(r.mtdRevenue)
         : "<span class='muted'>—</span>"
@@ -532,7 +537,7 @@ function renderDetail(snaps, songs, ids){
   }
   const totals = dates.map((_,i) => {
     let s = 0, any = false;
-    for(const id of ids){ if(songs[id].adViews) continue; const v = daily[id][i]; if(v!=null){ s+=v*wOf(songs,id); any=true; } }
+    for(const id of ids){ if(exSum(songs,id)) continue; const v = daily[id][i]; if(v!=null){ s+=v*wOf(songs,id); any=true; } }
     return any ? Math.round(s) : null;
   });
 
@@ -657,7 +662,7 @@ function renderHourly(songs, ids){
   };
   const totalOf = (d) => {
     if(!d) return labels.map(() => null);
-    const per = ids.filter(id => !songs[id].adViews)
+    const per = ids.filter(id => !exSum(songs, id))
       .map(id => ({ w: wOf(songs, id), s: seriesOf(d, id) }));
     // 데이터가 있는 곡만 합산 (신곡은 데이터가 쌓이기 전이라도 나머지 곡 합계는 나오게)
     return labels.map((_, h) => {
@@ -741,7 +746,7 @@ function renderSmallMultiples(snaps, songs, ids, opts = {}){
   const labels = allLabels.slice(-WINDOW);
   const totals = labels.map((_,i) => {
     let s = 0, any = false;
-    for(const id of ids){ if(songs[id].adViews) continue; const v = seriesFor(id)[i]; if(v!=null){ s+=v*wOf(songs,id); any=true; } }
+    for(const id of ids){ if(exSum(songs,id)) continue; const v = seriesFor(id)[i]; if(v!=null){ s+=v*wOf(songs,id); any=true; } }
     return any ? Math.round(s) : null;
   });
   const facets = [
@@ -850,8 +855,8 @@ function renderDailyMatrix(snaps, songs, ids){
     }
     html += `</tr>`;
   }
-  // 합계 행 (광고 조회 곡은 제외)
-  const sumIds = ids.filter(id => !songs[id].adViews);
+  // 합계 행 (광고 조회 곡·보류 곡은 제외)
+  const sumIds = ids.filter(id => !exSum(songs, id));
   const tot = recent.map(p => {
     let s = 0, any = false;
     for(const id of sumIds){ const v = daily(p,id); if(v!=null){ s+=v*wOf(songs,id); any=true; } }
