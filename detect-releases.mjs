@@ -27,8 +27,18 @@ const localDate = (d = new Date()) => {
 };
 
 async function feed(cid) {
-  const r = await fetch("https://www.youtube.com/feeds/videos.xml?channel_id=" + cid);
-  if (!r.ok) throw new Error("RSS HTTP " + r.status);
+  // YouTube RSS 는 간헐적으로 404/500 을 뱉는다(일시적 스로틀). 지수 백오프로 재시도.
+  let r, lastStatus = 0;
+  for (let i = 0; i < 5; i++) {
+    if (i) await new Promise((s) => setTimeout(s, 800 * 2 ** (i - 1)));
+    try {
+      r = await fetch("https://www.youtube.com/feeds/videos.xml?channel_id=" + cid);
+      if (r.ok) break;
+      lastStatus = r.status;
+    } catch (e) { lastStatus = e.message; }
+    r = null;
+  }
+  if (!r) throw new Error("RSS HTTP " + lastStatus + " (5회 재시도 실패)");
   const t = await r.text();
   const entries = [...t.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].map((m) => m[1]);
   return entries.map((e) => ({
