@@ -2712,40 +2712,40 @@
     }
   ],
   "current": {
-    "time": "2026-08-28 06:00",
+    "time": "2026-08-28 07:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1245593,
-        "likes": 8480,
+        "views": 1245650,
+        "likes": 8481,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 732521,
-        "likes": 16365,
+        "views": 732622,
+        "likes": 16366,
         "comments": 17
       },
       "grqTg6WOJII": {
-        "views": 876447,
-        "likes": 26539,
+        "views": 876584,
+        "likes": 26541,
         "comments": 17
       },
       "THGi-LLhbxM": {
-        "views": 546913,
+        "views": 547075,
         "likes": 13568,
         "comments": 12
       },
       "Jsm2uVtQhmY": {
-        "views": 328792,
+        "views": 328865,
         "likes": 17528,
         "comments": 5
       },
       "K_viUNQs5lc": {
-        "views": 31255,
+        "views": 31250,
         "likes": 3085,
         "comments": null
       },
       "VCqKgW6Lvb4": {
-        "views": 655346,
+        "views": 655435,
         "likes": 6580,
         "comments": 13
       },
@@ -2760,13 +2760,13 @@
         "comments": null
       },
       "vD5_vs-ODsA": {
-        "views": 307076,
+        "views": 307090,
         "likes": 969,
         "comments": 10
       },
       "gTG9evSpuWg": {
-        "views": 20305210,
-        "likes": 76424,
+        "views": 20305408,
+        "likes": 76427,
         "comments": 227
       },
       "D7VsFDJx4zw": {
@@ -5446,6 +5446,20 @@
         "vD5_vs-ODsA": 307076,
         "gTG9evSpuWg": 20305210,
         "D7VsFDJx4zw": 108689
+      },
+      "07": {
+        "tUcWwAO5zU8": 1245650,
+        "RsQDAygpF6k": 732622,
+        "grqTg6WOJII": 876584,
+        "THGi-LLhbxM": 547075,
+        "Jsm2uVtQhmY": 328865,
+        "K_viUNQs5lc": 31250,
+        "VCqKgW6Lvb4": 655435,
+        "h8JV2rw7QOc": 106,
+        "qmF8dPz22nU": 52698,
+        "vD5_vs-ODsA": 307090,
+        "gTG9evSpuWg": 20305408,
+        "D7VsFDJx4zw": 108689
       }
     }
   },
@@ -5665,7 +5679,8 @@
       "03": 0,
       "04": 0,
       "05": 0,
-      "06": 0
+      "06": 0,
+      "07": 0
     }
   }
 }
