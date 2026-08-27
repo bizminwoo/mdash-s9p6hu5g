@@ -2712,40 +2712,40 @@
     }
   ],
   "current": {
-    "time": "2026-08-28 05:00",
+    "time": "2026-08-28 06:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1245416,
+        "views": 1245593,
         "likes": 8480,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 732358,
-        "likes": 16364,
+        "views": 732521,
+        "likes": 16365,
         "comments": 17
       },
       "grqTg6WOJII": {
-        "views": 876287,
-        "likes": 26538,
+        "views": 876447,
+        "likes": 26539,
         "comments": 17
       },
       "THGi-LLhbxM": {
-        "views": 546798,
+        "views": 546913,
         "likes": 13568,
         "comments": 12
       },
       "Jsm2uVtQhmY": {
-        "views": 328763,
+        "views": 328792,
         "likes": 17528,
         "comments": 5
       },
       "K_viUNQs5lc": {
-        "views": 31250,
+        "views": 31255,
         "likes": 3085,
         "comments": null
       },
       "VCqKgW6Lvb4": {
-        "views": 655241,
+        "views": 655346,
         "likes": 6580,
         "comments": 13
       },
@@ -2760,17 +2760,17 @@
         "comments": null
       },
       "vD5_vs-ODsA": {
-        "views": 307085,
+        "views": 307076,
         "likes": 969,
         "comments": 10
       },
       "gTG9evSpuWg": {
-        "views": 20304925,
-        "likes": 76423,
+        "views": 20305210,
+        "likes": 76424,
         "comments": 227
       },
       "D7VsFDJx4zw": {
-        "views": 108627,
+        "views": 108689,
         "likes": 1261,
         "comments": null
       }
@@ -5432,6 +5432,20 @@
         "vD5_vs-ODsA": 307085,
         "gTG9evSpuWg": 20304925,
         "D7VsFDJx4zw": 108627
+      },
+      "06": {
+        "tUcWwAO5zU8": 1245593,
+        "RsQDAygpF6k": 732521,
+        "grqTg6WOJII": 876447,
+        "THGi-LLhbxM": 546913,
+        "Jsm2uVtQhmY": 328792,
+        "K_viUNQs5lc": 31255,
+        "VCqKgW6Lvb4": 655346,
+        "h8JV2rw7QOc": 106,
+        "qmF8dPz22nU": 52698,
+        "vD5_vs-ODsA": 307076,
+        "gTG9evSpuWg": 20305210,
+        "D7VsFDJx4zw": 108689
       }
     }
   },
@@ -5650,7 +5664,8 @@
       "02": 0,
       "03": 0,
       "04": 0,
-      "05": 0
+      "05": 0,
+      "06": 0
     }
   }
 }
