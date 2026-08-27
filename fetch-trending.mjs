@@ -1,5 +1,6 @@
 // 유튜브 차트 "인기 급상승 뮤직비디오"(한국) 추적 → data/trending.json 저장 + trending.html 생성
 // 차트 목록: charts.youtube.com 내부 API / 조회수: youtube.com 내부 API (yt-dlp 불필요, 전부 HTTP)
+import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -93,8 +94,31 @@ async function fetchAllViewsAPI(ids) {
   return { stats, meta };
 }
 
+// 상세추적 곡의 좋아요/댓글은 내부 API 로는 안 나온다 → 로컬 백업 수집 때는 yt-dlp 로 보충한다.
+// (API 키가 있는 GitHub 수집에서는 쓰이지 않는 경로)
+async function likesViaYtdlp(ids) {
+  if (!ids.length) return {};
+  const out = {};
+  try {
+    const { YTDLP } = await import("./config.mjs");
+    if (!existsSync(YTDLP)) return out;
+    for (const id of ids) {
+      try {
+        const line = execFileSync(YTDLP,
+          ["--skip-download", "--no-warnings", "--print", "%(view_count)s	%(like_count)s	%(comment_count)s",
+           `https://www.youtube.com/watch?v=${id}`],
+          { encoding: "utf8", timeout: 120000,
+            env: { ...process.env, PYTHONUTF8: "1", PYTHONIOENCODING: "utf-8" } }).trim();
+        const [v, l, c] = line.split("	").map((x) => (Number.isFinite(Number(x)) ? Number(x) : null));
+        out[id] = { views: v, likes: l, comments: c };
+      } catch { /* 한 곡 실패는 넘어간다 */ }
+    }
+  } catch { /* yt-dlp 없으면 그냥 조회수만 */ }
+  return out;
+}
+
 // 동시 6개씩 조회수 수집 (meta = 제목/채널, 경쟁사 곡용) — API 키 없을 때 폴백
-async function fetchAllViews(ids) {
+async function fetchAllViews(ids, likeIds = []) {
   if (process.env.YT_API_KEY) return fetchAllViewsAPI(ids);
   const stats = {}, meta = {};
   let i = 0;
@@ -111,6 +135,14 @@ async function fetchAllViews(ids) {
     }
   }
   await Promise.all(Array.from({ length: 6 }, worker));
+  // 상세추적 곡만 yt-dlp 로 좋아요/댓글 보충 (곡 수가 적어 부담 없음)
+  const extra = await likesViaYtdlp(likeIds);
+  for (const [id, s2] of Object.entries(extra)) {
+    stats[id] = { ...(stats[id] || {}), ...(s2.views != null ? { views: s2.views } : {}),
+      ...(s2.likes != null ? { likes: s2.likes } : {}),
+      ...(s2.comments != null ? { comments: s2.comments } : {}) };
+  }
+  if (Object.keys(extra).length) console.log(`  ✓ 상세추적 ${Object.keys(extra).length}곡 좋아요 보충(yt-dlp)`);
   return { stats, meta };
 }
 
@@ -172,7 +204,8 @@ async function main() {
 
     // 조회수 수집: 현재 차트 + 차트아웃 추적 곡 + 경쟁사 곡 전부
     const ids = Object.keys(db.videos);
-    const { stats, meta } = await fetchAllViews(ids);
+    const trackIds = ids.filter((id) => db.videos[id]?.likesTrack);
+    const { stats, meta } = await fetchAllViews(ids, trackIds);
     console.log(`  ✓ 조회수 ${Object.keys(stats).length}/${ids.length}곡`);
 
     // 경쟁사 곡의 빈 메타(제목/아티스트)는 영상 정보로 채움 (competitors.json 의 title 이 항상 우선)

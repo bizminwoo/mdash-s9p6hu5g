@@ -538,9 +538,10 @@ function renderMonthly(snaps, songs, ids){
   let html = `<div style="overflow-x:auto"><table><thead><tr><th>트랙</th>` +
     months.map(m => `<th>${label(m)}${m === cur && partial ? ` <span class="muted" style="font-weight:400">(1~${lastDay}일)</span>` : ""}</th>`).join("") +
     (prev ? `<th>${label(prev)} 같은 기간 대비</th>` : "") + `</tr></thead><tbody>`;
-  for(const id of ids){
+  // 광고 조회 곡(📢)은 수치 자체가 광고라 월별 표에서 아예 뺀다 (합계에서도 이미 빠져 있음)
+  const monIds = ids.filter(id => !songs[id].adViews);
+  for(const id of monIds){
     html += `<tr><td class="song"><a href="${songs[id].url}" target="_blank">${escapeHtml(songs[id].title)}</a>` +
-      (songs[id].adViews ? " <span class='muted'>📢</span>" : "") +
       (songs[id].pending ? " <span class='muted'>⏸</span>" : "") + `</td>`;
     for(const m of months){
       const v = perMonth[m][id];
@@ -558,7 +559,7 @@ function renderMonthly(snaps, songs, ids){
   const first = months[0];
   const firstDays = daysIn[first].size, firstFull = inMonth(first);
   note.innerHTML =
-    `각 칸 = 그 달의 <b>하루 스트리밍을 전부 더한 값</b>입니다.` +
+    `각 칸 = 그 달의 <b>하루 스트리밍을 전부 더한 값</b>입니다. 📢 광고 조회 곡은 수치가 광고라 이 표에서 <b>아예 제외</b>합니다.` +
     (partial ? ` <b>${label(cur)}은 아직 진행 중</b>이라 1일~${lastDay}일까지만 들어 있습니다.` : "") +
     (prev ? ` 그래서 증감은 <b>${label(prev)}의 같은 기간(1~${lastDay}일)</b>과 비교한 값입니다 — 달 전체끼리 비교한 게 아닙니다.` : "") +
     (firstDays < firstFull ? ` ${label(first)}은 수집을 ${firstDays}일치밖에 못 해서 다른 달과 그대로 비교하면 안 됩니다.` : "") +
