@@ -2712,67 +2712,67 @@
     }
   ],
   "current": {
-    "time": "2026-08-28 01:29",
+    "time": "2026-08-28 02:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1245345,
+        "views": 1245400,
         "likes": 8480,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 731485,
-        "likes": 16364,
+        "views": 731679,
+        "likes": 16363,
         "comments": 17
       },
       "grqTg6WOJII": {
-        "views": 875269,
+        "views": 875491,
         "likes": 26537,
         "comments": 17
       },
       "THGi-LLhbxM": {
-        "views": 546101,
+        "views": 546255,
         "likes": 13565,
         "comments": 12
       },
       "Jsm2uVtQhmY": {
-        "views": 328621,
+        "views": 328672,
         "likes": 17528,
         "comments": 5
       },
       "K_viUNQs5lc": {
-        "views": 31238,
+        "views": 31241,
         "likes": 3085,
-        "comments": 0
+        "comments": null
       },
       "VCqKgW6Lvb4": {
-        "views": 654629,
+        "views": 654745,
         "likes": 6580,
         "comments": 13
       },
       "h8JV2rw7QOc": {
         "views": 106,
         "likes": 3038,
-        "comments": 0
+        "comments": null
       },
       "qmF8dPz22nU": {
         "views": 52698,
         "likes": 4924,
-        "comments": 0
+        "comments": null
       },
       "vD5_vs-ODsA": {
-        "views": 307071,
+        "views": 307075,
         "likes": 969,
         "comments": 10
       },
       "gTG9evSpuWg": {
-        "views": 20303231,
-        "likes": 76420,
+        "views": 20303568,
+        "likes": 76421,
         "comments": 227
       },
       "D7VsFDJx4zw": {
-        "views": 108623,
+        "views": 108627,
         "likes": 1261,
-        "comments": 0
+        "comments": null
       }
     }
   },
@@ -5376,6 +5376,20 @@
         "vD5_vs-ODsA": 307075,
         "gTG9evSpuWg": 20302645,
         "D7VsFDJx4zw": 108599
+      },
+      "02": {
+        "tUcWwAO5zU8": 1245400,
+        "RsQDAygpF6k": 731679,
+        "grqTg6WOJII": 875491,
+        "THGi-LLhbxM": 546255,
+        "Jsm2uVtQhmY": 328672,
+        "K_viUNQs5lc": 31241,
+        "VCqKgW6Lvb4": 654745,
+        "h8JV2rw7QOc": 106,
+        "qmF8dPz22nU": 52698,
+        "vD5_vs-ODsA": 307075,
+        "gTG9evSpuWg": 20303568,
+        "D7VsFDJx4zw": 108627
       }
     }
   },
@@ -5590,7 +5604,8 @@
     },
     "2026-08-28": {
       "00": 0,
-      "01": 0
+      "01": 0,
+      "02": 0
     }
   }
 }
