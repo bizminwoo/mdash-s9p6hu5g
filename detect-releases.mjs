@@ -16,7 +16,7 @@ const ARTISTS = [
   { name: "도코",     channelId: "UCu90gJfilAG-rj7M5AngKaA" },
   { name: "웨이브 콜", channelId: "UC8H__2h-a0OpwINMII-pLFA" },
   { name: "오연하",   channelId: "UCWl28XjlBtHl_ucicFqLSAg" },
-  { name: "서열무",   channelId: "UCNW05ubAXDiMayu8dW4v-Jg" }, // Seo Yeolmu - Topic
+  //  
 ];
 
 const vidOf = (u) => (u.match(/[?&]v=([\w-]{11})/) || u.match(/youtu\.be\/([\w-]{11})/) || [])[1];
