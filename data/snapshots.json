@@ -65,6 +65,12 @@
       "title": "교이, 송영재 - 안녕, 어쩌면 오래 준비했던 (Feat. 혜원)",
       "share": 0.5,
       "pending": true
+    },
+    "-rFw4j4aqg0": {
+      "url": "https://www.youtube.com/watch?v=-rFw4j4aqg0",
+      "title": "카디코기 - 결혼하는구나",
+      "share": 1,
+      "pending": true
     }
   },
   "snapshots": [
@@ -2707,72 +2713,82 @@
           "views": 108540,
           "likes": 1260,
           "comments": null
+        },
+        "-rFw4j4aqg0": {
+          "views": 19108,
+          "likes": 56,
+          "comments": 0
         }
       }
     }
   ],
   "current": {
-    "time": "2026-08-28 18:00",
+    "time": "2026-08-28 19:04",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1247487,
+        "views": 1247729,
         "likes": 8484,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 738942,
+        "views": 739875,
         "likes": 16378,
         "comments": 19
       },
       "grqTg6WOJII": {
-        "views": 882592,
-        "likes": 26546,
+        "views": 883494,
+        "likes": 26549,
         "comments": 20
       },
       "THGi-LLhbxM": {
-        "views": 551939,
-        "likes": 13583,
+        "views": 552704,
+        "likes": 13585,
         "comments": 12
       },
       "Jsm2uVtQhmY": {
-        "views": 330419,
+        "views": 330392,
         "likes": 17528,
         "comments": 5
       },
       "K_viUNQs5lc": {
-        "views": 31290,
+        "views": 31315,
         "likes": 4089,
-        "comments": null
+        "comments": 0
       },
       "VCqKgW6Lvb4": {
-        "views": 660351,
-        "likes": 6585,
+        "views": 661065,
+        "likes": 6587,
         "comments": 13
       },
       "h8JV2rw7QOc": {
         "views": 106,
         "likes": 3038,
-        "comments": null
+        "comments": 0
       },
       "qmF8dPz22nU": {
-        "views": 52699,
+        "views": 52701,
         "likes": 4924,
-        "comments": null
+        "comments": 0
       },
       "vD5_vs-ODsA": {
-        "views": 307159,
+        "views": 307177,
         "likes": 969,
         "comments": 10
       },
+      "-rFw4j4aqg0": {
+        "views": 19108,
+        "likes": 56,
+        "comments": 0
+      },
       "gTG9evSpuWg": {
-        "views": 20315977,
-        "likes": 76455,
+        "views": 20317511,
+        "likes": 76459,
         "comments": 227
       },
       "D7VsFDJx4zw": {
-        "views": 108923,
+        "views": 108953,
         "likes": 1264,
-        "comments": null
+        "comments": 0
       }
     }
   },
@@ -5475,6 +5491,21 @@
         "gTG9evSpuWg": 20315977,
         "D7VsFDJx4zw": 108923
       },
+      "19": {
+        "tUcWwAO5zU8": 1247729,
+        "RsQDAygpF6k": 739875,
+        "grqTg6WOJII": 883494,
+        "THGi-LLhbxM": 552704,
+        "Jsm2uVtQhmY": 330392,
+        "K_viUNQs5lc": 31315,
+        "VCqKgW6Lvb4": 661065,
+        "h8JV2rw7QOc": 106,
+        "qmF8dPz22nU": 52701,
+        "vD5_vs-ODsA": 307177,
+        "-rFw4j4aqg0": 19108,
+        "gTG9evSpuWg": 20317511,
+        "D7VsFDJx4zw": 108953
+      },
       "00": {
         "tUcWwAO5zU8": 1245116,
         "RsQDAygpF6k": 730932,
@@ -5836,6 +5867,7 @@
       "16": 0,
       "17": 0,
       "18": 0,
+      "19": 4,
       "00": 0,
       "01": 0,
       "02": 0,
