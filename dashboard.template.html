@@ -696,15 +696,22 @@ function renderDetail(snaps, songs, ids){
         label: state.sel === "__total__" ? "전체 합계 (지분 반영)" : songs[state.sel].title,
         data: d, borderColor: c, backgroundColor: c+"2e", fill: true,
         tension: 0.3, spanGaps: true, borderWidth: 2,
-        pointRadius: (ctx) => markIdx.has(ctx.dataIndex) ? 5.5 : (lbl.length > 60 ? 0 : 2.5),
-        pointHoverRadius: (ctx) => markIdx.has(ctx.dataIndex) ? 7.5 : 4,
+        // 날짜마다 작은 동그라미를 항상 찍는다 (기간이 길어도 안 지움) — 어느 날인지 눈으로 찾기 쉽게
+        pointRadius: (ctx) => markIdx.has(ctx.dataIndex) ? 5.5 : (lbl.length > 180 ? 1.5 : lbl.length > 60 ? 2 : 2.8),
+        pointHoverRadius: (ctx) => markIdx.has(ctx.dataIndex) ? 8 : 6,
+        pointHitRadius: 14,          // 점에 정확히 안 맞춰도 근처만 가면 값이 뜨게
         pointBackgroundColor: (ctx) => buyIdx.has(ctx.dataIndex) ? BUY_C
           : (spikeIdx.has(ctx.dataIndex) ? "#2b2f1d" : c),
         pointBorderColor: (ctx) => markIdx.has(ctx.dataIndex) ? BUY_C : c,
         pointBorderWidth: (ctx) => markIdx.has(ctx.dataIndex) ? 2 : 1 }] },
       options: { responsive: true, maintainAspectRatio: false,
+        // 세로 아무 데나 대면 그 날짜 값이 뜨도록 (점을 정확히 짚지 않아도 됨)
+        interaction: { mode: "index", intersect: false, axis: "x" },
+        hover: { mode: "index", intersect: false },
         plugins: { legend: { display: false },
-          tooltip: { callbacks: { afterLabel: (ctx) =>
+          tooltip: { mode: "index", intersect: false, displayColors: false,
+            padding: 10, titleFont: { size: 13 }, bodyFont: { size: 14 },
+            callbacks: { afterLabel: (ctx) =>
             buyIdx.has(ctx.dataIndex) ? "💛 좋아요 구매 완료일 (주문내역 확인)"
             : (spikeIdx.has(ctx.dataIndex) ? "💛 좋아요 급증일 (구매 추정)" : undefined) } } },
         scales: {
@@ -713,6 +720,20 @@ function renderDetail(snaps, songs, ids){
             ticks: { color: "#8b93a3", callback: v => nf.format(v) }, grid: { color: "#232833" } }
         } },
       plugins: [{
+        // 마우스 위치에 세로 안내선 — 어느 날짜를 보고 있는지 바로 알 수 있게
+        id: "hoverLine",
+        afterDatasetsDraw(ch){
+          const act = ch.tooltip?.getActiveElements?.() || [];
+          if(!act.length) return;
+          const x = act[0].element.x;
+          const { ctx: g, chartArea: a } = ch;
+          g.save();
+          g.strokeStyle = "rgba(255,255,255,0.28)";
+          g.lineWidth = 1;
+          g.beginPath(); g.moveTo(x, a.top); g.lineTo(x, a.bottom); g.stroke();
+          g.restore();
+        }
+      }, {
         id: "buyBands",
         beforeDatasetsDraw(ch){
           if(!markIdx.size) return;
