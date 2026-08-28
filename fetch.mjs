@@ -223,6 +223,12 @@ async function main() {
   for (const [vid, s] of Object.entries(db.songs)) {
     if (s.marketing && !mktVids.has(vid)) delete db.songs[vid];
   }
+  // songs.json 에서 지운 곡은 목록에서도 빠진다 (과거 스냅샷 수치는 그대로 남음).
+  // 예전엔 이 정리가 없어서 지운 곡이 화면에 계속 남아 있었다.
+  const ownVids = new Set(songs.map((e) => vidOf(e.url)));
+  for (const [vid, s] of Object.entries(db.songs)) {
+    if (!s.marketing && !ownVids.has(vid)) delete db.songs[vid];
+  }
 
   if (!renderOnly) {
     const today = localDate();
