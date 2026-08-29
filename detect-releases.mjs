@@ -38,7 +38,12 @@ async function feed(cid) {
     } catch (e) { lastStatus = e.message; }
     r = null;
   }
-  if (!r) throw new Error("RSS HTTP " + lastStatus + " (5회 재시도 실패)");
+  if (!r) {
+    // RSS 가 계속 막히면(요즘 자주 그럼) 채널의 "업로드 재생목록"으로 우회한다.
+    // 2026-08-29: RSS 404 때문에 교이 신곡을 못 잡던 사고 → 이 폴백 추가.
+    console.log(`  … RSS 실패(${lastStatus}) → 업로드 목록으로 우회`);
+    return await uploadsFeed(cid);
+  }
   const t = await r.text();
   const entries = [...t.matchAll(/<entry>([\s\S]*?)<\/entry>/g)].map((m) => m[1]);
   return entries.map((e) => ({
@@ -46,6 +51,32 @@ async function feed(cid) {
     title: (e.match(/<title>([^<]+)<\/title>/) || [])[1] || "",
     published: (e.match(/<published>([^<]+)<\/published>/) || [])[1] || "",
   })).filter((v) => v.id);
+}
+
+
+// RSS 폴백 — 채널 업로드 재생목록(UU…)에서 최근 영상을 읽고, 발행일은 player API 로 확인
+async function uploadsFeed(cid) {
+  const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36";
+  const list = "UU" + cid.slice(2);
+  const res = await fetch("https://www.youtube.com/playlist?list=" + list,
+    { headers: { "User-Agent": UA, "Accept-Language": "ko" } });
+  if (!res.ok) throw new Error("업로드 목록 HTTP " + res.status);
+  const html = await res.text();
+  const ids = [...new Set([...html.matchAll(/"videoId":"([A-Za-z0-9_-]{11})"/g)].map((m) => m[1]))];
+  const out = [];
+  for (const id of ids.slice(0, 8)) {   // 최근 것만 확인 (오래된 카탈로그는 어차피 창 밖)
+    try {
+      const p = await fetch("https://www.youtube.com/youtubei/v1/player", {
+        method: "POST", headers: { "Content-Type": "application/json", "User-Agent": UA },
+        body: JSON.stringify({ context: { client: { clientName: "WEB", clientVersion: "2.20260101.00.00", hl: "ko", gl: "KR" } }, videoId: id }),
+      });
+      const d = await p.json();
+      const title = d?.videoDetails?.title;
+      const pub = d?.microformat?.playerMicroformatRenderer?.publishDate;
+      if (title) out.push({ id, title, published: pub || "" });
+    } catch { /* 한 곡 실패는 넘어간다 */ }
+  }
+  return out;
 }
 
 // 유튜브 검색 (업로드 날짜순) — 제목 키워드 감지용
