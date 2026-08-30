@@ -111,6 +111,13 @@
     <div id="monthWrap"></div>
     <div class="note" id="monthNote"></div>
   </div>
+  <div class="panel" id="newcmpPanel">
+    <h2>🆕 신곡 비교 <span class="muted">— 발매일을 0으로 맞춰 겹쳐 봅니다 (곡을 눌러 켜고 끄세요)</span></h2>
+    <div class="togglerow" id="cmpToggles"></div>
+    <div class="togglerow" id="cmpMode"></div>
+    <div class="chartbox"><canvas id="cmpChart"></canvas></div>
+    <div class="note" id="cmpNote"></div>
+  </div>
   <div class="panel" id="hourlyPanel">
     <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
     <div class="multigrid" id="hourlyGrid"></div>
@@ -468,6 +475,9 @@ function render(){
   // 월별 스트리밍 표
   renderMonthly(snaps, songs, ids);
 
+  // 신곡 비교 (발매 후 경과 기준)
+  renderNewCompare(snaps, songs, ids);
+
   // 시간대별 누적 (오늘 vs 어제)
   renderHourly(songs, ids);
 
@@ -573,6 +583,115 @@ function renderMonthly(snaps, songs, ids){
     (prev ? ` 그래서 증감은 <b>${label(prev)}의 같은 기간(1~${lastDay}일)</b>과 비교한 값입니다 — 달 전체끼리 비교한 게 아닙니다.` : "") +
     (firstDays < firstFull ? ` ${label(first)}은 수집을 ${firstDays}일치밖에 못 해서 다른 달과 그대로 비교하면 안 됩니다.` : "") +
     ` 전체 합계 행만 지분이 반영되고 📢·⏸ 곡은 빠집니다. 곡별 칸은 유튜브 실제 수치 그대로입니다.`;
+}
+
+
+// 🆕 신곡 비교 — 발매일을 D+0 으로 맞춰 여러 곡을 겹쳐 본다.
+//   일별: 발매 후 N일차 하루 스트리밍
+//   시간별: 발매 후 N시간차 유입 (발매 2주 이내 구간만 — 그 뒤는 일별로 보는 게 맞음)
+function renderNewCompare(snaps, songs, ids){
+  const panel = document.getElementById("newcmpPanel");
+  if(!panel) return;
+  const has = ids.filter(id => songs[id].release);
+  if(!has.length){ panel.style.display = "none"; return; }
+  // 최근 발매 순
+  const order = has.slice().sort((a,b) => songs[a].release < songs[b].release ? 1 : -1);
+  const DAY = 86400000;
+
+  // 곡별 일별 시리즈: [{d: 일차, v: 하루 스트리밍}]
+  const dailyOf = (id) => {
+    const rel = Date.parse(songs[id].release + "T00:00:00");
+    const out = [];
+    for(let i=1;i<snaps.length;i++){
+      const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
+      if(!(a && b && a.views!=null && b.views!=null)) continue;
+      const d = Math.round((Date.parse(snaps[i-1].date + "T00:00:00") - rel) / DAY);
+      if(d < 0) continue;
+      out.push({ d, v: Math.max(0, b.views - a.views) });
+    }
+    return out;
+  };
+  // 곡별 시간별 시리즈: [{h: 시간차, v: 그 1시간 유입}]
+  const hourlyOf = (id) => {
+    const rel = Date.parse(songs[id].release + "T00:00:00");
+    const H = DATA.hourly || {};
+    const out = [];
+    for(const day of Object.keys(H).sort()){
+      for(let h=0; h<24; h++){
+        const a = estAt(id, day, h - 1), b = estAt(id, day, h);
+        if(a == null || b == null) continue;
+        const t = Date.parse(day + "T00:00:00") + h * 3600000;
+        const hh = Math.round((t - rel) / 3600000);
+        if(hh < 0 || hh > 24 * 14) continue;      // 발매 후 2주까지만
+        out.push({ h: hh, v: Math.max(0, b - a) });
+      }
+    }
+    return out.sort((x,y) => x.h - y.h);
+  };
+
+  const state = { sel: new Set(order.slice(0, 2)), mode: "day" };
+  let chart = null;
+
+  function draw(){
+    const sel = [...state.sel];
+    const isDay = state.mode === "day";
+    const series = sel.map((id, i) => {
+      const raw = isDay ? dailyOf(id) : hourlyOf(id);
+      const c = palette[ids.indexOf(id) % palette.length];
+      return { id, c, points: raw.map(p => ({ x: isDay ? p.d : p.h, y: p.v })) };
+    });
+    const maxX = Math.max(0, ...series.flatMap(s => s.points.map(p => p.x)));
+    const labels = Array.from({ length: maxX + 1 }, (_, i) => isDay ? `D+${i}` : `${i}h`);
+    if(chart) chart.destroy();
+    chart = new Chart(document.getElementById("cmpChart"), {
+      type: "line",
+      data: { labels, datasets: series.map(s => {
+        const arr = new Array(maxX + 1).fill(null);
+        for(const p of s.points) arr[p.x] = p.y;
+        return { label: songs[s.id].title, data: arr, borderColor: s.c,
+          backgroundColor: s.c + "22", fill: false, tension: 0.3, spanGaps: true,
+          borderWidth: 2, pointRadius: labels.length > 120 ? 1.5 : 2.6,
+          pointHoverRadius: 6, pointHitRadius: 14 };
+      }) },
+      options: { responsive: true, maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false, axis: "x" },
+        plugins: { legend: { display: true, labels: { color: "#c3c2b7", boxWidth: 12 } },
+          tooltip: { mode: "index", intersect: false, bodyFont: { size: 13 } } },
+        scales: {
+          x: { ticks: { color: "#8b93a3", maxTicksLimit: 14 }, grid: { display: false } },
+          y: { beginAtZero: true, ticks: { color: "#8b93a3", callback: v => nf.format(v) },
+               grid: { color: "#232833" } }
+        } }
+    });
+    document.getElementById("cmpNote").innerHTML = isDay
+      ? "각 곡의 <b>발매일을 D+0</b> 으로 맞춰 하루 스트리밍을 겹쳐 놓은 그래프입니다. 발매 시점이 달라도 초반 확산 속도를 나란히 비교할 수 있습니다."
+      : "발매 시각을 0시간으로 맞춘 <b>시간별 유입</b>입니다. <b>발매 후 2주까지만</b> 표시합니다. 시간별 기록이 없던 시기에 나온 곡은 선이 비어 있을 수 있습니다.";
+  }
+
+  function paint(){
+    const box = document.getElementById("cmpToggles");
+    box.innerHTML = "";
+    for(const id of order){
+      const b = document.createElement("button");
+      const on = state.sel.has(id);
+      b.className = "tbtn" + (on ? " active" : "");
+      b.textContent = `${songs[id].title} (${songs[id].release.slice(2)})`;
+      if(on) b.style.borderColor = b.style.color = palette[ids.indexOf(id) % palette.length];
+      b.onclick = () => { on ? state.sel.delete(id) : state.sel.add(id); paint(); draw(); };
+      box.appendChild(b);
+    }
+    const mb = document.getElementById("cmpMode");
+    mb.innerHTML = "";
+    for(const [label, m] of [["일별 (발매 후 N일)", "day"], ["시간별 (발매 후 2주)", "hour"]]){
+      const b = document.createElement("button");
+      b.className = "tbtn small" + (state.mode === m ? " active" : "");
+      if(state.mode === m) b.style.borderColor = b.style.color = "#e7eaf0";
+      b.textContent = label;
+      b.onclick = () => { state.mode = m; paint(); draw(); };
+      mb.appendChild(b);
+    }
+  }
+  paint(); draw();
 }
 
 // 마케팅 일자별 표 — 최근 14일, 마케팅 시작일(🚀)부터 강조
