@@ -187,16 +187,12 @@ async function main() {
     });
     for (const [id, v] of Object.entries(db.videos)) {
       if (v.watch && !compIds.includes(id)) {
+        // competitors.json 에서 뺀 곡은 화면에서만 빠지고, 쌓인 수치는 그대로 남긴다 (2026-08-30 지시)
         delete v.watch; delete v.order;
-        if (!v.lastSeen) delete db.videos[id]; // 차트 이력도 없으면 즉시 추적 종료
       }
     }
 
-    // 차트에서 빠진 지 KEEP_DAYS 지난 곡은 추적 종료 (경쟁사 곡은 예외 — 계속 추적)
-    const keepCutoff = localDate(new Date(Date.now() - KEEP_DAYS * 86400000));
-    for (const [id, v] of Object.entries(db.videos)) {
-      if (!v.watch && (v.lastSeen || "0") < keepCutoff) delete db.videos[id];
-    }
+    // ★ 차트아웃된 곡도 목록에서 지우지 않는다 (2026-08-30 지시) — 과거 이력 보존
 
     // 오늘 차트 구성: 하루 첫 수집 기준 고정 + 현재 차트는 항상 갱신
     if (!db.chartDates[today]) db.chartDates[today] = chart.map((c) => ({ id: c.id, pos: c.pos }));
@@ -240,9 +236,7 @@ async function main() {
       } else {
         for (const [id, v] of Object.entries(values)) if (hcur[hh][id] == null) hcur[hh][id] = v;
       }
-      const cutoff = localDate(new Date(Date.now() - 14 * 86400000));
-      for (const d of Object.keys(db[store])) if (d < cutoff) delete db[store][d];
-      for (const d of Object.keys(db[minStore])) if (d < cutoff) delete db[minStore][d];
+      // ★ 시간별 기록도 지우지 않는다 (2026-08-30 지시)
     };
     const lk = {}, hv = {}, cm = {};
     for (const [id, v] of Object.entries(db.videos)) {
@@ -255,10 +249,7 @@ async function main() {
     writeHourly("hourlyViews", "hourlyViewsMin", hv);
     writeHourly("hourlyComments", "hourlyCommentsMin", cm);
 
-    // 보관 기간 정리
-    const snapCutoff = localDate(new Date(Date.now() - SNAP_DAYS * 86400000));
-    db.snapshots = db.snapshots.filter((s) => s.date >= snapCutoff);
-    for (const d of Object.keys(db.chartDates)) if (d < snapCutoff) delete db.chartDates[d];
+    // ★ 데이터는 절대 지우지 않는다 (2026-08-30 민우님 지시) — 예전 보관기간 정리 로직 제거
 
     writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), "utf8");
   }

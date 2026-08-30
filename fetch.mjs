@@ -95,11 +95,9 @@ function applyStats(db, stats) {
     db.hourlyMin = db.hourlyMin || {};
     (db.hourlyMin[today] = db.hourlyMin[today] || {})[hh] = new Date().getMinutes();
   }
-  // 시간별 보관 기간 — 신곡 발매 초반을 나중에 비교하려면 8일로는 모자라서 90일로 늘림 (2026-08-30)
-  const HOURLY_KEEP_DAYS = 90;
-  const cutoff = localDate(new Date(Date.now() - HOURLY_KEEP_DAYS * 86400000));
-  for (const d of Object.keys(db.hourly)) if (d < cutoff) delete db.hourly[d];
-  for (const d of Object.keys(db.hourlyMin || {})) if (d < cutoff) delete db.hourlyMin[d];
+  // ★ 데이터는 절대 지우지 않는다 (2026-08-30 민우님 지시).
+  //   예전엔 시간별 데이터를 8일만 남기고 지워서, 「가끔」 발매일 시간별 기록이 사라진 적이 있다.
+  //   보관 기간 정리 로직 전부 제거 — 앞으로 쌓이기만 한다.
 }
 
 // 좋아요 구매 이력 { 영상id: ["YYYY-MM-DD", ...] } 을 읽고, 구매봇 장부가 있으면 새 기록을 합친다.
