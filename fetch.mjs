@@ -95,7 +95,9 @@ function applyStats(db, stats) {
     db.hourlyMin = db.hourlyMin || {};
     (db.hourlyMin[today] = db.hourlyMin[today] || {})[hh] = new Date().getMinutes();
   }
-  const cutoff = localDate(new Date(Date.now() - 8 * 86400000));
+  // 시간별 보관 기간 — 신곡 발매 초반을 나중에 비교하려면 8일로는 모자라서 90일로 늘림 (2026-08-30)
+  const HOURLY_KEEP_DAYS = 90;
+  const cutoff = localDate(new Date(Date.now() - HOURLY_KEEP_DAYS * 86400000));
   for (const d of Object.keys(db.hourly)) if (d < cutoff) delete db.hourly[d];
   for (const d of Object.keys(db.hourlyMin || {})) if (d < cutoff) delete db.hourlyMin[d];
 }
