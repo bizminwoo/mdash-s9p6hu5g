@@ -294,7 +294,16 @@ function render(){
     const share = songs[id].share == null ? 1 : songs[id].share; // 수익 지분 (0=선급 제외)
     return { id, title: songs[id].title, url: songs[id].url, share, w: wOf(songs, id), adViews: songs[id].adViews, pending: songs[id].pending,
       views: cur.views, likes: cur.likes, dViews, dViewsPrev, dLikes };
-  }).sort((a,b) => (b.dViews??-1) - (a.dViews??-1));
+  }).sort((a,b) => {
+    // pinUntil 이 오늘 이후면 그 곡을 맨 위로 (신곡이 스밍 0이라 바닥에 깔리는 것 방지).
+    // 날짜가 지나면 자동으로 원래대로 — 스밍 많은 순.
+    const nd = new Date(), p2 = (n) => String(n).padStart(2,"0");
+    const today = `${nd.getFullYear()}-${p2(nd.getMonth()+1)}-${p2(nd.getDate())}`;
+    const pa = (songs[a.id].pinUntil && songs[a.id].pinUntil >= today) ? 1 : 0;
+    const pb = (songs[b.id].pinUntil && songs[b.id].pinUntil >= today) ? 1 : 0;
+    if(pa !== pb) return pb - pa;
+    return (b.dViews??-1) - (a.dViews??-1);
+  });
 
   // 예상 월 수익: 이번 달 "실제 누적"을 기반으로 추정 (월이 지날수록 실제 수익에 수렴)
   //   이번 달 실측 일평균 × 그 달 일수 = 예상 월 스트리밍 → × 스트림당 단가 × 지분
