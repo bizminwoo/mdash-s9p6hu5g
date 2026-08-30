@@ -192,7 +192,12 @@ async function main() {
       }
     }
 
-    // ★ 차트아웃된 곡도 목록에서 지우지 않는다 (2026-08-30 지시) — 과거 이력 보존
+    // 차트에서 빠진 지 KEEP_DAYS 지난 곡은 추적 종료 — 인기급상승 차트 곡만 해당.
+    // 경쟁사(watch)는 절대 안 지운다 (2026-08-30 지시: 경쟁사·내 음원은 영구 보관).
+    const keepCutoff = localDate(new Date(Date.now() - KEEP_DAYS * 86400000));
+    for (const [id, v] of Object.entries(db.videos)) {
+      if (!v.watch && (v.lastSeen || "0") < keepCutoff) delete db.videos[id];
+    }
 
     // 오늘 차트 구성: 하루 첫 수집 기준 고정 + 현재 차트는 항상 갱신
     if (!db.chartDates[today]) db.chartDates[today] = chart.map((c) => ({ id: c.id, pos: c.pos }));
@@ -249,7 +254,10 @@ async function main() {
     writeHourly("hourlyViews", "hourlyViewsMin", hv);
     writeHourly("hourlyComments", "hourlyCommentsMin", cm);
 
-    // ★ 데이터는 절대 지우지 않는다 (2026-08-30 민우님 지시) — 예전 보관기간 정리 로직 제거
+    // 인기급상승 차트 "그날의 순위 구성" 기록만 보관기간 정리 (2026-08-30 지시).
+    // 곡별 스냅샷 수치(db.snapshots)는 경쟁사 이력이라 절대 안 지운다.
+    const snapCutoff = localDate(new Date(Date.now() - SNAP_DAYS * 86400000));
+    for (const d of Object.keys(db.chartDates)) if (d < snapCutoff) delete db.chartDates[d];
 
     writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), "utf8");
   }
