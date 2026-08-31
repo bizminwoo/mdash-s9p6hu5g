@@ -98,6 +98,7 @@
   <div class="cards" id="cards"></div>
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
+    <div class="togglerow" id="sortToggles"></div>
     <div id="tableWrap"></div>
     <div class="note">🧮 <b>합계는 지분(share) 반영</b> — 공동제작 50% 곡은 조회수도 절반만, 33% 곡은 1/3만 합계에 들어갑니다. <b>선급 곡(지분 0)은 스트리밍 합계에 100% 반영</b>하고 수익에서만 제외합니다. 곡별 칸의 숫자는 유튜브 실제 수치 그대로라, 곡별 값을 그냥 더한 것보다 전체 합계가 작습니다.<br>📢 표시 곡 = 광고 조회 포함이라 수치가 부정확 — 개별 기록은 표시하되 <b>모든 합계에서 제외</b> (카드 전체 + 일자별 전체 합계 행 + 그래프의 전체 합계).<br>⏸ 표시 곡 = <b>인접권 정리 전</b>이라 추적만 하는 곡 — 곡별 수치는 그대로 쌓이지만 <b>모든 합계·수익에서 제외</b>합니다. 정리되면 표시를 떼고 합산에 넣습니다.<br>📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분. <b>이번 달 실측 수익</b> = 이번 달 1일부터 어제까지 <b>실제 확정된 스트리밍만</b>으로 계산한 수익 (오늘 진행분 미포함 — 날이 갈수록 예상 월 수익에 다가감).<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
   </div>
@@ -424,13 +425,42 @@ function render(){
     document.getElementById("rangeLabel").textContent = "(첫 수집 — 내일 00시 이후 일일 수치가 나옵니다)";
   }
 
-  // 표
+  // 표 — 정렬 기준을 버튼으로 바꿀 수 있다 (실시간/어제하루/누적)
+  const SORTS = [
+    ["실시간 (오늘 현재까지)", "live",  (r) => liveBy[r.id] ?? -1],
+    ["어제 하루 스트리밍",      "day",   (r) => r.dViews ?? -1],
+    ["누적 조회수",            "total", (r) => r.views ?? -1],
+  ];
+  const sortState = { key: "live" };
   const tw = document.getElementById("tableWrap");
+  function sortedRows(){
+    const f = (SORTS.find(x => x[1] === sortState.key) || SORTS[0])[2];
+    const today = (() => { const n=new Date(); return `${n.getFullYear()}-${p2(n.getMonth()+1)}-${p2(n.getDate())}`; })();
+    return rows.slice().sort((a,b) => {
+      const pa = (songs[a.id].pinUntil && songs[a.id].pinUntil >= today) ? 1 : 0;
+      const pb = (songs[b.id].pinUntil && songs[b.id].pinUntil >= today) ? 1 : 0;
+      if(pa !== pb) return pb - pa;
+      return f(b) - f(a);
+    });
+  }
+  function paintSortButtons(){
+    const box = document.getElementById("sortToggles");
+    box.innerHTML = "";
+    for(const [label, key] of SORTS){
+      const b = document.createElement("button");
+      b.className = "tbtn small" + (sortState.key === key ? " active" : "");
+      if(sortState.key === key) b.style.borderColor = b.style.color = "#e7eaf0";
+      b.textContent = label;
+      b.onclick = () => { sortState.key = key; paintSortButtons(); paintTable(); };
+      box.appendChild(b);
+    }
+  }
+  function paintTable(){
   tw.innerHTML =
     `<table><thead><tr>
       <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>오늘 예상(추정)</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>이번 달 실측 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
     </tr></thead><tbody>` +
-    rows.map(r => `<tr>
+    sortedRows().map(r => `<tr>
       <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a>${r.adViews ? " <span class='muted' title='광고 조회 포함 — 합계·예상에서 제외'>📢</span>" : ""}${r.pending ? " <span class='muted' title='인접권 정리 전 — 추적만, 합계·수익에서 제외'>⏸</span>" : ""}</td>
       <td class="delta up">${liveBy[r.id]!=null ? "+"+nf.format(liveBy[r.id]) : "<span class='muted'>—</span>"}</td>
       <td class="delta" style="color:var(--muted)">${ydayBy[r.id]!=null ? "+"+nf.format(ydayBy[r.id]) : "<span class='muted'>—</span>"}</td>
@@ -469,6 +499,9 @@ function render(){
       <td>${r.views!=null ? nf.format(r.views) : "—"}</td>
       <td>${r.likes!=null ? nf.format(r.likes) : "—"}</td>
     </tr>`).join("") + `</tbody></table>`;
+  }
+  paintSortButtons();
+  paintTable();
 
   renderDailyMatrix(snaps, songs, ids);
 
