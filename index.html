@@ -112,12 +112,12 @@
     <div id="monthWrap"></div>
     <div class="note" id="monthNote"></div>
   </div>
-  <div class="panel" id="newcmpPanel">
-    <h2>🆕 신곡 비교 <span class="muted">— 발매일을 0으로 맞춰 겹쳐 봅니다 (곡을 눌러 켜고 끄세요)</span></h2>
-    <div class="togglerow" id="cmpToggles"></div>
-    <div class="togglerow" id="cmpMode"></div>
-    <div class="chartbox"><canvas id="cmpChart"></canvas></div>
-    <div class="note" id="cmpNote"></div>
+  <div class="panel">
+    <h2>곡별 상세 추세 <span class="muted">— 곡을 누르면 쌓인 전체 기간의 일별 감상 그래프가 나옵니다</span></h2>
+    <div class="togglerow" id="songToggles"></div>
+    <div class="togglerow" id="rangeToggles"></div>
+    <div class="chartbox"><canvas id="detail"></canvas></div>
+    <div class="note" id="buyNote" style="display:none">💛 <b>노란 표시 = 좋아요를 산 날</b>. <b>실선 세로줄 + 꽉 찬 점</b> = <b>SNS헬퍼 주문내역에서 확인된 좋아요 반영 완료일</b>입니다(주문 접수일이 아니라 실제로 좋아요가 다 들어온 날). <b>점선 세로줄 + 빈 점</b> = 주문내역에 없는데 <b>좋아요가 평소의 20배 이상·하루 50개 이상 튄 날</b>이라 <b>구매로 추정</b>한 날입니다. 곡을 하나 골랐을 때만 표시하고, 전체 합계 그래프에는 표시하지 않습니다.</div>
   </div>
   <div class="panel" id="hourlyPanel">
     <h2>⏰ 시간대별 스트리밍 <span class="muted">— 그 1시간 동안 몇 명이 들었는지 · <b style="color:var(--text)">━ 오늘</b> · ┄ 어제</span></h2>
@@ -129,12 +129,12 @@
     <div class="multigrid" id="multiGrid"></div>
     <div class="note">각 점 = 해당 날짜 하루 스트리밍(00시 기준 전일 대비 증가분). 세로축이 곡마다 달라 곡 간 크기 비교는 아래 막대그래프를 보세요.</div>
   </div>
-  <div class="panel">
-    <h2>곡별 상세 추세 <span class="muted">— 곡을 누르면 쌓인 전체 기간의 일별 감상 그래프가 나옵니다</span></h2>
-    <div class="togglerow" id="songToggles"></div>
-    <div class="togglerow" id="rangeToggles"></div>
-    <div class="chartbox"><canvas id="detail"></canvas></div>
-    <div class="note" id="buyNote" style="display:none">💛 <b>노란 표시 = 좋아요를 산 날</b>. <b>실선 세로줄 + 꽉 찬 점</b> = <b>SNS헬퍼 주문내역에서 확인된 좋아요 반영 완료일</b>입니다(주문 접수일이 아니라 실제로 좋아요가 다 들어온 날). <b>점선 세로줄 + 빈 점</b> = 주문내역에 없는데 <b>좋아요가 평소의 20배 이상·하루 50개 이상 튄 날</b>이라 <b>구매로 추정</b>한 날입니다. 곡을 하나 골랐을 때만 표시하고, 전체 합계 그래프에는 표시하지 않습니다.</div>
+  <div class="panel" id="newcmpPanel">
+    <h2>🆕 신곡 비교 <span class="muted">— 발매일을 0으로 맞춰 겹쳐 봅니다 (곡을 눌러 켜고 끄세요)</span></h2>
+    <div class="togglerow" id="cmpToggles"></div>
+    <div class="togglerow" id="cmpMode"></div>
+    <div class="chartbox"><canvas id="cmpChart"></canvas></div>
+    <div class="note" id="cmpNote"></div>
   </div>
   <div class="panel" id="mktPanel" style="display:none">
     <h2>📣 마케팅 트래킹 (최근 3개월) <span class="muted">— 감상 수치·증감만 표시, 수익/합계에는 포함 안 됨</span></h2>
