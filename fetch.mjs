@@ -206,12 +206,13 @@ async function main() {
   if (existsSync(DATA_FILE)) db = JSON.parse(readFileSync(DATA_FILE, "utf8"));
 
   // songs.json 의 제목/수익비율(share)/광고플래그(adViews)/보류플래그(pending)를 항상 반영
-  for (const { url, title, share, adViews, pending, pinUntil, release } of songs) {
+  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release } of songs) {
     const vid = vidOf(url);
     db.songs[vid] = { ...(db.songs[vid] || {}), url,
       ...(title ? { title } : {}), share: share == null ? 1 : share };
     if (adViews) db.songs[vid].adViews = true; else delete db.songs[vid].adViews;
     if (pending) db.songs[vid].pending = true; else delete db.songs[vid].pending;
+    if (pendingUntil) db.songs[vid].pendingUntil = pendingUntil; else delete db.songs[vid].pendingUntil;
     if (pinUntil) db.songs[vid].pinUntil = pinUntil; else delete db.songs[vid].pinUntil;
     if (release) db.songs[vid].release = release;   // 발매일 (신곡 비교의 기준점)
   }

@@ -198,7 +198,20 @@ const nf = new Intl.NumberFormat("ko-KR");
 const palette = ["#3987e5","#199e70","#c98500","#008300","#9085e9","#e66767","#d55181","#d95926"];
 
 // 합계·수익에서 빼야 하는 곡 — 광고 조회 곡(adViews) + 인접권 정리 전 보류 곡(pending)
-function exSum(songs, id){ return !!(songs[id] && (songs[id].adViews || songs[id].pending)); }
+// 특정 날짜 기준으로 "합계에서 빼야 하는 곡"인지 판단.
+//   pending: true        → 계속 제외 (인접권 정리 전)
+//   pendingUntil: "날짜" → 그 날짜까지만 제외, 다음 날부터 합계에 포함 (인접권 정리 완료 시점)
+function exSumOn(songs, id, dateStr){
+  const g = songs[id];
+  if(!g) return false;
+  if(g.adViews) return true;
+  if(g.pending) return true;
+  if(g.pendingUntil && dateStr && dateStr <= g.pendingUntil) return true;
+  return false;
+}
+const todayStr = (() => { const n=new Date(), q=x=>String(x).padStart(2,"0");
+  return `${n.getFullYear()}-${q(n.getMonth()+1)}-${q(n.getDate())}`; })();
+function exSum(songs, id){ return exSumOn(songs, id, todayStr); }
 
 function byDate(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }
 function mdShort(s){ const [,m,d] = s.split("-"); return Number(m)+"/"+Number(d); }
@@ -574,16 +587,23 @@ function renderMonthly(snaps, songs, ids){
     const arrow = pct > 0 ? "▲" : pct < 0 ? "▼" : "－";
     return `<span class="dchg ${cls}" style="display:inline">${arrow} ${Math.abs(pct).toFixed(1)}%</span>`;
   };
-  const sumIds = ids.filter(id => !exSum(songs, id));
+  // 그 달 말일 기준으로 제외 여부 판정 — 인접권이 9월부터 우리 것이면 8월 합계엔 안 들어간다
+  const monthEnd = (m) => `${m}-${String(new Date(Number(m.slice(0,4)), Number(m.slice(5,7)), 0).getDate()).padStart(2,"0")}`;
   const monthTotal = (m) => {
     let s2 = 0, any = false;
-    for(const id of sumIds){ const v = perMonth[m][id]; if(v!=null){ s2 += v * wOf(songs, id); any = true; } }
+    for(const id of ids){
+      if(exSumOn(songs, id, monthEnd(m))) continue;
+      const v = perMonth[m][id]; if(v!=null){ s2 += v * wOf(songs, id); any = true; }
+    }
     return any ? Math.round(s2) : null;
   };
   const prevSameTotal = (() => {
     if(!prev) return null;
     let s2 = 0, any = false;
-    for(const id of sumIds){ const v = prevSame[id]; if(v!=null){ s2 += v * wOf(songs, id); any = true; } }
+    for(const id of ids){
+      if(exSumOn(songs, id, monthEnd(prev))) continue;
+      const v = prevSame[id]; if(v!=null){ s2 += v * wOf(songs, id); any = true; }
+    }
     return any ? Math.round(s2) : null;
   })();
 
@@ -824,7 +844,7 @@ function renderDetail(snaps, songs, ids){
   }
   const totals = dates.map((_,i) => {
     let s = 0, any = false;
-    for(const id of ids){ if(exSum(songs,id)) continue; const v = daily[id][i]; if(v!=null){ s+=v*wOf(songs,id); any=true; } }
+    for(const id of ids){ if(exSumOn(songs,id,rawDates[i])) continue; const v = daily[id][i]; if(v!=null){ s+=v*wOf(songs,id); any=true; } }
     return any ? Math.round(s) : null;
   });
 
@@ -1164,10 +1184,11 @@ function renderDailyMatrix(snaps, songs, ids){
     html += `</tr>`;
   }
   // 합계 행 (광고 조회 곡·보류 곡은 제외)
-  const sumIds = ids.filter(id => !exSum(songs, id));
   const tot = recent.map(p => {
     let s = 0, any = false;
-    for(const id of sumIds){ const v = daily(p,id); if(v!=null){ s+=v*wOf(songs,id); any=true; } }
+    for(const id of ids){
+      if(exSumOn(songs, id, p.a.date)) continue;   // 그날 기준으로 제외 여부 판정
+      const v = daily(p,id); if(v!=null){ s+=v*wOf(songs,id); any=true; } }
     return any ? Math.round(s) : null;
   });
   html += `<tr class="totalrow"><td class="song">전체 합계 <span class="muted" style="font-weight:400">(지분 반영)</span></td>`;
