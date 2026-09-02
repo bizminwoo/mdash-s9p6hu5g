@@ -135,14 +135,14 @@ async function fetchAllViews(ids, likeIds = []) {
     }
   }
   await Promise.all(Array.from({ length: 6 }, worker));
-  // 상세추적 곡만 yt-dlp 로 좋아요/댓글 보충 (곡 수가 적어 부담 없음)
+  // 좋아요 추적 곡만 yt-dlp 로 좋아요/댓글 보충 (곡 수가 적어 부담 없음)
   const extra = await likesViaYtdlp(likeIds);
   for (const [id, s2] of Object.entries(extra)) {
     stats[id] = { ...(stats[id] || {}), ...(s2.views != null ? { views: s2.views } : {}),
       ...(s2.likes != null ? { likes: s2.likes } : {}),
       ...(s2.comments != null ? { comments: s2.comments } : {}) };
   }
-  if (Object.keys(extra).length) console.log(`  ✓ 상세추적 ${Object.keys(extra).length}곡 좋아요 보충(yt-dlp)`);
+  if (Object.keys(extra).length) console.log(`  ✓ 좋아요 추적 ${Object.keys(extra).length}곡 보충(yt-dlp)`);
   return { stats, meta };
 }
 
@@ -180,8 +180,10 @@ async function main() {
       const id = compIds[i];
       const v = db.videos[id] || {};
       const nv = { ...v, watch: true, order: i, ...(c.title ? { title: c.title } : {}),
-        ...(c.likesTrack ? { likesTrack: true } : {}), ...(c.group ? { group: c.group } : {}) };
+        ...(c.likesTrack ? { likesTrack: true } : {}), ...(c.likes ? { likes: true } : {}),
+        ...(c.group ? { group: c.group } : {}) };
       if (!c.likesTrack) delete nv.likesTrack; // 상세 추적(시간/일 단위)은 competitors.json 의 "likesTrack": true 곡만
+      if (!c.likes) delete nv.likes;           // 일 단위 좋아요만 볼 곡은 "likes": true (상세추적은 안 함)
       if (!c.group) delete nv.group;
       db.videos[id] = nv;
     });
@@ -205,7 +207,8 @@ async function main() {
 
     // 조회수 수집: 현재 차트 + 차트아웃 추적 곡 + 경쟁사 곡 전부
     const ids = Object.keys(db.videos);
-    const trackIds = ids.filter((id) => db.videos[id]?.likesTrack);
+    // 좋아요 수집 대상: 상세추적(likesTrack) 곡 + 일 단위 좋아요만 보는(likes) 곡
+    const trackIds = ids.filter((id) => db.videos[id]?.likesTrack || db.videos[id]?.likes);
     const { stats, meta } = await fetchAllViews(ids, trackIds);
     console.log(`  ✓ 조회수 ${Object.keys(stats).length}/${ids.length}곡`);
 
