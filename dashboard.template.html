@@ -100,7 +100,7 @@
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
     <div class="togglerow" id="sortToggles"></div>
     <div id="tableWrap"></div>
-    <div class="note">🧮 <b>합계는 지분(share) 반영</b> — 공동제작 50% 곡은 조회수도 절반만, 33% 곡은 1/3만 합계에 들어갑니다. <b>선급 곡(지분 0)은 스트리밍 합계에 100% 반영</b>하고 수익에서만 제외합니다. 곡별 칸의 숫자는 유튜브 실제 수치 그대로라, 곡별 값을 그냥 더한 것보다 전체 합계가 작습니다.<br>📢 표시 곡 = 광고 조회 포함이라 수치가 부정확 — 개별 기록은 표시하되 <b>모든 합계에서 제외</b> (카드 전체 + 일자별 전체 합계 행 + 그래프의 전체 합계).<br>⏸ 표시 곡 = <b>인접권 정리 전</b>이라 추적만 하는 곡 — 곡별 수치는 그대로 쌓이지만 <b>모든 합계·수익에서 제외</b>합니다. 정리되면 표시를 떼고 합산에 넣습니다.<br>📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분. <b>이번 달 실측 수익</b> = 이번 달 1일부터 어제까지 <b>실제 확정된 스트리밍만</b>으로 계산한 수익 (오늘 진행분 미포함 — 날이 갈수록 예상 월 수익에 다가감).<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
+    <div class="note">🧮 <b>합계는 지분(share) 반영</b> — 공동제작 50% 곡은 조회수도 절반만, 33% 곡은 1/3만 합계에 들어갑니다. <b>선급 곡(지분 0)은 스트리밍 합계에 100% 반영</b>하고 수익에서만 제외합니다. 곡별 칸의 숫자는 유튜브 실제 수치 그대로라, 곡별 값을 그냥 더한 것보다 전체 합계가 작습니다.<br>📢 표시 곡 = 광고 조회 포함이라 수치가 부정확 — 개별 기록은 표시하되 <b>모든 합계에서 제외</b> (카드 전체 + 일자별 전체 합계 행 + 그래프의 전체 합계).<br>🤝 <b>인접권을 나중에 산 곡</b>(카디코기·교이 등)은 <b>인수일 이전 조회수가 남의 것</b>이라 <b>누적 총 조회수(보유분)</b>에서 뺍니다. 곡별 표의 누적 조회수는 유튜브 실제 값 그대로입니다.<br>⏸ 표시 곡 = <b>인접권 정리 전</b>이라 추적만 하는 곡 — 곡별 수치는 그대로 쌓이지만 <b>모든 합계·수익에서 제외</b>합니다. 정리되면 표시를 떼고 합산에 넣습니다.<br>📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. ▲▼는 어제 하루 실적 대비. 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분. <b>이번 달 실측 수익</b> = 이번 달 1일부터 어제까지 <b>실제 확정된 스트리밍만</b>으로 계산한 수익 (오늘 진행분 미포함 — 날이 갈수록 예상 월 수익에 다가감).<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
   </div>
   <div class="panel">
     <h2>📅 일자별 스트리밍 (최근 10일) <span class="muted">— 각 칸: 그날 하루 스트리밍, ▲▼ 전일 대비 증감</span></h2>
@@ -213,6 +213,22 @@ const todayStr = (() => { const n=new Date(), q=x=>String(x).padStart(2,"0");
   return `${n.getFullYear()}-${q(n.getMonth()+1)}-${q(n.getDate())}`; })();
 function exSum(songs, id){ return exSumOn(songs, id, todayStr); }
 
+// 인접권을 나중에 산 곡(pendingUntil)은 인수 전 조회수가 남의 것이므로 우리 누적에서 뺀다.
+// 인수일(pendingUntil) 시점의 조회수를 기준선으로 잡고, 그 뒤에 늘어난 만큼만 우리 누적으로 센다.
+// 인수일 이전 기록이 아예 없는 곡(나중에 목록에 넣은 곡)은 처음 관측한 값을 기준선으로 쓴다.
+function ownedBase(songs, snaps, id){
+  const until = songs[id] && songs[id].pendingUntil;
+  if(!until) return 0;
+  let base = null, firstSeen = null;
+  for(const s of snaps){
+    const v = s.stats[id];
+    if(!v || v.views == null) continue;
+    if(firstSeen == null) firstSeen = v.views;
+    if(s.date <= until) base = v.views;
+  }
+  return base != null ? base : (firstSeen != null ? firstSeen : 0);
+}
+
 function byDate(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }
 function mdShort(s){ const [,m,d] = s.split("-"); return Number(m)+"/"+Number(d); }
 
@@ -314,7 +330,8 @@ function render(){
     const dLikes = (prev && cur.likes!=null && pv.likes!=null) ? cur.likes - pv.likes : null;
     const share = songs[id].share == null ? 1 : songs[id].share; // 수익 지분 (0=선급 제외)
     return { id, title: songs[id].title, url: songs[id].url, share, w: wOf(songs, id), adViews: songs[id].adViews, pending: songs[id].pending,
-      views: cur.views, likes: cur.likes, dViews, dViewsPrev, dLikes };
+      views: cur.views, likes: cur.likes, dViews, dViewsPrev, dLikes,
+      viewsOwned: cur.views != null ? Math.max(0, cur.views - ownedBase(songs, snaps, id)) : null };
   }).sort((a,b) => {
     // pinUntil 이 오늘 이후면 그 곡을 맨 위로 (신곡이 스밍 0이라 바닥에 깔리는 것 방지).
     // 날짜가 지나면 자동으로 원래대로 — 스밍 많은 순.
@@ -365,7 +382,8 @@ function render(){
     dViewsPctBadge = ` <span class="dchg ${cls}" style="font-size:13px">${arrow}${Math.abs(pct).toFixed(1)}% <span class="muted">전일비</span></span>`;
   }
   const sumDLikes = sRows.reduce((s,r)=> s + (r.dLikes||0), 0);
-  const sumViews = Math.round(sRows.reduce((s,r)=> s + (r.views||0) * r.w, 0));
+  // 누적 총 조회수 = 인수 전 조회수를 뺀 '우리 몫'만 합산 (2026-09-02 민우님 지시)
+  const sumViews = Math.round(sRows.reduce((s,r)=> s + (r.viewsOwned||0) * r.w, 0));
   const sumRevenue = Math.round(sRows.reduce((s,r)=> s + (r.revenue||0), 0));
   const dayLabel = prev ? " ("+mdShort(prev.date)+")" : "";
   const curClock = cur?.time ? cur.time.slice(11) : "";
@@ -411,7 +429,7 @@ function render(){
     ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) + dViewsPctBadge : "—", "회"],
     [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
     ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
-    ["누적 총 조회수", nf.format(sumViews), "회"],
+    ["누적 총 조회수 (보유분)", nf.format(sumViews), "회"],
     [`이번 달 총 스트리밍 (${M}월${thisMonth ? `, 1~${thisMonth.lastDay}일` : ""})`,
       thisMonth ? nf.format(thisMonth.sum) + monthBadge : "—", "회"],
   ];
