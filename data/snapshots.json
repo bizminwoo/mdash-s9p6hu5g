@@ -159,6 +159,20 @@
       "share": 0.5,
       "pinUntil": "2026-08-30",
       "release": "2026-08-30"
+    },
+    "nUkXoDO8hIE": {
+      "url": "https://www.youtube.com/watch?v=nUkXoDO8hIE",
+      "title": "카디코기 - Needy (Solo.ver)",
+      "share": 1,
+      "pendingUntil": "2026-08-31",
+      "release": "2024-08-30"
+    },
+    "uxbCjFWcoGU": {
+      "url": "https://www.youtube.com/watch?v=uxbCjFWcoGU",
+      "title": "카디코기 - Walking on Frozen (Feat. Movin, Sould)",
+      "share": 1,
+      "pendingUntil": "2026-08-31",
+      "release": "2024-09-30"
     }
   },
   "snapshots": [
@@ -3766,35 +3780,45 @@
           "views": 111237,
           "likes": 1270,
           "comments": null
+        },
+        "nUkXoDO8hIE": {
+          "views": 2498,
+          "likes": 18,
+          "comments": 0
+        },
+        "uxbCjFWcoGU": {
+          "views": 3278,
+          "likes": 14,
+          "comments": 0
         }
       }
     }
   ],
   "current": {
-    "time": "2026-09-02 22:57",
+    "time": "2026-09-02 23:04",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1264947,
+        "views": 1264957,
         "likes": 8507,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 791248,
+        "views": 791291,
         "likes": 16443,
         "comments": 21
       },
       "grqTg6WOJII": {
-        "views": 934935,
+        "views": 934984,
         "likes": 26858,
         "comments": 42
       },
       "THGi-LLhbxM": {
-        "views": 594124,
+        "views": 594155,
         "likes": 13643,
         "comments": 12
       },
       "Jsm2uVtQhmY": {
-        "views": 344081,
+        "views": 344098,
         "likes": 17538,
         "comments": 5
       },
@@ -3804,7 +3828,7 @@
         "comments": 0
       },
       "VCqKgW6Lvb4": {
-        "views": 702331,
+        "views": 702348,
         "likes": 6640,
         "comments": 27
       },
@@ -3824,7 +3848,7 @@
         "comments": 10
       },
       "-rFw4j4aqg0": {
-        "views": 19305,
+        "views": 19316,
         "likes": 55,
         "comments": 0
       },
@@ -3879,13 +3903,23 @@
         "comments": 0
       },
       "d40YQAsL_cU": {
-        "views": 42299,
+        "views": 42432,
         "likes": 118,
         "comments": 3
       },
+      "nUkXoDO8hIE": {
+        "views": 2498,
+        "likes": 18,
+        "comments": 0
+      },
+      "uxbCjFWcoGU": {
+        "views": 3278,
+        "likes": 14,
+        "comments": 0
+      },
       "gTG9evSpuWg": {
-        "views": 20420863,
-        "likes": 76683,
+        "views": 20420991,
+        "likes": 76685,
         "comments": 228
       },
       "D7VsFDJx4zw": {
@@ -9985,6 +10019,34 @@
         "gTG9evSpuWg": 20420319,
         "D7VsFDJx4zw": 111739
       },
+      "23": {
+        "tUcWwAO5zU8": 1264957,
+        "RsQDAygpF6k": 791291,
+        "grqTg6WOJII": 934984,
+        "THGi-LLhbxM": 594155,
+        "Jsm2uVtQhmY": 344098,
+        "K_viUNQs5lc": 32039,
+        "VCqKgW6Lvb4": 702348,
+        "h8JV2rw7QOc": 109,
+        "qmF8dPz22nU": 52720,
+        "vD5_vs-ODsA": 310362,
+        "-rFw4j4aqg0": 19316,
+        "FwQg1oq0ZwY": 913,
+        "mE-BhncAh6E": 869,
+        "HC61q5FWciY": 21838,
+        "GAYhdUa2-q4": 19269,
+        "crsPCJTNIgE": 5570,
+        "xZKpKdsJO2k": 3544,
+        "VXGoK266B7A": 2009,
+        "Mmn_lwIf8xI": 1508,
+        "hEFMAtmkLzg": 91,
+        "_5GV_F6c0wg": 130,
+        "d40YQAsL_cU": 42432,
+        "nUkXoDO8hIE": 2498,
+        "uxbCjFWcoGU": 3278,
+        "gTG9evSpuWg": 20420991,
+        "D7VsFDJx4zw": 111751
+      },
       "00": {
         "tUcWwAO5zU8": 1261752,
         "RsQDAygpF6k": 784014,
@@ -10648,6 +10710,7 @@
       "20": 1,
       "21": 1,
       "22": 1,
+      "23": 4,
       "00": 1,
       "01": 1,
       "02": 1,
