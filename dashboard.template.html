@@ -224,7 +224,14 @@ function adRunning(songs, id){
 // 인수일(pendingUntil) 시점의 조회수를 기준선으로 잡고, 그 뒤에 늘어난 만큼만 우리 누적으로 센다.
 // 인수일 이전 기록이 아예 없는 곡(나중에 목록에 넣은 곡)은 처음 관측한 값을 기준선으로 쓴다.
 function ownedBase(songs, snaps, id){
-  const until = songs[id] && songs[id].pendingUntil;
+  const g = songs[id] || {};
+  // 기준선 날짜 = 인수일(pendingUntil) 과 광고 종료일(adTo) 중 늦은 쪽.
+  // 광고가 아직 진행 중이면 오늘까지를 기준선으로 봐서 광고 조회수는 누적에 안 들어간다.
+  let until = g.pendingUntil || null;
+  if(g.adFrom){
+    const adCut = g.adTo || todayStr;
+    if(!until || adCut > until) until = adCut;
+  }
   if(!until) return 0;
   let base = null, firstSeen = null;
   for(const s of snaps){
