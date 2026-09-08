@@ -4667,30 +4667,30 @@
     }
   ],
   "current": {
-    "time": "2026-09-09 01:00",
+    "time": "2026-09-09 02:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1287418,
+        "views": 1287475,
         "likes": 8542,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 842247,
+        "views": 842395,
         "likes": 16520,
         "comments": 21
       },
       "grqTg6WOJII": {
-        "views": 974492,
+        "views": 974583,
         "likes": 26895,
         "comments": 44
       },
       "THGi-LLhbxM": {
-        "views": 640463,
+        "views": 640578,
         "likes": 13693,
         "comments": 13
       },
       "Jsm2uVtQhmY": {
-        "views": 360481,
+        "views": 360532,
         "likes": 17545,
         "comments": 5
       },
@@ -4700,7 +4700,7 @@
         "comments": null
       },
       "VCqKgW6Lvb4": {
-        "views": 731109,
+        "views": 731123,
         "likes": 6677,
         "comments": 27
       },
@@ -4710,17 +4710,17 @@
         "comments": null
       },
       "qmF8dPz22nU": {
-        "views": 52732,
+        "views": 52733,
         "likes": 4915,
         "comments": null
       },
       "vD5_vs-ODsA": {
-        "views": 336210,
+        "views": 336196,
         "likes": 2999,
         "comments": 10
       },
       "-rFw4j4aqg0": {
-        "views": 41465,
+        "views": 41517,
         "likes": 3077,
         "comments": null
       },
@@ -4745,7 +4745,7 @@
         "comments": null
       },
       "crsPCJTNIgE": {
-        "views": 5620,
+        "views": 5624,
         "likes": 14,
         "comments": null
       },
@@ -4760,13 +4760,13 @@
         "comments": null
       },
       "Mmn_lwIf8xI": {
-        "views": 1530,
+        "views": 1531,
         "likes": 4,
         "comments": null
       },
       "d40YQAsL_cU": {
-        "views": 348365,
-        "likes": 5869,
+        "views": 348852,
+        "likes": 5873,
         "comments": 5
       },
       "nUkXoDO8hIE": {
@@ -4780,8 +4780,8 @@
         "comments": null
       },
       "gTG9evSpuWg": {
-        "views": 20530310,
-        "likes": 76894,
+        "views": 20530777,
+        "likes": 76895,
         "comments": 228
       },
       "D7VsFDJx4zw": {
@@ -15076,6 +15076,32 @@
         "uxbCjFWcoGU": 3304,
         "gTG9evSpuWg": 20530310,
         "D7VsFDJx4zw": 115496
+      },
+      "02": {
+        "tUcWwAO5zU8": 1287475,
+        "RsQDAygpF6k": 842395,
+        "grqTg6WOJII": 974583,
+        "THGi-LLhbxM": 640578,
+        "Jsm2uVtQhmY": 360532,
+        "K_viUNQs5lc": 33224,
+        "VCqKgW6Lvb4": 731123,
+        "h8JV2rw7QOc": 113,
+        "qmF8dPz22nU": 52733,
+        "vD5_vs-ODsA": 336196,
+        "-rFw4j4aqg0": 41517,
+        "FwQg1oq0ZwY": 1105,
+        "mE-BhncAh6E": 880,
+        "HC61q5FWciY": 22573,
+        "GAYhdUa2-q4": 20394,
+        "crsPCJTNIgE": 5624,
+        "xZKpKdsJO2k": 3591,
+        "VXGoK266B7A": 2041,
+        "Mmn_lwIf8xI": 1531,
+        "d40YQAsL_cU": 348852,
+        "nUkXoDO8hIE": 2516,
+        "uxbCjFWcoGU": 3304,
+        "gTG9evSpuWg": 20530777,
+        "D7VsFDJx4zw": 115496
       }
     }
   },
@@ -15550,7 +15576,8 @@
     },
     "2026-09-09": {
       "00": 0,
-      "01": 0
+      "01": 0,
+      "02": 0
     }
   }
 }
