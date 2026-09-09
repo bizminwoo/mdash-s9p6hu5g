@@ -193,6 +193,14 @@ function won(v){
   return v.toLocaleString("ko-KR") + "원";
 }
 
+// Display-only overrides; accounting flags and collected titles stay unchanged.
+const starredSongIds = new Set(["nUkXoDO8hIE", "uxbCjFWcoGU"]);
+const hiddenAdBadgeIds = new Set(["K_viUNQs5lc", "qmF8dPz22nU"]);
+function songTitle(songs, id){
+  const title = songs[id].title;
+  return starredSongIds.has(id) ? title.replace(/\s*★+\s*$/, "") + " ★" : title;
+}
+
 const nf = new Intl.NumberFormat("ko-KR");
 // 다크 배경 검증 통과 팔레트 (곡 순서 고정 배정 — 정렬이 바뀌어도 곡 색은 유지)
 const palette = ["#3987e5","#199e70","#c98500","#008300","#9085e9","#e66767","#d55181","#d95926"];
@@ -352,7 +360,7 @@ function render(){
     const dViewsPrev = (prev2 && pv.views!=null && pv2.views!=null) ? pv.views - pv2.views : null; // 그 전날 하루치
     const dLikes = (prev && cur.likes!=null && pv.likes!=null) ? cur.likes - pv.likes : null;
     const share = songs[id].share == null ? 1 : songs[id].share; // 수익 지분 (0=선급 제외)
-    return { id, title: songs[id].title, url: songs[id].url, share, w: wOf(songs, id), adViews: songs[id].adViews, pending: songs[id].pending, adNow: adRunning(songs, id),
+    return { id, title: songTitle(songs, id), url: songs[id].url, share, w: wOf(songs, id), adViews: songs[id].adViews, pending: songs[id].pending, adNow: adRunning(songs, id),
       views: cur.views, likes: cur.likes, dViews, dViewsPrev, dLikes,
       viewsOwned: cur.views != null ? Math.max(0, cur.views - ownedBase(songs, snaps, id)) : null };
   }).sort((a,b) => {
@@ -515,7 +523,7 @@ function render(){
       <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>오늘 예상(추정)</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>이번 달 실측 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
     </tr></thead><tbody>` +
     sortedRows().map(r => `<tr>
-      <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a>${r.adViews ? " <span class='muted' title='광고 조회 포함 — 합계·예상에서 제외'>📢</span>" : ""}${r.adNow ? " <span class='muted' title='광고 집행 중 — 그 기간 합계·수익에서 제외'>📣</span>" : ""}${r.pending ? " <span class='muted' title='인접권 정리 전 — 추적만, 합계·수익에서 제외'>⏸</span>" : ""}</td>
+      <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a>${r.adViews && !hiddenAdBadgeIds.has(r.id) ? " <span class='muted' title='광고 조회 포함 — 합계·예상에서 제외'>📢</span>" : ""}${r.adNow && !hiddenAdBadgeIds.has(r.id) ? " <span class='muted' title='광고 집행 중 — 그 기간 합계·수익에서 제외'>📣</span>" : ""}${r.pending ? " <span class='muted' title='인접권 정리 전 — 추적만, 합계·수익에서 제외'>⏸</span>" : ""}</td>
       <td class="delta up">${liveBy[r.id]!=null ? "+"+nf.format(liveBy[r.id]) : "<span class='muted'>—</span>"}</td>
       <td class="delta" style="color:var(--muted)">${ydayBy[r.id]!=null ? "+"+nf.format(ydayBy[r.id]) : "<span class='muted'>—</span>"}</td>
       <td>${(() => {
@@ -654,7 +662,7 @@ function renderMonthly(snaps, songs, ids){
   // 광고 조회 곡(📢)은 수치 자체가 광고라 월별 표에서 아예 뺀다 (합계에서도 이미 빠져 있음)
   const monIds = ids.filter(id => !songs[id].adViews);
   for(const id of monIds){
-    html += `<tr><td class="song"><a href="${songs[id].url}" target="_blank">${escapeHtml(songs[id].title)}</a>` +
+    html += `<tr><td class="song"><a href="${songs[id].url}" target="_blank">${escapeHtml(songTitle(songs, id))}</a>` +
       (songs[id].pending ? " <span class='muted'>⏸</span>" : "") + `</td>`;
     for(const m of months){
       const v = perMonth[m][id];
@@ -742,7 +750,7 @@ function renderNewCompare(snaps, songs, ids){
       data: { labels, datasets: series.map(s => {
         const arr = new Array(maxX + 1).fill(null);
         for(const p of s.points) arr[p.x] = p.y;
-        return { label: songs[s.id].title, data: arr, borderColor: s.c,
+        return { label: songTitle(songs, s.id), data: arr, borderColor: s.c,
           backgroundColor: s.c + "22", fill: false, tension: 0.3, spanGaps: true,
           borderWidth: 2, pointRadius: labels.length > 120 ? 1.5 : 2.6,
           pointHoverRadius: 6, pointHitRadius: 14 };
@@ -769,7 +777,7 @@ function renderNewCompare(snaps, songs, ids){
       const b = document.createElement("button");
       const on = state.sel.has(id);
       b.className = "tbtn" + (on ? " active" : "");
-      b.textContent = `${songs[id].title} (${songs[id].release.slice(2)})`;
+      b.textContent = `${songTitle(songs, id)} (${songs[id].release.slice(2)})`;
       if(on) b.style.borderColor = b.style.color = palette[ids.indexOf(id) % palette.length];
       b.onclick = () => { on ? state.sel.delete(id) : state.sel.add(id); paint(); draw(); };
       box.appendChild(b);
@@ -823,7 +831,7 @@ function renderMktMatrix(snaps, songs, mkIds){
       return `<th>${isStart ? "🚀 " : ""}${mdShort(p.date)}</th>`;
     }).join("") + `</tr></thead><tbody>`;
   for(const id of mkIds){
-    html += `<tr><td class="song"><a href="${songs[id].url}" target="_blank">${escapeHtml(songs[id].title)}</a></td>`;
+    html += `<tr><td class="song"><a href="${songs[id].url}" target="_blank">${escapeHtml(songTitle(songs, id))}</a></td>`;
     for(let i=0;i<recent.length;i++){
       const v = daily(recent[i], id);
       const pv = i>0 ? daily(recent[i-1], id) : null;
@@ -915,7 +923,7 @@ function renderDetail(snaps, songs, ids){
     chart = new Chart(document.getElementById("detail"), {
       type: "line",
       data: { labels: lbl, datasets: [{
-        label: state.sel === "__total__" ? "전체 합계 (지분 반영)" : songs[state.sel].title,
+        label: state.sel === "__total__" ? "전체 합계 (지분 반영)" : songTitle(songs, state.sel),
         data: d, borderColor: c, backgroundColor: c+"2e", fill: true,
         tension: 0.3, spanGaps: true, borderWidth: 2,
         // 날짜마다 작은 동그라미를 항상 찍는다 (기간이 길어도 안 지움) — 어느 날인지 눈으로 찾기 쉽게
@@ -990,7 +998,7 @@ function renderDetail(snaps, songs, ids){
       songBox.appendChild(b);
     };
     mk("전체 합계 (지분 반영)", "__total__");
-    ids.forEach(id => mk(songs[id].title, id));
+    ids.forEach(id => mk(songTitle(songs, id), id));
 
     rangeBox.innerHTML = "";
     for(const [label, days] of RANGES){
@@ -1043,7 +1051,7 @@ function renderHourly(songs, ids){
 
   const facets = [
     { title: "전체 합계 (지분 반영)", color: "#c3c2b7", today: totalOf(today), yday: totalOf(yday) },
-    ...ids.map((id, idx) => ({ title: songs[id].title, color: palette[idx % palette.length],
+    ...ids.map((id, idx) => ({ title: songTitle(songs, id), color: palette[idx % palette.length],
       today: seriesOf(today, id), yday: seriesOf(yday, id) })),
   ];
 
@@ -1120,7 +1128,7 @@ function renderSmallMultiples(snaps, songs, ids, opts = {}){
   });
   const facets = [
     ...(includeTotal ? [{ title: "전체 합계 (지분 반영)", data: totals, color: "#c3c2b7" }] : []),
-    ...ids.map((id,idx) => ({ title: songs[id].title, data: seriesFor(id),
+    ...ids.map((id,idx) => ({ title: songTitle(songs, id), data: seriesFor(id),
       color: palette[(colorOffset+idx)%palette.length],
       start: emphasizeStart ? songs[id].start : null })),
   ];
@@ -1215,7 +1223,7 @@ function renderDailyMatrix(snaps, songs, ids){
   let html = `<table><thead><tr><th>곡</th>` +
     recent.map(p => `<th>${p.label}</th>`).join("") + `</tr></thead><tbody>`;
   for(const id of order){
-    html += `<tr><td class="song"><a href="${songs[id].url}" target="_blank">${escapeHtml(songs[id].title)}</a></td>`;
+    html += `<tr><td class="song"><a href="${songs[id].url}" target="_blank">${escapeHtml(songTitle(songs, id))}</a></td>`;
     for(let i=0;i<recent.length;i++){
       const v = daily(recent[i], id);
       const pv = i>0 ? daily(recent[i-1], id) : null;
