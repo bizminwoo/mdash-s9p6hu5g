@@ -413,8 +413,6 @@ function render(){
     dViewsPctBadge = ` <span class="dchg ${cls}" style="font-size:13px">${arrow}${Math.abs(pct).toFixed(1)}% <span class="muted">전일비</span></span>`;
   }
   const sumDLikes = sRows.reduce((s,r)=> s + (r.dLikes||0), 0);
-  // 누적 총 조회수 = 인수 전 조회수를 뺀 '우리 몫'만 합산 (2026-09-02 민우님 지시)
-  const sumViews = Math.round(sRows.reduce((s,r)=> s + (r.viewsOwned||0) * r.w, 0));
   const sumRevenue = Math.round(sRows.reduce((s,r)=> s + (r.revenue||0), 0));
   const dayLabel = prev ? " ("+mdShort(prev.date)+")" : "";
   const curClock = cur?.time ? cur.time.slice(11) : "";
@@ -453,6 +451,23 @@ function render(){
     monthBadge = ` <span class="dchg ${cls}" style="font-size:13px">${arrow}${Math.abs(pct).toFixed(1)}% <span class="muted">${pm.m}월 같은 기간비</span></span>`;
   }
 
+  // 💰 저번달 수익 (보유분) = 지난달 확정 스트리밍 × 스트림당 단가 × 지분 (2026-09-10 민우님 지시)
+  //   선급곡(지분 0)은 제외, 광고·보류 기간은 "그날 기준"으로 제외 — 월별 표와 같은 규칙.
+  const lastMonthRevenue = (() => {
+    let sum = 0, any = false;
+    for(let i=1;i<snaps.length;i++){
+      const [y,m] = snaps[i-1].date.split("-").map(Number);
+      if(y !== pm.y || m !== pm.m) continue;
+      for(const r of rows){
+        if(!r.share) continue;
+        if(exSumOn(songs, r.id, snaps[i-1].date)) continue;
+        const a = snaps[i-1].stats[r.id], b = snaps[i].stats[r.id];
+        if(a && b && a.views!=null && b.views!=null){ sum += (b.views - a.views) * PER_STREAM * r.share; any = true; }
+      }
+    }
+    return any ? Math.round(sum) : null;
+  })();
+
   const cards = [
     ["오늘 현재까지"+(liveHour!=null ? ` (00시→${liveHour}시 기준)` : ""), (liveSum!=null ? nf.format(liveSum) : "—") + liveCmp, "회"],
     ["어제 동시간대"+(ydayHour!=null ? ` (00시→${ydayHour}시 기준)` : ""), ydaySum!=null ? nf.format(ydaySum) : "—", "회"],
@@ -460,7 +475,7 @@ function render(){
     ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) + dViewsPctBadge : "—", "회"],
     [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
     ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
-    ["누적 총 조회수 (보유분)", nf.format(sumViews), "회"],
+    [`저번달 수익 (${pm.m}월, 보유분)`, lastMonthRevenue!=null ? won(lastMonthRevenue) : "—", ""],
     [`이번 달 총 스트리밍 (${M}월${thisMonth ? `, 1~${thisMonth.lastDay}일` : ""})`,
       thisMonth ? nf.format(thisMonth.sum) + monthBadge : "—", "회"],
   ];
