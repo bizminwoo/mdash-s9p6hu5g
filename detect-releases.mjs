@@ -134,6 +134,7 @@ async function main() {
     comps.map((c) => (typeof c === "string" ? vidOf(c) : vidOf(c.url))).filter(Boolean));
   const cutoff = Date.now() - WINDOW_DAYS * 86400000;
   const added = [];
+  const newEntries = []; // 새로 감지된 곡 — 목록 맨 앞(최신이 위)에 넣는다 (2026-09-10 민우님 지시)
 
   for (const a of ARTISTS) {
     let vids;
@@ -148,11 +149,13 @@ async function main() {
         title: `${a.name} - ${v.title}`,
         likes: true, likesTrack: true, autoAdded: true, addedAt: localDate(),
       };
-      comps.push(entry);
+      newEntries.push(entry);
       have.add(v.id);
       added.push({ id: v.id, title: entry.title, published: (v.published || "").slice(0, 10) });
     }
   }
+
+  if (newEntries.length) comps.unshift(...newEntries);
 
   if (added.length) {
     save(COMP, JSON.stringify(comps, null, 2) + "\n", "utf8");
