@@ -1,4 +1,4 @@
-// 매시간 실행 → 각 곡의 총 조회수/좋아요를 수집해 저장하고 index.html(대시보드) + bep.html 갱신
+// 매시간 실행 → 각 곡의 총 조회수/좋아요를 수집해 저장하고 index.html(대시보드) + ai.html 갱신
 // 조회수 수집: YT_API_KEY 환경변수가 있으면 YouTube 공식 Data API(배치), 없으면 yt-dlp(로컬 PC 폴백)
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -269,19 +269,9 @@ async function main() {
   // ai.html (AI 음원 대시보드) 생성 — 같은 템플릿, 분리된 데이터
   await buildAi(renderOnly, tpl);
 
-  // bep.html 생성 (상단 탭에서는 뺐지만 주소로는 계속 접근 가능)
-  const BEP_TEMPLATE = join(ROOT, "bep.template.html");
-  if (existsSync(BEP_TEMPLATE)) {
-    const EXP_FILE = join(ROOT, "experiments.json");
-    const experiments = existsSync(EXP_FILE) ? JSON.parse(readFileSync(EXP_FILE, "utf8")) : [];
-    writeFileSync(join(ROOT, "bep.html"),
-      readFileSync(BEP_TEMPLATE, "utf8")
-        .replace("/*__DATA__*/ null", () => JSON.stringify(db))
-        .replace("/*__EXP__*/ null", () => JSON.stringify(experiments))
-        .replace("<!--__NAV__-->", () => navHtml("bep.html")), "utf8");
-  }
+  // 마케팅 BEP 페이지는 2026-09-10 민우님 지시로 삭제됨 (experiments.json 데이터는 보존)
 
-  console.log(`[완료] 저장: data/snapshots.json + data/ai-snapshots.json,  페이지: index.html + ai.html + bep.html`);
+  console.log(`[완료] 저장: data/snapshots.json + data/ai-snapshots.json,  페이지: index.html + ai.html`);
 }
 
 await main();
