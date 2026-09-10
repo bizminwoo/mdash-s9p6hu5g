@@ -451,25 +451,36 @@ function render(){
     monthBadge = ` <span class="dchg ${cls}" style="font-size:13px">${arrow}${Math.abs(pct).toFixed(1)}% <span class="muted">${pm.m}월 같은 기간비</span></span>`;
   }
 
-  // 💰 저번달 수익 = 지난달 확정 스트리밍 × 스트림당 단가 × 지분 (2026-09-10 민우님 지시)
+  // 💰 월별 수익 = 그 달 확정 스트리밍 × 스트림당 단가 × 지분 (2026-09-10 민우님 지시)
   //   두 값 표기: 선급포함(선급곡 수익을 100% 기준으로 더한 값) / 미포함(순수 내 몫).
   //   마케팅 트랙은 rows에 없어 자동 제외. 광고·보류 기간은 "그날 기준"으로 제외 — 월별 표와 같은 규칙.
-  const lastMonthRevenue = (() => {
-    let own = 0, adv = 0, any = false;
+  //   카드의 ◀▶ 로 과거 달을 넘겨볼 수 있다. 기본은 저번달.
+  const monthRevenue = (yy, mm) => {
+    let own = 0, adv = 0, any = false; const dset = new Set();
     for(let i=1;i<snaps.length;i++){
       const [y,m] = snaps[i-1].date.split("-").map(Number);
-      if(y !== pm.y || m !== pm.m) continue;
+      if(y !== yy || m !== mm) continue;
       for(const r of rows){
         if(exSumOn(songs, r.id, snaps[i-1].date)) continue;
         const a = snaps[i-1].stats[r.id], b = snaps[i].stats[r.id];
         if(!(a && b && a.views!=null && b.views!=null)) continue;
         const inc = (b.views - a.views) * PER_STREAM;
         if(r.share) own += inc * r.share; else adv += inc; // 선급곡(지분 0)은 100% 기준 참고치
-        any = true;
+        any = true; dset.add(snaps[i-1].date);
       }
     }
-    return any ? { incl: Math.round(own + adv), excl: Math.round(own) } : null;
-  })();
+    if(!any) return null;
+    const ds = [...dset].sort();
+    return { incl: Math.round(own + adv), excl: Math.round(own), from: ds[0], to: ds[ds.length-1] };
+  };
+  // 넘겨볼 수 있는 달: 데이터가 있는 첫 달 ~ 지난달
+  const revMonths = [];
+  { const seen = new Set();
+    for(const s of snaps){ const [y,m] = s.date.split("-").map(Number);
+      if(y > pm.y || (y === pm.y && m > pm.m)) continue;
+      const k = y+"-"+m; if(!seen.has(k)){ seen.add(k); revMonths.push({y, m}); } } }
+  let revIdx = revMonths.length - 1; // 기본: 저번달
+  const lastMonthRevenue = revMonths.length ? monthRevenue(pm.y, pm.m) : null;
   const manwon = v => nf.format(Math.round(v / 10000)) + "만원";
 
   const cards = [
@@ -479,13 +490,33 @@ function render(){
     ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) + dViewsPctBadge : "—", "회"],
     [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
     ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
-    [`저번달 수익 (${pm.m}월, 선급포함/미포함)`,
-      lastMonthRevenue!=null ? manwon(lastMonthRevenue.incl)+"/"+manwon(lastMonthRevenue.excl) : "—", ""],
+    [`<button id="lmPrev" style="cursor:pointer;background:transparent;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:11px;padding:1px 6px">◀</button> <span id="lmRevLabel">저번달 수익</span> <button id="lmNext" style="cursor:pointer;background:transparent;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:11px;padding:1px 6px">▶</button>`,
+      `<span id="lmRevVal">—</span>`, ""],
     [`이번 달 총 스트리밍 (${M}월${thisMonth ? `, 1~${thisMonth.lastDay}일` : ""})`,
       thisMonth ? nf.format(thisMonth.sum) + monthBadge : "—", "회"],
   ];
   document.getElementById("cards").innerHTML = cards.map(c =>
     `<div class="card"><div class="label">${c[0]}</div><div class="value">${c[1]}<span class="unit">${c[2]}</span></div></div>`).join("");
+
+  // 월별 수익 카드 ◀▶ 넘기기
+  const renderLmRev = () => {
+    const mo = revMonths[revIdx];
+    const lbl = document.getElementById("lmRevLabel"), val = document.getElementById("lmRevVal");
+    const bp = document.getElementById("lmPrev"), bn = document.getElementById("lmNext");
+    if(!mo){ if(lbl) lbl.textContent = "저번달 수익"; return; }
+    const r = monthRevenue(mo.y, mo.m);
+    const isLast = mo.y === pm.y && mo.m === pm.m;
+    const yTxt = mo.y !== Y ? mo.y + "년 " : "";
+    // 그 달 1일부터 데이터가 없으면(수집 시작 전) 며칠부터인지 표시
+    const partial = r && !r.from.endsWith("-01") ? ` · ${mdShort(r.from)}부터` : "";
+    lbl.textContent = `${isLast ? "저번달 수익 (" : "수익 ("}${yTxt}${mo.m}월${partial}, 선급포함/미포함)`;
+    val.textContent = r ? manwon(r.incl) + "/" + manwon(r.excl) : "—";
+    bp.style.visibility = revIdx > 0 ? "visible" : "hidden";
+    bn.style.visibility = revIdx < revMonths.length - 1 ? "visible" : "hidden";
+  };
+  document.getElementById("lmPrev").onclick = () => { if(revIdx > 0){ revIdx--; renderLmRev(); } };
+  document.getElementById("lmNext").onclick = () => { if(revIdx < revMonths.length - 1){ revIdx++; renderLmRev(); } };
+  renderLmRev();
 
   // "몇 분 전 수집" 실시간 갱신
   if(cur?.time){
