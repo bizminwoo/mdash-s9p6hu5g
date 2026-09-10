@@ -5,6 +5,17 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
+const DRY_RUN = process.argv.includes('--dry-run');
+const failures = [];
+function fail(scope, error) {
+  failures.push(scope);
+  console.error(`[감시 실패] ${scope}: ${String(error.message || error).split('\n')[0]}`);
+  process.exitCode = 1;
+}
+function save(path, content, encoding) {
+  if (DRY_RUN) console.log(`[dry-run] 저장 생략: ${path}`);
+  else writeFileSync(path, content, encoding);
+}
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const COMP = join(ROOT, "competitors.json");
 const LOG = join(ROOT, "data", "new-releases.json");
@@ -63,6 +74,7 @@ async function uploadsFeed(cid) {
   if (!res.ok) throw new Error("업로드 목록 HTTP " + res.status);
   const html = await res.text();
   const ids = [...new Set([...html.matchAll(/"videoId":"([A-Za-z0-9_-]{11})"/g)].map((m) => m[1]))];
+  if (!ids.length) throw new Error('업로드 목록 파싱 결과 없음 — 신곡 없음으로 판단 불가');
   const out = [];
   for (const id of ids.slice(0, 8)) {   // 최근 것만 확인 (오래된 카탈로그는 어차피 창 밖)
     try {
@@ -70,11 +82,13 @@ async function uploadsFeed(cid) {
         method: "POST", headers: { "Content-Type": "application/json", "User-Agent": UA },
         body: JSON.stringify({ context: { client: { clientName: "WEB", clientVersion: "2.20260101.00.00", hl: "ko", gl: "KR" } }, videoId: id }),
       });
+      if (!p.ok) throw new Error('player HTTP ' + p.status);
       const d = await p.json();
       const title = d?.videoDetails?.title;
       const pub = d?.microformat?.playerMicroformatRenderer?.publishDate;
-      if (title) out.push({ id, title, published: pub || "" });
-    } catch { /* 한 곡 실패는 넘어간다 */ }
+      if (!title || !pub) throw new Error('제목 또는 발행일 확인 불가');
+      out.push({ id, title, published: pub });
+    } catch (e) { fail(`player ${id}`, e); }
   }
   return out;
 }
@@ -124,7 +138,7 @@ async function main() {
   for (const a of ARTISTS) {
     let vids;
     try { vids = await feed(a.channelId); }
-    catch (e) { console.log(`  ✗ ${a.name} RSS 실패: ${e.message}`); continue; }
+    catch (e) { fail(a.name, e); continue; }
     for (const v of vids) {
       if (have.has(v.id) || isInst(v.title)) continue;
       const pub = Date.parse(v.published);
@@ -141,15 +155,15 @@ async function main() {
   }
 
   if (added.length) {
-    writeFileSync(COMP, JSON.stringify(comps, null, 2) + "\n", "utf8");
+    save(COMP, JSON.stringify(comps, null, 2) + "\n", "utf8");
     let log = [];
     if (existsSync(LOG)) { try { log = JSON.parse(readFileSync(LOG, "utf8")); } catch {} }
     log.push({ detectedAt: localDate(), items: added });
-    writeFileSync(LOG, JSON.stringify(log, null, 2) + "\n", "utf8");
+    save(LOG, JSON.stringify(log, null, 2) + "\n", "utf8");
     console.log(`[신곡감지] ${added.length}곡 추가:`);
     for (const x of added) console.log(`  + ${x.title} (${x.published})`);
   } else {
-    console.log("[신곡감지] 새 곡 없음");
+    console.log(failures.length ? '[신곡감지] 일부 조회 실패 — 신곡 유무 미확인' : '[신곡감지] 새 곡 없음');
   }
 
   // ── 우리 종이별 신곡 자동 등록 (종이별-Topic 채널 → ai-songs.json) ──
@@ -169,12 +183,12 @@ async function main() {
       ownAdded.push("종이별 - " + v.title);
     }
     if (ownAdded.length) {
-      writeFileSync(AI, JSON.stringify(ai, null, 2) + "\n", "utf8");
+      save(AI, JSON.stringify(ai, null, 2) + "\n", "utf8");
       console.log(`[종이별 신곡] ${ownAdded.length}곡 ai.html 등록: ` + ownAdded.join(", "));
     } else {
       console.log("[종이별 신곡] 새 곡 없음");
     }
-  } catch (e) { console.log("[종이별 신곡] 실패:", String(e.message).split("\n")[0]); }
+  } catch (e) { fail('종이별', e); }
 
   // ── 로코베리 키워드 감지 — 자동 등록하지 않고 "후보"만 출력 (2026-08-19 민우님 지시: 발견되면 물어보고, 등록은 직접 준 링크로만)
   try {
@@ -196,11 +210,12 @@ async function main() {
       seenIds.add(v.id);
     }
     if (found.length) {
-      writeFileSync(CAND, JSON.stringify([...seenCand, ...found], null, 2) + "\n", "utf8");
+      save(CAND, JSON.stringify([...seenCand, ...found], null, 2) + "\n", "utf8");
       console.log(`[로코베리 후보] ${found.length}곡 발견 — 자동등록 안 함, 민우님 확인 필요:`);
       for (const x of found) console.log(`  ? ${x.title} https://www.youtube.com/watch?v=${x.id}`);
     } else { console.log("[로코베리] 새 곡 없음"); }
-  } catch (e) { console.log("[로코베리] 실패:", String(e.message).split("\n")[0]); }
+  } catch (e) { fail('로코베리', e); }
 }
 
 await main();
+console.log(JSON.stringify({ dryRun: DRY_RUN, status: failures.length ? 'failed' : 'ok', failedScopes: failures }));
