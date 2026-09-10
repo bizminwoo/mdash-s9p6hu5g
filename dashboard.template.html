@@ -180,8 +180,8 @@ function estAt(id, dateStr, hour){
 }
 
 
-// 예상 수익 기준: 하루 1,000회 스트리밍 ≈ 한 달 250,000원
-const WON_PER_1000_DAILY = 250000;
+// 예상 수익 기준: 스트리밍 1회당 6.3원 (민우님 지정, 2026-09-10) — 하루 1,000회 ≈ 한 달 189,000원
+const WON_PER_1000_DAILY = 189000;
 function estMonthly(dailyViews){
   if(dailyViews == null) return null;
   return Math.round(dailyViews / 1000 * WON_PER_1000_DAILY);
@@ -378,7 +378,7 @@ function render(){
   //   이번 달 실측 일평균 × 그 달 일수 = 예상 월 스트리밍 → × 스트림당 단가 × 지분
   const [Y, M] = (prev ? prev.date : latest.date).split("-").map(Number);
   const daysInMonth = new Date(Y, M, 0).getDate();
-  const PER_STREAM = WON_PER_1000_DAILY / (1000 * 30); // 스트림당 원 (하루 1,000회≈월 25만원 기준 환산)
+  const PER_STREAM = WON_PER_1000_DAILY / (1000 * 30); // 스트림당 원 = 6.3원 (민우님 지정 단가)
   const monthProj = (id) => {
     let mtd = 0, days = 0;
     for(let i=1;i<snaps.length;i++){
