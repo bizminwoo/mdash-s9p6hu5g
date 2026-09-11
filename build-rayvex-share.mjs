@@ -1,4 +1,4 @@
-// 레이벡스 음원(공유용) 페이지 생성 — 2026-09-10 민우님 지시
+// 레이벡스 음원(공유용) 페이지 생성 — 2026-09-10 민우님 지시, 09-11 좋아요·구매내역 추가
 // data/trending.json 의 group:"test"(-레이벡스 음원-) 곡만 뽑아,
 // 외부 공유 가능한 독립 페이지(share-rayvex/index.html)를 만든다.
 // 이 페이지에는 수익·지분·다른 곡·대시보드 링크를 절대 넣지 않는다.
@@ -9,11 +9,14 @@ import { fileURLToPath } from "node:url";
 const ROOT = dirname(fileURLToPath(import.meta.url));
 const DB = JSON.parse(readFileSync(join(ROOT, "data", "trending.json"), "utf8"));
 const comps = JSON.parse(readFileSync(join(ROOT, "competitors.json"), "utf8"));
+const BUYS_FILE = join(ROOT, "likes-purchases.json");
+const buys = existsSync(BUYS_FILE) ? JSON.parse(readFileSync(BUYS_FILE, "utf8")) : {};
 
 const vidOf = (u) => { const m = String(u).match(/[?&]v=([\w-]{11})|youtu\.be\/([\w-]{11})/); return m ? (m[1] || m[2]) : null; };
 const nf = new Intl.NumberFormat("ko-KR");
 const fmt = (n) => (n == null ? "<span class='zero'>—</span>" : nf.format(n));
 const dstr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const mdShort = (s) => { const [,m,d] = s.split("-"); return Number(m)+"/"+Number(d); };
 
 // -레이벡스 음원- 곡: competitors.json 의 group:"test" 순서 그대로
 const ids = comps.filter((e) => e.group === "test").map((e) => vidOf(e.url)).filter(Boolean);
@@ -25,28 +28,46 @@ const days = [];
 { const base = new Date(today + "T00:00:00");
   for (let i = 13; i >= 0; i--) days.push(dstr(new Date(base.getTime() - i * 86400000))); }
 
-// 그날 하루 스트리밍 (오늘은 현재까지) — 대시보드와 같은 계산
-const dailyOf = (id, d) => {
-  const a = byDate[d]?.stats?.[id]?.views;
+// 그날 하루 증가분 (오늘은 현재까지) — 대시보드와 같은 계산. field: "views" | "likes"
+const dailyOf = (id, d, field = "views") => {
+  const a = byDate[d]?.stats?.[id]?.[field];
   if (a == null) return null;
-  const b = d === today ? DB.current?.stats?.[id]?.views : byDate[nextDay(d)]?.stats?.[id]?.views;
+  const b = d === today ? DB.current?.stats?.[id]?.[field] : byDate[nextDay(d)]?.stats?.[id]?.[field];
   return b == null ? null : b - a;
 };
 
+// 그날이 좋아요 구매 기간(from~at, from 없으면 at 하루)에 들어가는지
+const buyOn = (id, d) => (buys[id] || []).some((b) => {
+  const from = b.from || b.at, to = b.at;
+  return from && to && d >= from && d <= to;
+});
+
 const head = "<tr><th class='song'>곡</th>" +
-  days.map((d) => "<th>" + d.slice(5).replace("-", "/") + (d === today ? "<br>오늘(현재)" : "") + "</th>").join("") +
-  "<th>총 조회수</th></tr>";
+  days.map((d) => "<th>" + mdShort(d) + (d === today ? "<br>오늘(현재)" : "") + "</th>").join("") +
+  "<th>총 조회수</th><th>총 좋아요</th><th class='buys'>좋아요 구매</th></tr>";
 
 const rows = ids.map((id) => {
   const v = DB.videos[id] || {};
   const cells = days.map((d) => {
-    const n = dailyOf(id, d);
-    return "<td class='" + (d === today ? "today" : "") + "'>" + fmt(n) + "</td>";
+    const n = dailyOf(id, d, "views");
+    const lk = dailyOf(id, d, "likes");
+    const isBuy = buyOn(id, d);
+    const cls = [d === today ? "today" : "", isBuy ? "buyday" : ""].filter(Boolean).join(" ");
+    let inner = fmt(n);
+    if (lk != null && lk !== 0) inner += "<span class='lk'>♥" + (lk > 0 ? "+" : "") + nf.format(lk) + "</span>";
+    if (isBuy) inner += "<span class='buymark'>💜구매</span>";
+    return "<td class='" + cls + "'>" + inner + "</td>";
   }).join("");
   const total = DB.current?.stats?.[id]?.views;
+  const totalLikes = DB.current?.stats?.[id]?.likes;
+  const buyList = (buys[id] || []).map((b) => {
+    const period = b.from && b.from !== b.at ? mdShort(b.from) + "~" + mdShort(b.at) : mdShort(b.at);
+    return period + (b.n != null ? " · " + nf.format(b.n) + "개" : "");
+  }).join("<br>") || "<span class='zero'>—</span>";
   return "<tr><td class='song'><a href='https://youtu.be/" + id + "' target='_blank'>" + (v.title || id) + "</a>" +
     "<span class='artist'>" + (v.artist || "") + (v.release ? " · " + v.release + " 발매" : "") + "</span></td>" +
-    cells + "<td><b>" + fmt(total) + "</b></td></tr>";
+    cells + "<td><b>" + fmt(total) + "</b></td><td><b>" + fmt(totalLikes) + "</b></td>" +
+    "<td class='buys'>" + buyList + "</td></tr>";
 }).join("");
 
 const updated = DB.current?.time || "";
@@ -56,7 +77,7 @@ const html = `<!doctype html>
 <meta name="robots" content="noindex">
 <title>레이벡스 음원 스트리밍 현황</title>
 <style>
-  :root { --bg:#0f1115; --panel:#161a22; --line:#242a36; --text:#e8ebf1; --muted:#8b93a3; }
+  :root { --bg:#0f1115; --panel:#161a22; --line:#242a36; --text:#e8ebf1; --muted:#8b93a3; --buy:#7C5CD6; }
   * { box-sizing:border-box; }
   body { margin:0; padding:28px 20px 60px; background:var(--bg); color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
@@ -64,7 +85,7 @@ const html = `<!doctype html>
   .sub { color:var(--muted); font-size:13px; margin-bottom:20px; }
   .wrap { overflow-x:auto; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
   table { width:100%; border-collapse:collapse; font-size:13.5px; white-space:nowrap; }
-  th,td { text-align:right; padding:9px 14px; border-bottom:1px solid var(--line); }
+  th,td { text-align:right; padding:9px 12px; border-bottom:1px solid var(--line); }
   tr:last-child td { border-bottom:none; }
   th { color:var(--muted); font-weight:600; font-size:12px; }
   th.song,td.song { text-align:left; position:sticky; left:0; background:var(--panel); }
@@ -72,13 +93,18 @@ const html = `<!doctype html>
   td.song a:hover { text-decoration:underline; }
   .artist { display:block; color:var(--muted); font-size:11.5px; margin-top:2px; }
   td.today { background:rgba(57,135,229,0.10); }
+  td.buyday { background:rgba(124,92,214,0.16); box-shadow:inset 0 2px 0 rgba(124,92,214,0.6); }
+  .lk { display:block; color:#e66790; font-size:11px; margin-top:2px; }
+  .buymark { display:block; color:var(--buy); font-size:10.5px; font-weight:700; margin-top:2px; }
+  th.buys,td.buys { text-align:left; font-size:12px; color:var(--buy); }
   .zero { color:#4a5162; }
-  .note { color:var(--muted); font-size:12px; margin-top:14px; line-height:1.6; }
+  .note { color:var(--muted); font-size:12px; margin-top:14px; line-height:1.7; }
 </style></head><body>
 <h1>🎵 레이벡스 음원 스트리밍 현황</h1>
 <div class="sub">유튜브뮤직 기준 · 마지막 갱신 ${updated} (KST) · 매시간 자동 갱신</div>
 <div class="wrap"><table><thead>${head}</thead><tbody>${rows}</tbody></table></div>
-<div class="note">숫자는 각 곡 유튜브 아트트랙의 일별 조회수 증가분입니다. "오늘(현재)" 칸은 오늘 0시부터 마지막 갱신 시각까지의 수치입니다.</div>
+<div class="note">숫자는 각 곡 유튜브 아트트랙의 일별 조회수 증가분, ♥는 그날 좋아요 증가분입니다. "오늘(현재)" 칸은 오늘 0시부터 마지막 갱신 시각까지의 수치입니다.<br>
+💜 보라색 칸 = 좋아요 구매를 넣은 날짜(구간). 좋아요 수 집계는 2026-09-11부터 시작되어 이전 날짜에는 ♥ 표시가 없습니다.</div>
 </body></html>
 `;
 
