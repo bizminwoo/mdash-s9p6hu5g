@@ -206,7 +206,7 @@ async function main() {
   if (existsSync(DATA_FILE)) db = JSON.parse(readFileSync(DATA_FILE, "utf8"));
 
   // songs.json 의 제목/수익비율(share)/광고플래그(adViews)/보류플래그(pending)/광고기간(adFrom·adTo)을 항상 반영
-  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo } of songs) {
+  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo, adViewsByDay } of songs) {
     const vid = vidOf(url);
     db.songs[vid] = { ...(db.songs[vid] || {}), url,
       ...(title ? { title } : {}), share: share == null ? 1 : share };
@@ -217,6 +217,8 @@ async function main() {
     // 광고 집행 기간 — 그 기간 조회수는 합계·수익에서 뺀다 (adTo 없으면 진행 중)
     if (adFrom) db.songs[vid].adFrom = adFrom; else delete db.songs[vid].adFrom;
     if (adTo) db.songs[vid].adTo = adTo; else delete db.songs[vid].adTo;
+    // 부분 광고 조회 차감표 — 그날 증가분에서 광고분만 빼고 합계·수익에 넣는다 (2026-09-13)
+    if (adViewsByDay) db.songs[vid].adViewsByDay = adViewsByDay; else delete db.songs[vid].adViewsByDay;
     if (release) db.songs[vid].release = release;   // 발매일 (신곡 비교의 기준점)
   }
   // 마케팅 트랙 반영 + marketing.json 에서 빠진 트랙은 목록에서 제거
