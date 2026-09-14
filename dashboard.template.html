@@ -428,6 +428,8 @@ function render(){
   }
   const sumDLikes = sRows.reduce((s,r)=> s + (r.dLikes||0), 0);
   const sumRevenue = Math.round(sRows.reduce((s,r)=> s + (r.revenue||0), 0));
+  // 선급포함 = 내 몫 + 선급곡(지분 0)의 100% 기준 예상 수익 참고치 (2026-09-14 민우님 지시)
+  const sumRevenueIncl = Math.round(sRows.reduce((s,r)=> s + (r.share ? (r.revenue||0) : (r.revenueFull||0)), 0));
   const dayLabel = prev ? " ("+mdShort(prev.date)+")" : "";
   const curClock = cur?.time ? cur.time.slice(11) : "";
   // 오늘 현재까지 vs 어제 동시간대 증감 표시
@@ -502,7 +504,8 @@ function render(){
     ["어제 동시간대"+(ydayHour!=null ? ` (00시→${ydayHour}시 기준)` : ""), ydaySum!=null ? nf.format(ydaySum) : "—", "회"],
     ["오늘 하루 예상 (추정)", projSum!=null ? "≈ "+nf.format(projSum) : "—", "회"],
     ["최근 하루 스트리밍"+dayLabel, prev ? nf.format(sumDViews) + dViewsPctBadge : "—", "회"],
-    [`예상 월 수익 (${M}월, 실측 ${projDays}일 기반)`, prev ? won(sumRevenue) : "—", ""],
+    [`예상 월 수익 (${M}월, 실측 ${projDays}일, 선급포함/미포함)`,
+      prev ? manwon(sumRevenueIncl)+"/"+manwon(sumRevenue) : "—", ""],
     ["최근 하루 좋아요"+dayLabel, prev && rows.some(r=>r.dLikes!=null) ? "+"+nf.format(sumDLikes) : "—", ""],
     [`<button id="lmPrev" style="cursor:pointer;background:transparent;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:11px;padding:1px 6px">◀</button> <span id="lmRevLabel">저번달 수익</span> <button id="lmNext" style="cursor:pointer;background:transparent;border:1px solid var(--line);border-radius:6px;color:var(--muted);font-size:11px;padding:1px 6px">▶</button>`,
       `<span id="lmRevVal">—</span>`, ""],
