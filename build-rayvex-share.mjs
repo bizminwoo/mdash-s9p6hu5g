@@ -90,7 +90,7 @@ const rows = ids.map((id) => {
     const cls = [d === today ? "today" : "", isBuy ? "buyday" : ""].filter(Boolean).join(" ");
     let inner = fmt(n);
     if (lk != null && lk !== 0) inner += "<span class='lk'>♥" + (lk > 0 ? "+" : "") + nf.format(lk) + "</span>";
-    if (isBuy) inner += "<span class='buymark'>💜구매</span>";
+    if (isBuy) { const be=(buys[id]||[]).find(b=>{const f=b.from||b.at; return d>=f&&d<=b.at;}); inner += "<span class='buymark'>🛒"+(be&&be.n!=null?nf.format(be.n):'구매')+"</span>"; }
     return "<td class='" + cls + "'>" + inner + "</td>";
   }).join("");
   const total = DB.current?.stats?.[id]?.views;
@@ -128,11 +128,11 @@ const html = `<!doctype html>
   td.song a:hover { text-decoration:underline; }
   .artist { display:block; color:var(--muted); font-size:11.5px; margin-top:2px; }
   td.today { background:rgba(57,135,229,0.10); }
-  td.buyday { background:rgba(124,92,214,0.16); box-shadow:inset 0 2px 0 rgba(124,92,214,0.6); }
+  td.buyday { background:rgba(245,184,61,0.08); box-shadow:inset 3px 0 0 #f5b83d; }
   .lk { display:block; color:#e66790; font-size:11px; margin-top:2px; }
   .totalrow td { background:rgba(57,135,229,0.07); border-bottom:2px solid var(--line); }
-  .buymark { display:block; color:var(--buy); font-size:10.5px; font-weight:700; margin-top:2px; }
-  th.buys,td.buys { text-align:left; font-size:12px; color:var(--buy); }
+  .buymark { display:block; color:#f5b83d; font-size:10.5px; font-weight:700; margin-top:2px; }
+  th.buys,td.buys { text-align:left; font-size:12px; color:var(--text); }
   .zero { color:#4a5162; }
   .note { color:var(--muted); font-size:12px; margin-top:14px; line-height:1.7; }
 </style></head><body>
@@ -140,7 +140,7 @@ const html = `<!doctype html>
 <div class="sub">유튜브뮤직 기준 · 마지막 갱신 ${updated} (KST) · 매시간 자동 갱신</div>
 <div class="wrap"><table><thead>${head}</thead><tbody>${totalRow}${rows}</tbody></table></div>
 <div class="note">숫자는 각 곡 유튜브 아트트랙의 일별 조회수 증가분, ♥는 그날 좋아요 증가분입니다. "오늘(현재)" 칸은 오늘 0시부터 마지막 갱신 시각까지의 수치입니다.<br>
-💜 보라색 칸 = 좋아요 구매를 넣은 날짜(구간). 좋아요 수 집계는 2026-09-11부터 시작되어 이전 날짜에는 ♥ 표시가 없습니다.</div>
+🛒 금색 표시 칸 = 좋아요 구매를 넣은 날짜(숫자는 구매 수량). 좋아요 수 집계는 2026-09-11부터 시작되어 이전 날짜에는 ♥ 표시가 없습니다.</div>
 </body></html>
 `;
 
