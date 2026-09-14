@@ -42,9 +42,44 @@ const buyOn = (id, d) => (buys[id] || []).some((b) => {
   return from && to && d >= from && d <= to;
 });
 
+// 요일 색: 토요일 파란색, 일요일·공휴일 빨간색 (2026-09-14 민우님 지시)
+const HOLIDAYS = new Set([
+  "2026-09-24", "2026-09-25", "2026-09-26",          // 추석 연휴
+  "2026-10-03", "2026-10-05",                          // 개천절 + 대체공휴일(월)
+  "2026-10-09", "2026-12-25", "2027-01-01",           // 한글날, 성탄절, 신정
+]);
+const dayColor = (d) => {
+  const dow = new Date(d + "T00:00:00").getDay();
+  if (dow === 0 || HOLIDAYS.has(d)) return "#ff6b6b";
+  if (dow === 6) return "#4b9fff";
+  return null;
+};
+const dHead = (d) => {
+  const c = dayColor(d);
+  return "<th" + (c ? " style='color:" + c + "'" : "") + ">" + mdShort(d) + (d === today ? "<br>오늘(현재)" : "") + "</th>";
+};
+
 const head = "<tr><th class='song'>곡</th>" +
-  days.map((d) => "<th>" + mdShort(d) + (d === today ? "<br>오늘(현재)" : "") + "</th>").join("") +
+  days.map(dHead).join("") +
   "<th>총 조회수</th><th>총 좋아요</th><th class='buys'>좋아요 구매</th></tr>";
+
+// 맨 위 전곡 합계 행 (하루 단위 전곡 스트리밍, 2026-09-14 민우님 지시)
+const totalRow = (() => {
+  const cells = days.map((d) => {
+    let v = 0, lk = 0, anyV = false, anyL = false;
+    for (const id of ids) {
+      const n = dailyOf(id, d, "views"); if (n != null) { v += n; anyV = true; }
+      const l = dailyOf(id, d, "likes"); if (l != null) { lk += l; anyL = true; }
+    }
+    let inner = anyV ? "<b>" + nf.format(v) + "</b>" : "<span class='zero'>—</span>";
+    if (anyL && lk !== 0) inner += "<span class='lk'>♥" + (lk > 0 ? "+" : "") + nf.format(lk) + "</span>";
+    return "<td class='" + (d === today ? "today" : "") + "'>" + inner + "</td>";
+  }).join("");
+  let tv = 0, tl = 0;
+  for (const id of ids) { tv += DB.current?.stats?.[id]?.views || 0; tl += DB.current?.stats?.[id]?.likes || 0; }
+  return "<tr class='totalrow'><td class='song'><b>전곡 합계</b></td>" + cells +
+    "<td><b>" + nf.format(tv) + "</b></td><td><b>" + nf.format(tl) + "</b></td><td class='buys'></td></tr>";
+})();
 
 const rows = ids.map((id) => {
   const v = DB.videos[id] || {};
@@ -95,6 +130,7 @@ const html = `<!doctype html>
   td.today { background:rgba(57,135,229,0.10); }
   td.buyday { background:rgba(124,92,214,0.16); box-shadow:inset 0 2px 0 rgba(124,92,214,0.6); }
   .lk { display:block; color:#e66790; font-size:11px; margin-top:2px; }
+  .totalrow td { background:rgba(57,135,229,0.07); border-bottom:2px solid var(--line); }
   .buymark { display:block; color:var(--buy); font-size:10.5px; font-weight:700; margin-top:2px; }
   th.buys,td.buys { text-align:left; font-size:12px; color:var(--buy); }
   .zero { color:#4a5162; }
@@ -102,7 +138,7 @@ const html = `<!doctype html>
 </style></head><body>
 <h1>🎵 레이벡스 음원 스트리밍 현황</h1>
 <div class="sub">유튜브뮤직 기준 · 마지막 갱신 ${updated} (KST) · 매시간 자동 갱신</div>
-<div class="wrap"><table><thead>${head}</thead><tbody>${rows}</tbody></table></div>
+<div class="wrap"><table><thead>${head}</thead><tbody>${totalRow}${rows}</tbody></table></div>
 <div class="note">숫자는 각 곡 유튜브 아트트랙의 일별 조회수 증가분, ♥는 그날 좋아요 증가분입니다. "오늘(현재)" 칸은 오늘 0시부터 마지막 갱신 시각까지의 수치입니다.<br>
 💜 보라색 칸 = 좋아요 구매를 넣은 날짜(구간). 좋아요 수 집계는 2026-09-11부터 시작되어 이전 날짜에는 ♥ 표시가 없습니다.</div>
 </body></html>
