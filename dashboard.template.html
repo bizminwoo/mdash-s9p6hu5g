@@ -119,7 +119,7 @@
   <div class="panel">
     <h2>🏢 유통사별 추정 정산 <span class="muted" id="distLabel"></span></h2>
     <div id="distWrap"></div>
-    <div class="note">유통사별로 그 달 확정 스트리밍(광고·보류 제외 규칙 동일)을 모아 <b>× 유통사별 단가 × 지분</b>으로 추정한 <b>내 몫</b> 금액입니다. 단가: <b>지니 5.93원</b>(7월 실측 정산으로 보정) · 나머지 6.3원(실측 들어오면 보정). 선급곡(내 몫 0)은 "선급 회수 중"으로 표시하고 트랙 기준 금액만 참고로 병기합니다. CJ는 정산이 한 달 늦게 입금됩니다(7월분 → 10월말).</div>
+    <div class="note">유통사별로 그 달 확정 스트리밍(광고·보류 제외 규칙 동일)을 모아 <b>× 유통사별 단가 × 지분</b>으로 추정한 <b>내 몫</b> 금액입니다. 단가: <b>지니 5.93원</b>(7월 실측 정산으로 보정) · 나머지 <b>6.0원</b>(실측 들어오면 보정). 선급곡(내 몫 0)은 "선급 회수 중"으로 표시하고 트랙 기준 금액만 참고로 병기합니다. CJ는 정산이 한 달 늦게 입금됩니다(7월분 → 10월말).</div>
   </div>
   <div class="panel">
     <h2>📀 발매 타임라인 <span class="muted">— 최신 발매순, 언제 나온 앨범인지 한눈에</span></h2>
@@ -204,15 +204,15 @@ function estAt(id, dateStr, hour){
 
 
 // 예상 수익 기준: 스트리밍 1회당 6.3원 (민우님 지정, 2026-09-10) — 하루 1,000회 ≈ 한 달 189,000원
-const WON_PER_1000_DAILY = 189000;
+const WON_PER_1000_DAILY = 180000; // 스트림당 6.0원 (2026-09-15 민우님: 기본 단가 6.3→6.0)
 function estMonthly(dailyViews){
   if(dailyViews == null) return null;
   return Math.round(dailyViews / 1000 * WON_PER_1000_DAILY);
 }
 // 유통사별 실측 보정 단가 (2026-09-15 민우님 지시) — 실제 정산서가 들어올 때마다 여기만 갱신.
 // 지니: 7월 실측 3,613,607원 / 예상 3,837,982원(6.3원 기준) → 스트림당 5.93원.
-// 없는 유통사는 기본 6.3원 유지 (CJ는 정산이 한 달 늦어 7월분이 10월말 입금 — 그때 보정 예정).
-const RATE_DEFAULT = WON_PER_1000_DAILY / (1000 * 30); // 6.3원
+// 없는 유통사는 기본 6.0원 (CJ는 정산이 한 달 늦어 7월분이 10월말 입금 — 그때 보정 예정).
+const RATE_DEFAULT = WON_PER_1000_DAILY / (1000 * 30); // 6.0원
 const DIST_RATE = { "지니": 5.93 };
 function rateOf(songs, id){ const d = songs[id] && songs[id].dist; return (d && DIST_RATE[d]) || RATE_DEFAULT; }
 // 곡 이름 밑 발매일 표시 (2026-09-15 민우님: 언제 나온 앨범인지 한눈에) — 30일 이내 신곡은 🆕
