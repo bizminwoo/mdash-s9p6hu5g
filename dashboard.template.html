@@ -442,6 +442,9 @@ function render(){
     for(let i=1;i<snaps.length;i++){
       const [y,m] = snaps[i-1].date.split("-").map(Number);
       if(y !== Y || m !== M) continue; // 이번 달 일자만 집계
+      // 광고 집행 기간(adFrom~adTo) 등 제외일은 실측·일수 계산에서 모두 뺀다
+      // (2026-09-16 민우님 지적: needy 예상 월 수익이 광고 뻥튀기 일자 기준으로 잡혀 있었음)
+      if(exSumOn(songs, id, snaps[i-1].date)) continue;
       const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
       if(a && b && a.views!=null && b.views!=null){ mtd += Math.max(0, b.views - a.views - adCut(songs, id, snaps[i-1].date)); days++; }
     }
@@ -494,6 +497,7 @@ function render(){
       if(y !== yy || m !== mm) continue;
       if(maxDay && d > maxDay) continue;
       for(const r of sRows){
+        if(exSumOn(songs, r.id, snaps[i-1].date)) continue;   // 광고 기간 등 그날 제외
         const a = snaps[i-1].stats[r.id], b = snaps[i].stats[r.id];
         if(a && b && a.views!=null && b.views!=null){ sum += Math.max(0, b.views - a.views - adCut(songs, r.id, snaps[i-1].date)) * r.w; any = true; }
       }
@@ -868,10 +872,16 @@ function renderMonthly(snaps, songs, ids){
   // 그 달 말일 기준으로 제외 여부 판정 — 인접권이 9월부터 우리 것이면 8월 합계엔 안 들어간다
   const monthEnd = (m) => `${m}-${String(new Date(Number(m.slice(0,4)), Number(m.slice(5,7)), 0).getDate()).padStart(2,"0")}`;
   const monthTotal = (m) => {
+    // 일 단위로 제외 여부를 판정한다 — 광고 기간(adFrom~adTo)이 달 중간에 껴 있어도 그 날짜만 뺀다
     let s2 = 0, any = false;
     for(const id of ids){
       if(exSumOn(songs, id, monthEnd(m))) continue;
-      const v = perMonth[m][id]; if(v!=null){ s2 += Math.max(0, v - adCutRange(songs, id, m + "-01", monthEnd(m))) * wOf(songs, id); any = true; }
+      const byDay = dayOfMonth[m][id] || {};
+      for(const [dd,v] of Object.entries(byDay)){
+        const dstr = m + "-" + String(dd).padStart(2,"0");
+        if(exSumOn(songs, id, dstr)) continue;
+        s2 += Math.max(0, v - adCut(songs, id, dstr)) * wOf(songs, id); any = true;
+      }
     }
     return any ? Math.round(s2) : null;
   };
@@ -880,7 +890,12 @@ function renderMonthly(snaps, songs, ids){
     let s2 = 0, any = false;
     for(const id of ids){
       if(exSumOn(songs, id, monthEnd(prev))) continue;
-      const v = prevSame[id]; if(v!=null){ s2 += Math.max(0, v - adCutRange(songs, id, prev + "-01", prev + "-" + String(lastDay).padStart(2,"0"))) * wOf(songs, id); any = true; }
+      for(const [dd,v] of Object.entries(dayOfMonth[prev][id] || {})){
+        if(Number(dd) > lastDay) continue;
+        const dstr = prev + "-" + String(dd).padStart(2,"0");
+        if(exSumOn(songs, id, dstr)) continue;
+        s2 += Math.max(0, v - adCut(songs, id, dstr)) * wOf(songs, id); any = true;
+      }
     }
     return any ? Math.round(s2) : null;
   })();
