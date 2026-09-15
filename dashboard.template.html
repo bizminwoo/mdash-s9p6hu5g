@@ -37,6 +37,14 @@
     border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
   .reldate { color: var(--muted); font-size: 10.5px; font-weight: 400; margin-top: 2px; }
   .reldate.new { color: #f5b83d; font-weight: 600; }
+  .tl-month { color: var(--muted); font-size: 12px; font-weight: 700; margin: 16px 0 6px; }
+  .tl-item { padding: 6px 0 6px 16px; border-left: 2px solid var(--line); margin-left: 5px; position: relative; font-size: 13.5px; }
+  .tl-item::before { content: ""; position: absolute; left: -5px; top: 13px; width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+  .tl-item.new::before { background: #f5b83d; }
+  .tl-item a { color: var(--text); text-decoration: none; font-weight: 600; }
+  .tl-item a:hover { color: var(--accent); }
+  .tl-date { color: var(--muted); font-size: 11.5px; margin-right: 8px; }
+  .tl-views { color: var(--muted); font-size: 11px; margin-left: 8px; }
   td.song a { color: var(--text); text-decoration: none; }
   td.song a:hover { color: var(--accent); }
   .delta { font-weight: 700; }
@@ -112,6 +120,10 @@
     <h2>🏢 유통사별 추정 정산 <span class="muted" id="distLabel"></span></h2>
     <div id="distWrap"></div>
     <div class="note">유통사별로 그 달 확정 스트리밍(광고·보류 제외 규칙 동일)을 모아 <b>× 유통사별 단가 × 지분</b>으로 추정한 <b>내 몫</b> 금액입니다. 단가: <b>지니 5.93원</b>(7월 실측 정산으로 보정) · 나머지 6.3원(실측 들어오면 보정). 선급곡(내 몫 0)은 "선급 회수 중"으로 표시하고 트랙 기준 금액만 참고로 병기합니다. CJ는 정산이 한 달 늦게 입금됩니다(7월분 → 10월말).</div>
+  </div>
+  <div class="panel">
+    <h2>📀 발매 타임라인 <span class="muted">— 최신 발매순, 언제 나온 앨범인지 한눈에</span></h2>
+    <div id="timelineWrap"></div>
   </div>
   <div class="panel">
     <h2>📅 일자별 스트리밍 (최근 10일) <span class="muted">— 각 칸: 그날 하루 스트리밍, ▲▼ 전일 대비 증감</span></h2>
@@ -686,6 +698,8 @@ function render(){
 
   renderDistRevenue(snaps, songs, ids);
 
+  renderReleaseTimeline(songs, ids, latest);
+
   renderDailyMatrix(snaps, songs, ids);
 
   // 월별 스트리밍 표
@@ -780,6 +794,30 @@ function renderDistRevenue(snaps, songs, ids){
     return mn ? `<td class="delta money"><b>${fmtWon(mn)}</b></td>` : `<td><span class='muted'>—</span></td>`;
   }).join("") + `</tr>`;
   wrap.innerHTML = html + `</tbody></table>`;
+}
+
+// 발매 타임라인 (2026-09-15 민우님: 언제 나온 앨범인지 따로 모아 타임라인으로) — 최신 발매순, 월 단위 구분.
+function renderReleaseTimeline(songs, ids, latest){
+  const wrap = document.getElementById("timelineWrap");
+  if(!wrap) return;
+  const items = ids.filter(id => songs[id].release).map(id => ({
+    id, r: songs[id].release, t: songTitle(songs, id), url: songs[id].url,
+    dist: songs[id].dist, views: latest.stats[id]?.views }));
+  items.sort((a,b) => a.r < b.r ? 1 : -1);
+  let html = "", curMonth = "";
+  for(const it of items){
+    const ym = it.r.slice(0,7);
+    if(ym !== curMonth){ curMonth = ym; const [y,m] = ym.split("-");
+      html += `<div class="tl-month">${y}년 ${Number(m)}월</div>`; }
+    const days = Math.floor((Date.now() - new Date(it.r + "T00:00:00")) / 86400000);
+    const isNew = days >= 0 && days <= 30;
+    html += `<div class="tl-item${isNew ? " new" : ""}"><span class="tl-date">${it.r.slice(5).replace("-",".")}</span>` +
+      `<a href="${it.url}" target="_blank">${escapeHtml(it.t)}</a>` +
+      (it.dist ? ` <span class="disttag">${escapeHtml(it.dist)}</span>` : "") +
+      (isNew ? ` <span style="font-size:11px">🆕</span>` : "") +
+      (it.views != null ? `<span class="tl-views">누적 ${nf.format(it.views)}</span>` : "") + `</div>`;
+  }
+  wrap.innerHTML = html || '<div class="empty">발매일 데이터가 없습니다.</div>';
 }
 
 // 월별 스트리밍 표 — 각 달의 하루치 스트리밍을 전부 더한 값.
