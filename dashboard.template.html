@@ -86,6 +86,8 @@
     .multigrid { grid-template-columns: 1fr; }
   }
   .muted { color: var(--muted); }
+  .exval { color: var(--muted); opacity: .55; text-decoration: line-through; font-weight: 400; }
+  .extag { color: #f5b83d; font-size: 10px; font-weight: 700; margin-top: 2px; }
   .chartbox { position: relative; height: 340px; }
   .note { color: var(--muted); font-size: 12px; margin-top: 10px; }
   .empty { color: var(--muted); text-align: center; padding: 40px; }
@@ -309,7 +311,8 @@ function render(){
         const a = estAt(id, latest.date, 0) ?? latest.stats[id]?.views;
         const b = estAt(id, latest.date, H);
         if(a!=null && b!=null){ by[id] = b - a;
-          if(!exSum(songs, id)) sum = (sum||0) + (b - a) * wOf(songs, id); } // 광고 조회·보류 곡은 합계 제외
+          // 광고 조회·보류·광고집행중 곡은 합계 제외 + 부분 광고 차감(adViewsByDay)도 반영
+          if(!exSum(songs, id)) sum = (sum||0) + Math.max(0, (b - a) - adCut(songs, id, todayStr)) * wOf(songs, id); }
       }
       if(sum != null){ liveHour = H; Object.assign(liveBy, by); liveSum = Math.round(sum); break; }
     }
@@ -595,12 +598,14 @@ function render(){
       <td class="delta up">${(() => {
         const v = liveBy[r.id];
         if(v == null) return "<span class='muted'>—</span>";
+        if(r.adNow) return `<span class="exval">+${nf.format(v)}</span><div class="extag">📣 광고 — 합산 제외</div>`;
         const c = adCut(songs, r.id, todayStr);
         if(c > 0) return "+"+nf.format(Math.max(0, v - c))+`<div class="muted" style="font-size:10.5px">📣(${nf.format(v)})</div>`;
         return "+"+nf.format(v);
       })()}</td>
       <td class="delta" style="color:var(--muted)">${ydayBy[r.id]!=null ? "+"+nf.format(ydayBy[r.id]) : "<span class='muted'>—</span>"}</td>
       <td>${(() => {
+        if(r.adNow) return "<span class='muted'>광고 중 — 제외</span>";
         const p = projOf[r.id];
         if(p == null) return "<span class='muted'>—</span>";
         let chg = "";
@@ -612,6 +617,7 @@ function render(){
       })()}</td>
       <td class="delta up">${(() => {
         if(r.dViews == null) return "<span class='muted'>—</span>";
+        if(prev && exSumOn(songs, r.id, prev.date)) return `<span class="exval">+${nf.format(r.dViews)}</span><div class="extag">📣 광고 — 합산 제외</div>`;
         const c = prev ? adCut(songs, r.id, prev.date) : 0;
         const cp = prev2 ? adCut(songs, r.id, prev2.date) : 0;
         const v = Math.max(0, r.dViews - c);
@@ -1282,7 +1288,9 @@ function renderDailyMatrix(snaps, songs, ids){
     return (x && y && x.views!=null && y.views!=null) ? y.views - x.views : null;
   };
   // adOrig = 광고 포함 원본 — 있으면 메인 숫자는 광고 제외분, 아래에 📣(원본) 표기 (2026-09-15 민우님 확정)
-  const cell = (v, prevV, ev, adOrig) => {
+  const cell = (v, prevV, ev, adOrig, ex) => {
+    // ex = 그날 합산 통째 제외(광고 집행 기간) — 숫자는 흐리게 + 제외 표시, 전일비 생략
+    if(ex && v != null) return `<td><span class="exval">${nf.format(v)}</span><div class="extag">📣 제외</div></td>`;
     let mk = "", badge = "";
     if(ev && ev.length){
       const hasBuy = ev.some(e => /구매/.test(e.n));
@@ -1318,7 +1326,7 @@ function renderDailyMatrix(snaps, songs, ids){
       const pc = i>0 ? adCut(songs, id, recent[i-1].a.date) : 0;
       const vAdj = (v != null && c > 0) ? Math.max(0, v - c) : v;
       const pvAdj = (pv != null && pc > 0) ? Math.max(0, pv - pc) : pv;
-      html += cell(vAdj, pvAdj, ev, (v != null && c > 0) ? v : null);
+      html += cell(vAdj, pvAdj, ev, (v != null && c > 0) ? v : null, exSumOn(songs, id, recent[i].a.date));
     }
     html += `</tr>`;
   }
