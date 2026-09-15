@@ -35,6 +35,8 @@
   td.song { font-weight: 600; }
   .disttag { display: inline-block; color: var(--muted); font-size: 10px; font-weight: 400;
     border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 4px; vertical-align: 1px; }
+  .reldate { color: var(--muted); font-size: 10.5px; font-weight: 400; margin-top: 2px; }
+  .reldate.new { color: #f5b83d; font-weight: 600; }
   td.song a { color: var(--text); text-decoration: none; }
   td.song a:hover { color: var(--accent); }
   .delta { font-weight: 700; }
@@ -201,6 +203,20 @@ function estMonthly(dailyViews){
 const RATE_DEFAULT = WON_PER_1000_DAILY / (1000 * 30); // 6.3원
 const DIST_RATE = { "지니": 5.93 };
 function rateOf(songs, id){ const d = songs[id] && songs[id].dist; return (d && DIST_RATE[d]) || RATE_DEFAULT; }
+// 곡 이름 밑 발매일 표시 (2026-09-15 민우님: 언제 나온 앨범인지 한눈에) — 30일 이내 신곡은 🆕
+function relDateTag(release){
+  if(!release) return "";
+  const days = Math.floor((Date.now() - new Date(release + "T00:00:00")) / 86400000);
+  if(days < 0) return "";
+  let age;
+  if(days === 0) age = "오늘 발매";
+  else if(days < 60) age = days + "일 전";
+  else if(days < 730) age = Math.floor(days / 30.44) + "개월 전";
+  else age = Math.floor(days / 365.25) + "년 전";
+  const [y,m,d] = release.split("-");
+  const isNew = days <= 30;
+  return `<div class="reldate${isNew ? " new" : ""}">${y.slice(2)}.${m}.${d} 발매 · ${age}${isNew ? " 🆕" : ""}</div>`;
+}
 function won(v){
   if(v == null) return null;
   if(v >= 100000000) return (v/100000000).toFixed(1).replace(/\.0$/,"") + "억원";
@@ -608,7 +624,7 @@ function render(){
       <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>오늘 예상(추정)</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>이번 달 실측 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
     </tr></thead><tbody>` +
     sortedRows().map(r => `<tr>
-      <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a>${songs[r.id].dist ? ` <span class="disttag">${escapeHtml(songs[r.id].dist)}</span>` : ""}${r.adViews && !hiddenAdBadgeIds.has(r.id) ? " <span class='muted' title='광고 조회 포함 — 합계·예상에서 제외'>📢</span>" : ""}${r.adNow && !hiddenAdBadgeIds.has(r.id) ? " <span class='muted' title='광고 집행 중 — 그 기간 합계·수익에서 제외'>📣</span>" : ""}${r.pending ? " <span class='muted' title='인접권 정리 전 — 추적만, 합계·수익에서 제외'>⏸</span>" : ""}</td>
+      <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a>${songs[r.id].dist ? ` <span class="disttag">${escapeHtml(songs[r.id].dist)}</span>` : ""}${r.adViews && !hiddenAdBadgeIds.has(r.id) ? " <span class='muted' title='광고 조회 포함 — 합계·예상에서 제외'>📢</span>" : ""}${r.adNow && !hiddenAdBadgeIds.has(r.id) ? " <span class='muted' title='광고 집행 중 — 그 기간 합계·수익에서 제외'>📣</span>" : ""}${r.pending ? " <span class='muted' title='인접권 정리 전 — 추적만, 합계·수익에서 제외'>⏸</span>" : ""}${relDateTag(songs[r.id].release)}</td>
       <td class="delta up">${(() => {
         const v = liveBy[r.id];
         if(v == null) return "<span class='muted'>—</span>";
