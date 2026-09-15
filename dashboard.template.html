@@ -109,7 +109,7 @@
   <div class="panel">
     <h2>🏢 유통사별 추정 정산 <span class="muted" id="distLabel"></span></h2>
     <div id="distWrap"></div>
-    <div class="note">유통사별로 그 달 확정 스트리밍(광고·보류 제외 규칙 동일)을 모아 <b>× 스트림당 6.3원</b>으로 추정한 금액입니다. 큰 숫자 = <b>트랙 100% 기준(유통사 정산서와 비교용)</b>, 아래 작은 숫자 = 지분 반영한 내 몫(선급곡은 내 몫 0). 실제 정산서와 단가 차이가 있으면 말씀 주세요 — 단가는 바로 바꿀 수 있습니다.</div>
+    <div class="note">유통사별로 그 달 확정 스트리밍(광고·보류 제외 규칙 동일)을 모아 <b>× 스트림당 6.3원 × 지분</b>으로 추정한 <b>내 몫</b> 금액입니다. 선급곡(내 몫 0)은 "선급 회수 중"으로 표시하고 트랙 기준 금액만 참고로 병기합니다. 실제 정산서와 단가 차이가 있으면 말씀 주세요 — 단가는 바로 바꿀 수 있습니다.</div>
   </div>
   <div class="panel">
     <h2>📅 일자별 스트리밍 (최근 10일) <span class="muted">— 각 칸: 그날 하루 스트리밍, ▲▼ 전일 대비 증감</span></h2>
@@ -731,13 +731,13 @@ function renderDistRevenue(snaps, songs, ids){
   if(!dists.length){ wrap.innerHTML = '<div class="empty">데이터가 쌓이면 표시됩니다.</div>'; return; }
   if(label) label.textContent = "— " + months.map(x => x.m + "월").join(" · ") + " (확정 스트리밍 기준)";
   const fmtWon = v => nf.format(Math.round(v)) + "원";
+  // 큰 숫자 = 내 몫 (2026-09-15 민우님: 내 몫이 제일 중요). 선급(내 몫 0)만 트랙 기준을 참고로 병기.
   const cellOf = (d, mo) => {
     const v = per[d][mo.y + "-" + mo.m];
     if(!v || !v.full) return "<span class='muted'>—</span>";
-    let out = `<b>${fmtWon(v.full)}</b>`;
-    if(Math.round(v.mine) !== Math.round(v.full))
-      out += `<div class="muted" style="font-size:11px">내 몫 ${fmtWon(v.mine)}</div>`;
-    return out;
+    if(Math.round(v.mine) === 0)
+      return `<span class="muted">선급 회수 중</span><div class="muted" style="font-size:11px">트랙 기준 ≈${fmtWon(v.full)}</div>`;
+    return `<b>${fmtWon(v.mine)}</b>`;
   };
   let html = `<table><thead><tr><th>유통사</th>` +
     months.map(x => `<th>${x.m}월 추정 정산</th>`).join("") + `</tr></thead><tbody>`;
@@ -745,14 +745,11 @@ function renderDistRevenue(snaps, songs, ids){
     html += `<tr><td class="song">${escapeHtml(d)}</td>` +
       months.map(mo => `<td class="delta money">${cellOf(d, mo)}</td>`).join("") + `</tr>`;
   }
-  // 합계 행
-  html += `<tr class="totalrow"><td class="song">합계</td>` + months.map(mo => {
-    let f = 0, mn = 0;
-    for(const d of dists){ const v = per[d][mo.y + "-" + mo.m]; if(v){ f += v.full; mn += v.mine; } }
-    if(!f) return `<td><span class='muted'>—</span></td>`;
-    let out = `<b>${fmtWon(f)}</b>`;
-    if(Math.round(mn) !== Math.round(f)) out += `<div class="muted" style="font-size:11px">내 몫 ${fmtWon(mn)}</div>`;
-    return `<td class="delta money">${out}</td>`;
+  // 합계 행 — 내 몫 합계
+  html += `<tr class="totalrow"><td class="song">합계 (내 몫)</td>` + months.map(mo => {
+    let mn = 0;
+    for(const d of dists){ const v = per[d][mo.y + "-" + mo.m]; if(v) mn += v.mine; }
+    return mn ? `<td class="delta money"><b>${fmtWon(mn)}</b></td>` : `<td><span class='muted'>—</span></td>`;
   }).join("") + `</tr>`;
   wrap.innerHTML = html + `</tbody></table>`;
 }
