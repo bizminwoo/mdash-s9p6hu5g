@@ -33,6 +33,7 @@
   th:first-child, td:first-child { text-align: left; }
   th { color: var(--muted); font-weight: 500; font-size: 12px; }
   td.song { font-weight: 600; }
+  td.dist { color: var(--muted); font-size: 12px; white-space: nowrap; }
   td.song a { color: var(--text); text-decoration: none; }
   td.song a:hover { color: var(--accent); }
   .delta { font-weight: 700; }
@@ -591,9 +592,10 @@ function render(){
   function paintTable(){
   tw.innerHTML =
     `<table><thead><tr>
-      <th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>오늘 예상(추정)</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>이번 달 실측 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
+      <th>유통사</th><th>곡</th><th>오늘 현재까지</th><th>어제 동시간</th><th>오늘 예상(추정)</th><th>최근 하루 스트리밍</th><th>예상 월 수익</th><th>이번 달 실측 수익</th><th>최근 하루 좋아요</th><th>누적 조회수</th><th>누적 좋아요</th>
     </tr></thead><tbody>` +
     sortedRows().map(r => `<tr>
+      <td class="dist">${songs[r.id].dist ? escapeHtml(songs[r.id].dist) : "<span class='muted'>—</span>"}</td>
       <td class="song"><a href="${r.url}" target="_blank">${escapeHtml(r.title)}</a>${r.adViews && !hiddenAdBadgeIds.has(r.id) ? " <span class='muted' title='광고 조회 포함 — 합계·예상에서 제외'>📢</span>" : ""}${r.adNow && !hiddenAdBadgeIds.has(r.id) ? " <span class='muted' title='광고 집행 중 — 그 기간 합계·수익에서 제외'>📣</span>" : ""}${r.pending ? " <span class='muted' title='인접권 정리 전 — 추적만, 합계·수익에서 제외'>⏸</span>" : ""}</td>
       <td class="delta up">${(() => {
         const v = liveBy[r.id];
