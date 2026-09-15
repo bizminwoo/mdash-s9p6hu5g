@@ -107,6 +107,11 @@
     <div class="note">🧮 <b>합계는 지분(share) 반영</b> — 공동제작 50% 곡은 조회수도 절반만, 33% 곡은 1/3만 합계에 들어갑니다. <b>선급 곡(지분 0)은 스트리밍 합계에 100% 반영</b>하고 수익에서만 제외합니다. 곡별 칸의 숫자는 유튜브 실제 수치 그대로라, 곡별 값을 그냥 더한 것보다 전체 합계가 작습니다.<br>📢 표시 곡 = 광고 조회 포함이라 수치가 부정확 — 개별 기록은 표시하되 <b>모든 합계에서 제외</b> (카드 전체 + 일자별 전체 합계 행 + 그래프의 전체 합계).<br>💰 <b>저번달 수익</b> = 지난달 확정 스트리밍 × 단가 × 지분, <b>선급포함/미포함</b> 두 값으로 표시합니다(선급포함 = 선급곡 수익을 100% 기준으로 더한 참고치). <b>보유 전(인수 전)·광고 기간·마케팅 트랙은 들어가지 않습니다.</b> 곡별 표의 누적 조회수는 유튜브 실제 값 그대로입니다.<br>📣 표시 곡 = <b>지금 광고 집행 중</b> — 조회수가 광고로 부풀려져 있어 그 기간 동안 <b>합계·수익에서 제외</b>합니다(곡별 수치는 그대로 표시). 광고가 끝나면 표시가 사라집니다. 광고가 일부만 섞인 기간은 <b>확인된 광고 조회수만 날짜별로 빼고</b> 합계·수익에 넣습니다.<br>⏸ 표시 곡 = <b>인접권 정리 전</b>이라 추적만 하는 곡 — 곡별 수치는 그대로 쌓이지만 <b>모든 합계·수익에서 제외</b>합니다. 정리되면 표시를 떼고 합산에 넣습니다.<br>📈 오늘 예상(추정) = 오늘 현재까지 수치를 <b>최근 7일의 시간대 소비 패턴</b>(그 시각까지 보통 하루의 몇 %가 나오는지)으로 환산한 하루 마감 추정치. 곡별·합계 모두 <b>전체 합계 곡선</b>에서 구한 비율을 씁니다(곡마다 제 과거만 보면 작은 곡은 시간당 몇 개 수준이라 비율이 널뜁니다). ▲▼는 어제 하루 실적 대비. <b>실측 오차(중앙값): 합계는 09시 ±10%·13시 ±9%·18시 이후 ±4%. 곡별은 하루 1,000회 넘는 곡이 13시 ±7%·18시 ±4%, 하루 1,000회 미만 작은 곡은 13시 ±12%·18시 ±13%로 큽니다</b> — 이른 시간일수록 오차가 크고 저녁으로 갈수록 정확해집니다.<br>💰 예상 월 수익 = 이번 달 <b>실제 누적 스트리밍</b>을 일평균으로 환산해 그 달 전체(말일까지)로 추정 × 스트림당 단가(하루 1,000회 ≈ 월 25만원 기준) × 지분. <b>이번 달 실측 수익</b> = 이번 달 1일부터 어제까지 <b>실제 확정된 스트리밍만</b>으로 계산한 수익 (오늘 진행분 미포함 — 날이 갈수록 예상 월 수익에 다가감).<br>월초에는 며칠 안 되는 데이터로 추정하니 변동이 크고, 날짜가 지날수록 실제 수익에 가까워집니다. 공동제작 곡(50%)은 절반 반영, 선급 곡은 제외.</div>
   </div>
   <div class="panel">
+    <h2>🏢 유통사별 추정 정산 <span class="muted" id="distLabel"></span></h2>
+    <div id="distWrap"></div>
+    <div class="note">유통사별로 그 달 확정 스트리밍(광고·보류 제외 규칙 동일)을 모아 <b>× 스트림당 6.3원</b>으로 추정한 금액입니다. 큰 숫자 = <b>트랙 100% 기준(유통사 정산서와 비교용)</b>, 아래 작은 숫자 = 지분 반영한 내 몫(선급곡은 내 몫 0). 실제 정산서와 단가 차이가 있으면 말씀 주세요 — 단가는 바로 바꿀 수 있습니다.</div>
+  </div>
+  <div class="panel">
     <h2>📅 일자별 스트리밍 (최근 10일) <span class="muted">— 각 칸: 그날 하루 스트리밍, ▲▼ 전일 대비 증감</span></h2>
     <div id="matrixWrap"></div>
     <div class="note"><b style="color:#ff5b8a">🛒 색칠된 칸</b> = 그날 마케팅(좋아요 구매 등) 실행한 날 — 마우스 올리면 상세. 바로 오른쪽 칸들(그 뒤 날짜)로 스밍 효과를 추적.</div>
@@ -656,6 +661,8 @@ function render(){
   paintSortButtons();
   paintTable();
 
+  renderDistRevenue(snaps, songs, ids);
+
   renderDailyMatrix(snaps, songs, ids);
 
   // 월별 스트리밍 표
@@ -680,6 +687,74 @@ function render(){
     renderSmallMultiples(snaps, songs, mkIds,
       { gridId: "mktGrid", window: 90, includeTotal: false, colorOffset: ids.length, emphasizeStart: true });
   }
+}
+
+// 유통사별 추정 정산 (2026-09-15 민우님 지시) — 지난 두 달, 유통사별 확정 스트리밍 × 6.3원.
+// 큰 숫자 = 트랙 100% 기준(유통사 정산서 대조용), 작은 숫자 = 지분 반영 내 몫.
+// 광고·보류 제외 규칙(exSumOn·adCut)은 수익 계산과 동일. 마케팅 트랙은 ids에 없어 자동 제외.
+function renderDistRevenue(snaps, songs, ids){
+  const wrap = document.getElementById("distWrap");
+  const label = document.getElementById("distLabel");
+  if(!wrap || snaps.length < 2) return;
+  const PER_STREAM = WON_PER_1000_DAILY / (1000 * 30);
+  const [cy, cm] = snaps[snaps.length-1].date.split("-").map(Number);
+  // 지난 두 달 (진행 중인 이번 달 제외)
+  const months = [];
+  for(let k=2;k>=1;k--){
+    let y = cy, m = cm - k;
+    while(m < 1){ m += 12; y -= 1; }
+    months.push({ y, m });
+  }
+  const per = {};   // dist → { "y-m": {full, mine} }
+  for(let i=1;i<snaps.length;i++){
+    const [y,m] = snaps[i-1].date.split("-").map(Number);
+    const mo = months.find(x => x.y === y && x.m === m);
+    if(!mo) continue;
+    const key = mo.y + "-" + mo.m;
+    for(const id of ids){
+      if(exSumOn(songs, id, snaps[i-1].date)) continue;
+      const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
+      if(!(a && b && a.views!=null && b.views!=null)) continue;
+      const dist = songs[id].dist || "미지정";
+      const inc = Math.max(0, b.views - a.views - adCut(songs, id, snaps[i-1].date)) * PER_STREAM;
+      per[dist] = per[dist] || {};
+      per[dist][key] = per[dist][key] || { full: 0, mine: 0 };
+      per[dist][key].full += inc;
+      const sh = songs[id].share == null ? 1 : songs[id].share;
+      per[dist][key].mine += inc * sh;
+    }
+  }
+  const dists = Object.keys(per).sort((a,b) => {
+    const kb = months[months.length-1].y + "-" + months[months.length-1].m;
+    return ((per[b][kb]||{}).full||0) - ((per[a][kb]||{}).full||0);
+  });
+  if(!dists.length){ wrap.innerHTML = '<div class="empty">데이터가 쌓이면 표시됩니다.</div>'; return; }
+  if(label) label.textContent = "— " + months.map(x => x.m + "월").join(" · ") + " (확정 스트리밍 기준)";
+  const fmtWon = v => nf.format(Math.round(v)) + "원";
+  const cellOf = (d, mo) => {
+    const v = per[d][mo.y + "-" + mo.m];
+    if(!v || !v.full) return "<span class='muted'>—</span>";
+    let out = `<b>${fmtWon(v.full)}</b>`;
+    if(Math.round(v.mine) !== Math.round(v.full))
+      out += `<div class="muted" style="font-size:11px">내 몫 ${fmtWon(v.mine)}</div>`;
+    return out;
+  };
+  let html = `<table><thead><tr><th>유통사</th>` +
+    months.map(x => `<th>${x.m}월 추정 정산</th>`).join("") + `</tr></thead><tbody>`;
+  for(const d of dists){
+    html += `<tr><td class="song">${escapeHtml(d)}</td>` +
+      months.map(mo => `<td class="delta money">${cellOf(d, mo)}</td>`).join("") + `</tr>`;
+  }
+  // 합계 행
+  html += `<tr class="totalrow"><td class="song">합계</td>` + months.map(mo => {
+    let f = 0, mn = 0;
+    for(const d of dists){ const v = per[d][mo.y + "-" + mo.m]; if(v){ f += v.full; mn += v.mine; } }
+    if(!f) return `<td><span class='muted'>—</span></td>`;
+    let out = `<b>${fmtWon(f)}</b>`;
+    if(Math.round(mn) !== Math.round(f)) out += `<div class="muted" style="font-size:11px">내 몫 ${fmtWon(mn)}</div>`;
+    return `<td class="delta money">${out}</td>`;
+  }).join("") + `</tr>`;
+  wrap.innerHTML = html + `</tbody></table>`;
 }
 
 // 월별 스트리밍 표 — 각 달의 하루치 스트리밍을 전부 더한 값.
