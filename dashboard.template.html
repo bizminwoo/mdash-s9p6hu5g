@@ -393,6 +393,7 @@ function render(){
       let t = 0, ok = false;
       for(const id of ids){
         if(exSumOn(songs, id, day)) continue;
+        if(adCut(songs, id, day) > 0) continue;   // 부분 광고일은 시간대 곡선을 왜곡하므로 곡선 계산에서 제외
         const a = estAt(id, day, 0), b = estAt(id, day, hh);
         if(a!=null && b!=null){ t += (b - a) * wOf(songs, id); ok = true; }
       }
@@ -407,7 +408,8 @@ function render(){
     for(const id of ids){
       const live = liveBy[id];
       if(live == null) continue;
-      projOf[id] = Math.round(live / fDay);
+      // 오늘 광고분(부분 차감 곡)은 빼고 예측 (2026-09-16 전수점검)
+      projOf[id] = Math.round(Math.max(0, live - adCut(songs, id, todayStr)) / fDay);
     }
     if(liveSum != null) projSum = Math.round(liveSum / fDay);
   }
@@ -461,15 +463,18 @@ function render(){
       r.revenueFull = Math.round(p.projStreams * rt); // 지분 100% 기준 (선급곡 참고용)
       r.mtdRevenue = Math.round(p.mtd * rt * r.share); // 이번 달 실측분 (1일~어제 확정 스트리밍 기반)
       r.mtdRevenueFull = Math.round(p.mtd * rt); }
-    else if(r.dViews != null){ r.revenue = Math.round(estMonthly(r.dViews) * r.share);
-      r.revenueFull = Math.round(estMonthly(r.dViews)); r.mtdRevenue = null; r.mtdRevenueFull = null; }
+    else if(r.dViews != null){
+      const dvAdj = (prev && exSumOn(songs, r.id, prev.date)) ? 0 : Math.max(0, r.dViews - (prev ? adCut(songs, r.id, prev.date) : 0));
+      r.revenue = Math.round(estMonthly(dvAdj) * r.share);
+      r.revenueFull = Math.round(estMonthly(dvAdj)); r.mtdRevenue = null; r.mtdRevenueFull = null; }
     else { r.revenue = null; r.revenueFull = null; r.mtdRevenue = null; r.mtdRevenueFull = null; }
   });
 
   // 요약 카드 (광고 조회 곡·보류 곡은 모든 합계에서 제외)
   const sRows = rows.filter(r => !exSum(songs, r.id));   // 광고조회·보류·광고집행중 곡 전부 제외
-  const sumDViews = Math.round(sRows.reduce((s,r)=> s + Math.max(0, (r.dViews||0) - (prev ? adCut(songs, r.id, prev.date) : 0)) * r.w, 0));
-  const sumDViewsPrev = Math.round(sRows.reduce((s,r)=> s + Math.max(0, (r.dViewsPrev||0) - (prev2 ? adCut(songs, r.id, prev2.date) : 0)) * r.w, 0));
+  // 최근 하루 = 어제 날짜 기준으로도 제외 판정 (2026-09-16 전수점검: 어제가 광고일이던 곡이 새어들어오던 구멍)
+  const sumDViews = Math.round(sRows.reduce((s,r)=> s + ((prev && exSumOn(songs, r.id, prev.date)) ? 0 : Math.max(0, (r.dViews||0) - (prev ? adCut(songs, r.id, prev.date) : 0)) * r.w), 0));
+  const sumDViewsPrev = Math.round(sRows.reduce((s,r)=> s + ((prev2 && exSumOn(songs, r.id, prev2.date)) ? 0 : Math.max(0, (r.dViewsPrev||0) - (prev2 ? adCut(songs, r.id, prev2.date) : 0)) * r.w), 0));
   let dViewsPctBadge = "";
   if(sumDViewsPrev > 0){
     const pct = (sumDViews - sumDViewsPrev) / sumDViewsPrev * 100;
@@ -1293,7 +1298,8 @@ function renderHourly(songs, ids){
   };
   const totalOf = (d) => {
     if(!d) return labels.map(() => null);
-    const per = ids.filter(id => !exSum(songs, id))
+    // 그 날짜 기준으로 제외 판정 (어제 곡선에 어제 광고일 곡이 섞이지 않게 — 2026-09-16 전수점검)
+    const per = ids.filter(id => !exSumOn(songs, id, d))
       .map(id => ({ w: wOf(songs, id), s: seriesOf(d, id) }));
     // 데이터가 있는 곡만 합산 (신곡은 데이터가 쌓이기 전이라도 나머지 곡 합계는 나오게)
     return labels.map((_, h) => {
@@ -1376,8 +1382,10 @@ function renderSmallMultiples(snaps, songs, ids, opts = {}){
   };
   const labels = allLabels.slice(-WINDOW);
   const totals = labels.map((_,i) => {
+    // 각 날짜 기준으로 제외·광고 차감 (2026-09-16 전수점검: 과거 광고일이 합계 곡선에 튀던 구멍)
     let s = 0, any = false;
-    for(const id of ids){ if(exSum(songs,id)) continue; const v = seriesFor(id)[i]; if(v!=null){ s+=v*wOf(songs,id); any=true; } }
+    const dstr = dates[i];
+    for(const id of ids){ if(exSumOn(songs,id,dstr)) continue; const v = seriesFor(id)[i]; if(v!=null){ s+=Math.max(0, v - adCut(songs,id,dstr))*wOf(songs,id); any=true; } }
     return any ? Math.round(s) : null;
   });
   const facets = [
