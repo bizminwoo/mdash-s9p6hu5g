@@ -361,17 +361,20 @@ function render(){
 
   // 어제 동시간대 — 어제의 같은 N시 정각 값끼리 비교
   const ydayBy = {};
-  let ydaySum = null, ydayHour = null;
+  let ydaySum = null, ydayHour = null, ydateStr = null;
   if(liveHour != null){
     const [cy,cm,cd] = latest.date.split("-").map(Number);
     const yd = new Date(cy, cm-1, cd-1);
     const ydate = `${yd.getFullYear()}-${p2(yd.getMonth()+1)}-${p2(yd.getDate())}`;
+    ydateStr = ydate;
     const base = snaps.find(s => s.date === ydate);
     for(const id of ids){
       const a = estAt(id, ydate, 0) ?? base?.stats?.[id]?.views;
       const b = estAt(id, ydate, liveHour);
       if(a!=null && b!=null){ ydayBy[id] = b - a;
-        if(!exSum(songs, id)) ydaySum = (ydaySum||0) + (b - a) * wOf(songs, id); }
+        // 어제 날짜 기준으로 제외 판정 + 어제 광고분 차감 (2026-09-16 민우님 지적:
+        // needy 광고일이던 어제가 오늘 기준 판정 때문에 합계에 그대로 들어가 33,436으로 뻥튀기)
+        if(!exSumOn(songs, id, ydate)) ydaySum = (ydaySum||0) + Math.max(0, (b - a) - adCut(songs, id, ydate)) * wOf(songs, id); }
     }
     if(ydaySum != null){ ydaySum = Math.round(ydaySum); ydayHour = liveHour; }
   }
@@ -649,7 +652,14 @@ function render(){
         if(c > 0) return "+"+nf.format(Math.max(0, v - c))+`<div class="muted" style="font-size:10.5px">📣(${nf.format(v)})</div>`;
         return "+"+nf.format(v);
       })()}</td>
-      <td class="delta" style="color:var(--muted)">${ydayBy[r.id]!=null ? "+"+nf.format(ydayBy[r.id]) : "<span class='muted'>—</span>"}</td>
+      <td class="delta" style="color:var(--muted)">${(() => {
+        if(ydayBy[r.id] == null) return "<span class='muted'>—</span>";
+        if(ydateStr && exSumOn(songs, r.id, ydateStr))
+          return `<span class="exval">+${nf.format(ydayBy[r.id])}</span><div class="extag">📣 광고 — 합산 제외</div>`;
+        const c = ydateStr ? adCut(songs, r.id, ydateStr) : 0;
+        if(c > 0) return "+"+nf.format(Math.max(0, ydayBy[r.id] - c))+`<div class="muted" style="font-size:10.5px">📣(${nf.format(ydayBy[r.id])})</div>`;
+        return "+"+nf.format(ydayBy[r.id]);
+      })()}</td>
       <td>${(() => {
         if(r.adNow) return "<span class='muted'>광고 중 — 제외</span>";
         const p = projOf[r.id];
