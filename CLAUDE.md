@@ -28,16 +28,19 @@ funds.html             자금 현황 (별도 문서에서 생성됨 — 자금 �
 곡 추가/삭제 = 해당 json 수정 후 push. 다음 수집 때 자동 반영, 줄을 지우면 목록에서 빠진다.
 경쟁사 곡은 **아트트랙(Topic 채널 음원 영상) 기준** — MV/공식오디오 아님. 못 찾으면 등록하지 말 것.
 
-## 수집 (3중 구조)
+## 수집 (3중 구조 — 2026-09-17 기준 주력은 PC)
 
-1. **GitHub Actions** (hourly-collect.yml, cron `5,25,45 * * * *`): 기본 수집원.
-   조회수·좋아요 = YouTube Data API(시크릿 `YT_API_KEY`), 차트 목록 = charts.youtube.com innertube.
-   GitHub 예약은 지연·누락이 잦아서(정각 슬롯은 특히) 시간당 3회 걸어둠.
-2. **주 PC 정각 수집** (작업 스케줄러 "MusicDashboard-Daily", 매시 00분): PC가 켜져 있으면
-   정각 1~3분 내 갱신. 리포 밖 `C:\Users\PC\music-dashboard\run.bat` 실행 (pull→수집→push).
-   로컬 수집은 API 키 없이 yt-dlp/innertube 폴백을 쓴다 (yt-dlp 경로는 config.mjs, PYTHONUTF8=1 필수).
-3. **주 PC 감시견** ("MusicDashboard-Watchdog", 매시 12·42분): 원격 data의 실제 수집 시각을 보고
-   이번 시간대 수집이 없으면 백업 수집. (커밋 시각이 아니라 **데이터 안의 시각**을 봐야 함 — 과거 사고 있었음)
+1. **주 PC 정각 수집** (작업 스케줄러 "MusicDashboard-Daily", 매시 00분, 24개 트리거, 실패 시 1분 뒤 2회 재시도):
+   리포 밖 `C:\Users\PC\music-dashboard\run.bat` 를 `run-hidden.vbs` 로 **창 없이** 실행 (pull→수집→push).
+   run.bat 은 같은 폴더의 `secrets.bat`(사용자가 만든 `set YT_API_KEY=...`, git 밖)이 있으면 Data API 로 수집(약 20초),
+   없으면 yt-dlp 폴백(25곡 기준 약 6분 — yt-dlp 경로는 config.mjs, PYTHONUTF8=1 필수).
+2. **주 PC 감시견** ("MusicDashboard-Watchdog", 매시 05분부터 10분 간격): 원격 data 안의 실제 수집 시각을 보고
+   이번 시간대 수집이 없고 5분이 지났으면 run.bat 실행. (커밋 시각이 아니라 **데이터 안의 시각**을 봐야 함 — 과거 사고 있었음)
+3. **GitHub Actions** (hourly-collect.yml, cron `5,25,45 * * * *`): PC 꺼졌을 때의 백업.
+   GitHub 스로틀링으로 실제로는 **4~5시간에 1회**만 돈다(2026-09 기준). 조회수·좋아요 = Data API(시크릿 `YT_API_KEY`),
+   차트 = charts.youtube.com innertube.
+
+수집 창(cmd)이 화면에 뜨면 안 됨 — 사용자가 닫으면 0xC000013A 로 죽는다(2026-09-17 17:00 사고). 항상 vbs 래퍼로 실행할 것.
 
 다른 컴퓨터에서는 코드 수정→push만 하면 된다. 수집은 GitHub/주 PC가 알아서 한다.
 직접 수집을 돌리려면: `node fetch.mjs && node fetch-trending.mjs` (환경변수 YT_API_KEY 있으면 Data API 사용).
