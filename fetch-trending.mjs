@@ -181,7 +181,7 @@ async function main() {
       const v = db.videos[id] || {};
       const nv = { ...v, watch: true, order: i, ...(c.title ? { title: c.title } : {}),
         ...(c.likesTrack ? { likesTrack: true } : {}), ...(c.likes ? { likes: true } : {}),
-        ...(c.group ? { group: c.group } : {}) };
+        ...(c.group ? { group: c.group } : {}), ...(c.addedAt ? { addedAt: c.addedAt } : {}) };
       if (!c.likesTrack) delete nv.likesTrack; // 상세 추적(시간/일 단위)은 competitors.json 의 "likesTrack": true 곡만
       if (!c.likes) delete nv.likes;           // 일 단위 좋아요만 볼 곡은 "likes": true (상세추적은 안 함)
       if (!c.group) delete nv.group;

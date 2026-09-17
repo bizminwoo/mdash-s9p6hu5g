@@ -135,8 +135,13 @@ function mkSampler(H, M){
 const SV = mkSampler(DB.hourlyViews, DB.hourlyViewsMin);
 const SL = mkSampler(DB.hourlyLikes, DB.hourlyLikesMin);
 
+// 정렬: 최근에 추가한 곡이 맨 위 (addedAt 내림차순, 2026-09-17 지시) → 같은 날짜·날짜 없음은 competitors.json 순서
 const tracked = Object.keys(DB.videos || {}).filter((id) => DB.videos[id].likesTrack)
-  .sort((a, b) => (DB.videos[a].order ?? 99) - (DB.videos[b].order ?? 99));
+  .sort((a, b) => {
+    const da = DB.videos[a].addedAt || "", db_ = DB.videos[b].addedAt || "";
+    if (da !== db_) return da < db_ ? 1 : -1;
+    return (DB.videos[a].order ?? 99) - (DB.videos[b].order ?? 99);
+  });
 
 const cards = document.getElementById("cards");
 if (!tracked.length) { cards.innerHTML = '<div class="card"><div class="empty">상세 추적으로 지정된 곡이 없습니다.</div></div>'; }
