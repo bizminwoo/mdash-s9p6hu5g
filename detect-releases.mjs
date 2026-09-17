@@ -27,6 +27,7 @@ const ARTISTS = [
   { name: "도코",     channelId: "UCu90gJfilAG-rj7M5AngKaA" },
   { name: "웨이브 콜", channelId: "UC8H__2h-a0OpwINMII-pLFA" },
   { name: "오연하",   channelId: "UCWl28XjlBtHl_ucicFqLSAg" },
+  { name: "정승제",   channelId: "UCIt9lXUg2g5uEqdh8CcEt1w" },   // 2026-09-17 민우님 지시
   //  
 ];
 
