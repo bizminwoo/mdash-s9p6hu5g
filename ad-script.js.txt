@@ -1,5 +1,5 @@
 // ================================================================
-// 자동 신곡 광고 스크립트 v2.5 — 이민우 비서 제작 (2026-09-18: 영상 자산+로고 필수 대응, 미리보기 임시ID 처리, 종료일 시간대 수정, 중간 실패 복구형)
+// 자동 신곡 광고 스크립트 v2.6 — 이민우 비서 제작 (2026-09-18: 문구 길이(전각 2칸) 제한 대응, 영상 자산+로고, 미리보기 처리, 종료일 시간대, 복구형)
 // 매시간 실행. 명령 파일에 새 명령이 있으면 '자동광고템플릿' 캠페인에
 // 새 반응형 영상 광고를 걸고, 캠페인 총예산·종료일을 맞추고 켭니다.
 // 기간이 끝나면 자동으로 끕니다. 명령이 없으면 아무것도 하지 않습니다.
@@ -18,6 +18,17 @@ function ymd(d) {
 function calDate(str) { var p = str.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); }
 function kstDate(str) { return new Date(str + 'T00:00:00+09:00'); }
 function todayKst() { var t = new Date(Date.now() + 9 * 3600000); return ymd(t); }
+// 구글 광고 문구 길이 제한: 한글 등 전각 문자는 2칸으로 계산 → 폭 기준으로 자른다
+function cutWidth(str, maxWidth) {
+  var out = '', w = 0;
+  for (var i = 0; i < str.length; i++) {
+    var c = str.charAt(i), cw = c.charCodeAt(0) > 255 ? 2 : 1;
+    if (w + cw > maxWidth) break;
+    out += c; w += cw;
+  }
+  while (out.length && ' -([,'.indexOf(out.charAt(out.length - 1)) >= 0) { out = out.substring(0, out.length - 1); }
+  return out;
+}
 
 function main() {
   var cmd = null;
@@ -108,14 +119,15 @@ function main() {
     var logoIt = AdsApp.adAssets().assets().withCondition("asset.id = " + (cmd.logoAssetId || 348514433077)).get();
     if (!logoIt.hasNext()) { Logger.log('로고 이미지 자산을 찾지 못함 — 광고 생성 중단'); return; }
     var logoAsset = logoIt.next();
-    var title = (cmd.title || '신곡 듣기').substring(0, 90);
+    var title = cutWidth(cmd.title || '신곡 듣기', 90);          // 긴 광고 제목: 최대 90폭
+    var artist = cutWidth((cmd.title || '신곡').split(' - ')[0], 15); // 짧은 제목: 최대 15폭 (한글 7자)
     var adOp = ag.newVideoAd().responsiveVideoAdBuilder()
       .withAdName(marker)
       .withVideo(videoAsset)
       .withFinalUrl('https://www.youtube.com/watch?v=' + cmd.videoId)
       .withLongHeadline(title)
-      .withHeadline(title.substring(0, 30))
-      .withDescription('지금 유튜브뮤직에서 들어보세요')
+      .withHeadline(artist)
+      .withDescription(cutWidth('유튜브뮤직에서 지금 들어보세요', 70))
       .withCallToAction('듣기')
       .withLogoImages([logoAsset])
       .build();
