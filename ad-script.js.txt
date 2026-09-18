@@ -1,0 +1,146 @@
+// ================================================================
+// 자동 신곡 광고 스크립트 v2.5 — 이민우 비서 제작 (2026-09-18: 영상 자산+로고 필수 대응, 미리보기 임시ID 처리, 종료일 시간대 수정, 중간 실패 복구형)
+// 매시간 실행. 명령 파일에 새 명령이 있으면 '자동광고템플릿' 캠페인에
+// 새 반응형 영상 광고를 걸고, 캠페인 총예산·종료일을 맞추고 켭니다.
+// 기간이 끝나면 자동으로 끕니다. 명령이 없으면 아무것도 하지 않습니다.
+// v2 변경: 템플릿 캠페인이 "총예산(기간 지정)" 방식이라 일예산 대신 총예산+종료일 설정,
+//          광고그룹/광고 형식을 템플릿과 같은 "반응형 동영상"으로 변경.
+// ================================================================
+var CMD_URL = 'https://raw.githubusercontent.com/bizminwoo/mdash-s9p6hu5g/main/ad-command.json';
+var TEMPLATE = '자동광고템플릿';
+var MAX_BUDGET_WON = 200000; // 안전장치: 1회 총예산 최대 20만원 (초과 명령은 거부)
+
+// 날짜 계산은 스크립트 서버 시간대와 무관하게 '달력 날짜'만 쓴다 (UTC 기준 산술)
+function ymd(d) {
+  var y = d.getUTCFullYear(), m = d.getUTCMonth() + 1, day = d.getUTCDate();
+  return '' + y + (m < 10 ? '0' : '') + m + (day < 10 ? '0' : '') + day;
+}
+function calDate(str) { var p = str.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); }
+function kstDate(str) { return new Date(str + 'T00:00:00+09:00'); }
+function todayKst() { var t = new Date(Date.now() + 9 * 3600000); return ymd(t); }
+
+function main() {
+  var cmd = null;
+  try {
+    cmd = JSON.parse(UrlFetchApp.fetch(CMD_URL, { muteHttpExceptions: true }).getContentText());
+  } catch (e) {
+    Logger.log('명령 파일 읽기 실패: ' + e);
+    return;
+  }
+
+  var it = AdsApp.videoCampaigns().withCondition("campaign.name = '" + TEMPLATE + "'").get();
+  if (!it.hasNext()) { Logger.log('템플릿 캠페인(' + TEMPLATE + ') 없음 — 대기'); return; }
+  var camp = it.next();
+
+  if (!cmd || !cmd.id || !cmd.videoId || !cmd.days || !cmd.totalBudgetWon || !cmd.startDate) {
+    Logger.log('유효한 명령 없음');
+    manageEnd(camp, cmd);
+    return;
+  }
+
+  var marker = 'cmd-' + cmd.id;
+  if (cmd.totalBudgetWon > MAX_BUDGET_WON) {
+    Logger.log('안전장치: 예산 ' + cmd.totalBudgetWon + '원이 한도(' + MAX_BUDGET_WON + ')를 초과 — 실행 거부');
+    return;
+  }
+  // 종료일 = 시작일 + (일수 - 1)  (구글 종료일은 "마지막으로 도는 날" 포함)
+  var endDate = new Date(calDate(cmd.startDate).getTime() + (cmd.days - 1) * 86400000);
+  if (ymd(endDate) < todayKst()) {
+    Logger.log('종료일(' + ymd(endDate) + ')이 이미 지난 명령 — 실행 안 함');
+    manageEnd(camp, cmd);
+    return;
+  }
+
+  // 1) 명령 광고그룹 찾기 (없으면 생성). 매 실행마다 빠진 단계만 채워 넣는다(중간 실패 복구).
+  var ag = null;
+  var agIt = AdsApp.videoAdGroups()
+    .withCondition("campaign.name = '" + TEMPLATE + "'")
+    .withCondition("ad_group.name = '" + marker + "'")
+    .get();
+  if (agIt.hasNext()) {
+    ag = agIt.next();
+  } else {
+    camp.setEndDate(ymd(endDate));
+    camp.getBudget().setTotalAmount(cmd.totalBudgetWon);
+    // 템플릿에 남아있던 기존 광고그룹은 전부 일시중지
+    var ags = camp.videoAdGroups().get();
+    while (ags.hasNext()) { ags.next().pause(); }
+    var agOp = camp.newVideoAdGroupBuilder()
+      .withName(marker)
+      .withAdGroupType('VIDEO_RESPONSIVE')
+      .build();
+    if (!agOp.isSuccessful()) { Logger.log('광고그룹 생성 실패: ' + agOp.getErrors().join(', ')); return; }
+    ag = agOp.getResult();
+    Logger.log('광고그룹 생성: ' + marker);
+  }
+  if (!ag.isEnabled()) { ag.enable(); }
+
+  // 2) 광고그룹에 광고가 없으면 반응형 영상 광고 생성
+  if (!ag.videoAds().get().hasNext()) {
+    // 영상 자산: 이미 등록된 유튜브 영상 자산이 있으면 재사용, 없으면 새로 등록 (adMedia는 2026년 폐지됨)
+    var videoAsset = null;
+    var assetIt = AdsApp.adAssets().assets()
+      .withCondition("asset.type = YOUTUBE_VIDEO")
+      .withCondition("asset.youtube_video_asset.youtube_video_id = '" + cmd.videoId + "'")
+      .get();
+    if (assetIt.hasNext()) {
+      videoAsset = assetIt.next();
+    } else {
+      var assetOp = AdsApp.adAssets().newYouTubeVideoAssetBuilder()
+        .withName('auto-' + cmd.videoId)
+        .withYouTubeVideoId(cmd.videoId)
+        .build();
+      if (!assetOp.isSuccessful()) { Logger.log('영상 등록 실패: ' + assetOp.getErrors().join(', ')); return; }
+      videoAsset = assetOp.getResult();
+      Logger.log('영상 자산 등록: ' + cmd.videoId);
+      if (AdsApp.getExecutionInfo().isPreview()) {
+        Logger.log('[미리보기] 영상 자산은 미리보기에서 실제 생성되지 않아(임시 ID) 광고 생성은 실제 실행 때 진행됩니다 — 여기까지 오류 없으면 정상');
+        return;
+      }
+      // 실제 실행: 방금 만든 자산을 다시 조회해 확정된 자산으로 사용
+      var reIt = AdsApp.adAssets().assets()
+        .withCondition("asset.type = YOUTUBE_VIDEO")
+        .withCondition("asset.youtube_video_asset.youtube_video_id = '" + cmd.videoId + "'")
+        .get();
+      if (reIt.hasNext()) { videoAsset = reIt.next(); }
+    }
+    // 로고 이미지(반응형 영상 광고 필수 항목): 계정에 있는 1:1 이미지 자산 'OOW SOUND'(800x800, id 348514433077) 사용
+    var logoIt = AdsApp.adAssets().assets().withCondition("asset.id = " + (cmd.logoAssetId || 348514433077)).get();
+    if (!logoIt.hasNext()) { Logger.log('로고 이미지 자산을 찾지 못함 — 광고 생성 중단'); return; }
+    var logoAsset = logoIt.next();
+    var title = (cmd.title || '신곡 듣기').substring(0, 90);
+    var adOp = ag.newVideoAd().responsiveVideoAdBuilder()
+      .withAdName(marker)
+      .withVideo(videoAsset)
+      .withFinalUrl('https://www.youtube.com/watch?v=' + cmd.videoId)
+      .withLongHeadline(title)
+      .withHeadline(title.substring(0, 30))
+      .withDescription('지금 유튜브뮤직에서 들어보세요')
+      .withCallToAction('듣기')
+      .withLogoImages([logoAsset])
+      .build();
+    if (!adOp.isSuccessful()) { Logger.log('광고 생성 실패: ' + adOp.getErrors().join(', ')); return; }
+    Logger.log('광고 생성: ' + marker + ' / 영상 ' + cmd.videoId);
+  }
+
+  // 3) 종료일·총예산 재확인 후 캠페인 켜기
+  if (camp.getEndDate() == null || ymd(new Date(Date.UTC(camp.getEndDate().year, camp.getEndDate().month - 1, camp.getEndDate().day))) != ymd(endDate)) {
+    camp.setEndDate(ymd(endDate));
+  }
+  if (!camp.isEnabled()) {
+    camp.enable();
+    Logger.log('✅ 광고 시작: ' + marker + ' / 총예산 ' + cmd.totalBudgetWon + '원 / ' + cmd.startDate + '~' + ymd(endDate));
+  } else {
+    Logger.log('이미 집행 중: ' + marker);
+  }
+  manageEnd(camp, cmd);
+}
+
+function manageEnd(camp, cmd) {
+  if (!cmd || !cmd.startDate || !cmd.days) { return; }
+  var end = new Date(kstDate(cmd.startDate).getTime() + cmd.days * 86400000);
+  if (new Date().getTime() >= end.getTime() && camp.isEnabled()) {
+    camp.pause();
+    Logger.log('⏹ 기간 종료 — 캠페인 일시중지');
+  }
+}
