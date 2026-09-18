@@ -170,29 +170,7 @@ async function main() {
     console.log(failures.length ? '[신곡감지] 일부 조회 실패 — 신곡 유무 미확인' : '[신곡감지] 새 곡 없음');
   }
 
-  // ── 우리 종이별 신곡 자동 등록 (종이별-Topic 채널 → ai-songs.json) ──
-  try {
-    const OWN_CHANNEL = "UCum1OD1aymgqmu8Xo7DgNNw"; // 종이별 - Topic
-    const AI = join(ROOT, "ai-songs.json");
-    const ai = JSON.parse(readFileSync(AI, "utf8"));
-    const aiHave = new Set(ai.map((s) => (typeof s === "string" ? vidOf(s) : vidOf(s.url))).filter(Boolean));
-    const vids = await feed(OWN_CHANNEL);
-    const ownAdded = [];
-    for (const v of vids) {
-      if (aiHave.has(v.id) || isInst(v.title)) continue;
-      const pub = Date.parse(v.published);
-      if (Number.isFinite(pub) && pub < cutoff) continue; // 최근 발행분만
-      ai.push({ url: "https://www.youtube.com/watch?v=" + v.id, title: "종이별 - " + v.title, share: 1 });
-      aiHave.add(v.id);
-      ownAdded.push("종이별 - " + v.title);
-    }
-    if (ownAdded.length) {
-      save(AI, JSON.stringify(ai, null, 2) + "\n", "utf8");
-      console.log(`[종이별 신곡] ${ownAdded.length}곡 ai.html 등록: ` + ownAdded.join(", "));
-    } else {
-      console.log("[종이별 신곡] 새 곡 없음");
-    }
-  } catch (e) { fail('종이별', e); }
+  // (종이별 자동 등록 블록은 2026-09-18 민우님 지시로 삭제 — 종이별 프로젝트 데이터 전체 제거)
 
   // ── 로코베리 키워드 감지 — 자동 등록하지 않고 "후보"만 출력 (2026-08-19 민우님 지시: 발견되면 물어보고, 등록은 직접 준 링크로만)
   try {

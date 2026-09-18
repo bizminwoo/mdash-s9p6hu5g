@@ -1,4 +1,4 @@
-// 매시간 실행 → 각 곡의 총 조회수/좋아요를 수집해 저장하고 index.html(대시보드) + ai.html 갱신
+// 매시간 실행 → 각 곡의 총 조회수/좋아요를 수집해 저장하고 index.html(대시보드) 갱신
 // 조회수 수집: YT_API_KEY 환경변수가 있으면 YouTube 공식 Data API(배치), 없으면 yt-dlp(로컬 PC 폴백)
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -11,9 +11,6 @@ const DATA_FILE = join(ROOT, "data", "snapshots.json");
 const TEMPLATE = join(ROOT, "dashboard.template.html");
 const OUTPUT = join(ROOT, "index.html");
 // 🤖 AI 음원 대시보드 — 내 곡과 같은 템플릿·같은 형식이지만 데이터셋이 완전히 분리돼 있다
-const AI_SONGS_FILE = join(ROOT, "ai-songs.json");
-const AI_DATA_FILE = join(ROOT, "data", "ai-snapshots.json");
-const AI_OUTPUT = join(ROOT, "ai.html");
 // 💛 좋아요 구매 이력 — 대시보드 그래프에 "구매한 날"을 표시하기 위한 목록
 // 저장소 파일(likes-purchases.json)이 원본. 주 PC에서 돌 때는 구매봇 장부에서 새 기록을 합쳐 넣는다.
 const BUYS_FILE = join(ROOT, "likes-purchases.json");
@@ -142,50 +139,7 @@ function fillPage(tpl, db, sp, { nav, h1, title }) {
     .replace("<!--__PAGETITLE__-->", () => title);
 }
 
-// 🤖 AI 음원 대시보드: ai-songs.json → data/ai-snapshots.json → ai.html
-// 내 곡 대시보드와 같은 템플릿을 쓰지만 데이터가 분리돼 있어 합계가 서로 섞이지 않는다.
-async function buildAi(renderOnly, tpl) {
-  const songs = existsSync(AI_SONGS_FILE)
-    ? JSON.parse(readFileSync(AI_SONGS_FILE, "utf8"))
-        .map((e) => (typeof e === "string" ? { url: e } : e))
-        .filter((e) => e && typeof e.url === "string" && vidOf(e.url))
-    : [];
-
-  let db = { songs: {}, snapshots: [] };
-  if (existsSync(AI_DATA_FILE)) db = JSON.parse(readFileSync(AI_DATA_FILE, "utf8"));
-
-  for (const { url, title, share, adViews, pending } of songs) {
-    const vid = vidOf(url);
-    db.songs[vid] = { ...(db.songs[vid] || {}), url,
-      ...(title ? { title } : {}), share: share == null ? 1 : share };
-    if (adViews) db.songs[vid].adViews = true; else delete db.songs[vid].adViews;
-    if (pending) db.songs[vid].pending = true; else delete db.songs[vid].pending;
-  }
-  // ai-songs.json 에서 지운 곡은 목록에서 빠진다 (과거 스냅샷 수치는 그대로 남음)
-  const keep = new Set(songs.map((e) => vidOf(e.url)));
-  for (const vid of Object.keys(db.songs)) if (!keep.has(vid)) delete db.songs[vid];
-
-  if (!renderOnly && songs.length) {
-    const ids = songs.map((e) => vidOf(e.url));
-    const urlOf = (id) => songs[ids.indexOf(id)].url;
-    console.log(`[${localTime()}] AI 음원 ${songs.length}곡 수집...`);
-    const stats = process.env.YT_API_KEY ? await fetchStatsAPI(ids) : await fetchStatsYtdlp(ids, urlOf);
-    for (const [vid, s] of Object.entries(stats)) {
-      console.log(`  ✓ ${db.songs[vid]?.title || vid}  (조회 ${s.views?.toLocaleString() ?? "?"}, 좋아요 ${s.likes?.toLocaleString() ?? "?"})`);
-    }
-    const missing = ids.filter((id) => !stats[id]);
-    if (missing.length) console.log(`  ⚠ 수집 실패: ${missing.join(", ")}`);
-    applyStats(db, stats);
-    writeFileSync(AI_DATA_FILE, JSON.stringify(db, null, 2), "utf8");
-  }
-
-  db.likesBuys = loadLikesBuys();   // 화면 표시용 (data/ai-snapshots.json 에는 저장 안 됨)
-  writeFileSync(AI_OUTPUT, fillPage(tpl, db, "null", {
-    nav: navHtml("ai.html"),
-    h1: "🤖 AI 음원 대시보드 · 유튜브뮤직",
-    title: "AI 음원 대시보드 · 유튜브뮤직",
-  }), "utf8");
-}
+// (AI 음원 대시보드 ai.html 은 2026-09-18 민우님 지시로 삭제 — 종이별 프로젝트 제거)
 
 async function main() {
   const renderOnly = process.argv.includes("--render");
@@ -269,12 +223,9 @@ async function main() {
     title: "내 음원 대시보드 · 유튜브뮤직",
   }), "utf8");
 
-  // ai.html (AI 음원 대시보드) 생성 — 같은 템플릿, 분리된 데이터
-  await buildAi(renderOnly, tpl);
-
   // 마케팅 BEP 페이지는 2026-09-10 민우님 지시로 삭제됨 (experiments.json 데이터는 보존)
 
-  console.log(`[완료] 저장: data/snapshots.json + data/ai-snapshots.json,  페이지: index.html + ai.html`);
+  console.log(`[완료] 저장: data/snapshots.json,  페이지: index.html`);
 }
 
 await main();
