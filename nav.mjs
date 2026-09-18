@@ -2,6 +2,7 @@
 // 각 템플릿은 <!--__NAV__--> 자리에 navHtml(현재파일명) 결과가 들어간다.
 export const TABS = [
   ["index.html", "🎵 음원 대시보드"],
+  ["ai.html", "🤖 AI 음원"],
   ["funds.html", "💼 자금 현황"],
   ["trending.html", "🎯 경쟁사 분석"],
   ["detail.html", "🔎 상세 추적"],
