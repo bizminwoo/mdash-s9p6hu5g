@@ -22,6 +22,16 @@ const mdShort = (s) => { const [,m,d] = s.split("-"); return Number(m)+"/"+Numbe
 const ids = comps.filter((e) => e.group === "test").map((e) => vidOf(e.url)).filter(Boolean);
 
 const byDate = Object.fromEntries((DB.snapshots || []).map((s) => [s.date, s]));
+
+// 곡별 좋아요 누적 감소(추적 전체 기간): 하루 단위로 줄어든 날의 감소분 합 (2026-09-21 민우님 지시)
+const lostOf = (id) => {
+  const seq = [];
+  for (const sn of DB.snapshots || []) { const L = sn.stats?.[id]?.likes; if (L != null) seq.push(L); }
+  const cur = DB.current?.stats?.[id]?.likes; if (cur != null) seq.push(cur);
+  let lost = 0;
+  for (let i = 1; i < seq.length; i++) if (seq[i] < seq[i-1]) lost += seq[i-1] - seq[i];
+  return lost;
+};
 const today = (DB.current?.time || dstr(new Date())).slice(0, 10);
 const nextDay = (d) => dstr(new Date(new Date(d + "T00:00:00").getTime() + 86400000));
 const days = [];
@@ -61,7 +71,7 @@ const dHead = (d) => {
 
 const head = "<tr><th class='song'>곡</th>" +
   days.map(dHead).join("") +
-  "<th>총 조회수</th><th>총 좋아요</th><th class='buys'>좋아요 구매</th></tr>";
+  "<th>총 조회수</th><th>총 좋아요</th><th>좋아요 감소<br>(누적)</th><th class='buys'>좋아요 구매</th></tr>";
 
 // 맨 위 전곡 합계 행 (하루 단위 전곡 스트리밍, 2026-09-14 민우님 지시)
 const totalRow = (() => {
@@ -71,14 +81,18 @@ const totalRow = (() => {
       const n = dailyOf(id, d, "views"); if (n != null) { v += n; anyV = true; }
       const l = dailyOf(id, d, "likes"); if (l != null) { lk += l; anyL = true; }
     }
+    let down = 0;
+    for (const id of ids) { const l = dailyOf(id, d, "likes"); if (l != null && l < 0) down += -l; }
     let inner = anyV ? "<b>" + nf.format(v) + "</b>" : "<span class='zero'>—</span>";
     if (anyL && lk !== 0) inner += "<span class='lk'>♥" + (lk > 0 ? "+" : "") + nf.format(lk) + "</span>";
+    if (down > 0) inner += "<span class='lkdown'>▼" + nf.format(down) + "</span>";
     return "<td class='" + (d === today ? "today" : "") + "'>" + inner + "</td>";
   }).join("");
   let tv = 0, tl = 0;
   for (const id of ids) { tv += DB.current?.stats?.[id]?.views || 0; tl += DB.current?.stats?.[id]?.likes || 0; }
+  let tlost = 0; for (const id of ids) tlost += lostOf(id);
   return "<tr class='totalrow'><td class='song'><b>전곡 합계</b></td>" + cells +
-    "<td><b>" + nf.format(tv) + "</b></td><td><b>" + nf.format(tl) + "</b></td><td class='buys'></td></tr>";
+    "<td><b>" + nf.format(tv) + "</b></td><td><b>" + nf.format(tl) + "</b></td><td><b class='lkdown'>-" + nf.format(tlost) + "</b></td><td class='buys'></td></tr>";
 })();
 
 const rows = ids.map((id) => {
@@ -102,6 +116,7 @@ const rows = ids.map((id) => {
   return "<tr><td class='song'><a href='https://youtu.be/" + id + "' target='_blank'>" + (v.title || id) + "</a>" +
     "<span class='artist'>" + (v.artist || "") + (v.release ? " · " + v.release + " 발매" : "") + "</span></td>" +
     cells + "<td><b>" + fmt(total) + "</b></td><td><b>" + fmt(totalLikes) + "</b></td>" +
+    "<td>" + (lostOf(id) > 0 ? "<span class='lkdown'>-" + nf.format(lostOf(id)) + "</span>" : "<span class='zero'>—</span>") + "</td>" +
     "<td class='buys'>" + buyList + "</td></tr>";
 }).join("");
 
@@ -129,6 +144,7 @@ const html = `<!doctype html>
   .artist { display:block; color:var(--muted); font-size:11.5px; margin-top:2px; }
   td.today { background:rgba(57,135,229,0.10); }
   td.buyday { background:rgba(245,184,61,0.08); box-shadow:inset 3px 0 0 #f5b83d; }
+  .lkdown { display:block; font-size:11px; color:#ff6b6b; font-weight:700; }
   .lk { display:block; color:#e66790; font-size:11px; margin-top:2px; }
   .totalrow td { background:rgba(57,135,229,0.07); border-bottom:2px solid var(--line); }
   .buymark { display:block; color:#f5b83d; font-size:10.5px; font-weight:700; margin-top:2px; }
@@ -139,7 +155,7 @@ const html = `<!doctype html>
 <h1>🎵 레이벡스 음원 스트리밍 현황</h1>
 <div class="sub">유튜브뮤직 기준 · 마지막 갱신 ${updated} (KST) · 매시간 자동 갱신</div>
 <div class="wrap"><table><thead>${head}</thead><tbody>${totalRow}${rows}</tbody></table></div>
-<div class="note">숫자는 각 곡 유튜브 아트트랙의 일별 조회수 증가분, ♥는 그날 좋아요 증가분입니다. "오늘(현재)" 칸은 오늘 0시부터 마지막 갱신 시각까지의 수치입니다.<br>
+<div class="note">숫자는 각 곡 유튜브 아트트랙의 일별 조회수 증가분, ♥는 그날 좋아요 증가분, <span style="color:#ff6b6b">▼</span>는 전곡 합계 행에서 그날 빠진 좋아요 합계입니다. "좋아요 감소(누적)" 열은 추적 시작 후 빠진 좋아요 총합입니다. "오늘(현재)" 칸은 오늘 0시부터 마지막 갱신 시각까지의 수치입니다.<br>
 🛒 금색 표시 칸 = 좋아요 구매를 넣은 날짜(숫자는 구매 수량). 좋아요 수 집계는 2026-09-11부터 시작되어 이전 날짜에는 ♥ 표시가 없습니다.</div>
 </body></html>
 `;
