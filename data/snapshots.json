@@ -158,7 +158,11 @@
       "pendingUntil": "2026-08-31",
       "dist": "레이벡스",
       "adFrom": "2026-09-18",
-      "adTo": "2026-09-20"
+      "adTo": "2026-09-20",
+      "adViewsByDay": {
+        "2026-09-18": 7120,
+        "2026-09-19": 28
+      }
     },
     "Mmn_lwIf8xI": {
       "url": "https://www.youtube.com/watch?v=Mmn_lwIf8xI",
@@ -177,8 +181,12 @@
       "pinUntil": "2026-08-30",
       "release": "2026-08-30",
       "dist": "지니",
-      "adFrom": "2026-08-30",
-      "adTo": "2026-09-03"
+      "adViewsByDay": {
+        "2026-08-30": 1323,
+        "2026-08-31": 3871,
+        "2026-09-01": 6645,
+        "2026-09-02": 6724
+      }
     },
     "nUkXoDO8hIE": {
       "url": "https://www.youtube.com/watch?v=nUkXoDO8hIE",
@@ -203,8 +211,12 @@
       "release": "2026-09-13",
       "pinUntil": "2026-09-16",
       "dist": "지니",
-      "adFrom": "2026-09-13",
-      "adTo": "2026-09-17"
+      "adViewsByDay": {
+        "2026-09-13": 717,
+        "2026-09-14": 4430,
+        "2026-09-15": 5178,
+        "2026-09-16": 4905
+      }
     },
     "blQPNauonCs": {
       "url": "https://www.youtube.com/watch?v=blQPNauonCs",
@@ -231,7 +243,7 @@
     },
     "I2Akn5oSvLY": {
       "url": "https://www.youtube.com/watch?v=I2Akn5oSvLY",
-      "title": "차가을 - Acts of Goodbye",
+      "title": "차가을 - 이별행동",
       "share": 0.5,
       "adFrom": "2026-09-27",
       "adTo": "2026-10-01",
@@ -7205,7 +7217,7 @@
     }
   ],
   "current": {
-    "time": "2026-09-27 22:34",
+    "time": "2026-09-27 22:37",
     "stats": {
       "tUcWwAO5zU8": {
         "views": 1380509,
@@ -7213,32 +7225,32 @@
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 930222,
+        "views": 930232,
         "likes": 16649,
         "comments": 21
       },
       "grqTg6WOJII": {
-        "views": 1074606,
+        "views": 1074619,
         "likes": 35786,
         "comments": 44
       },
       "THGi-LLhbxM": {
-        "views": 745084,
+        "views": 745091,
         "likes": 13841,
         "comments": 13
       },
       "Jsm2uVtQhmY": {
-        "views": 396439,
+        "views": 396443,
         "likes": 17540,
         "comments": 5
       },
       "K_viUNQs5lc": {
-        "views": 34969,
-        "likes": 4073,
+        "views": 34965,
+        "likes": 4074,
         "comments": 0
       },
       "VCqKgW6Lvb4": {
-        "views": 793487,
+        "views": 793489,
         "likes": 11658,
         "comments": 27
       },
@@ -7253,7 +7265,7 @@
         "comments": 0
       },
       "vD5_vs-ODsA": {
-        "views": 340541,
+        "views": 340522,
         "likes": 3991,
         "comments": 10
       },
@@ -7263,7 +7275,7 @@
         "comments": 0
       },
       "FwQg1oq0ZwY": {
-        "views": 4725,
+        "views": 4731,
         "likes": 5077,
         "comments": 0
       },
@@ -7273,22 +7285,22 @@
         "comments": 0
       },
       "HC61q5FWciY": {
-        "views": 42713,
+        "views": 42720,
         "likes": 5167,
         "comments": 0
       },
       "GAYhdUa2-q4": {
-        "views": 67527,
+        "views": 67538,
         "likes": 5173,
         "comments": 0
       },
       "crsPCJTNIgE": {
-        "views": 5835,
+        "views": 5837,
         "likes": 14,
         "comments": 0
       },
       "xZKpKdsJO2k": {
-        "views": 46183,
+        "views": 46233,
         "likes": 2867,
         "comments": 0
       },
@@ -7298,12 +7310,12 @@
         "comments": 0
       },
       "Mmn_lwIf8xI": {
-        "views": 1616,
+        "views": 1617,
         "likes": 4,
         "comments": 0
       },
       "d40YQAsL_cU": {
-        "views": 539473,
+        "views": 539482,
         "likes": 6160,
         "comments": 7
       },
@@ -7318,12 +7330,12 @@
         "comments": 0
       },
       "Skywxm6bQKw": {
-        "views": 358995,
+        "views": 359001,
         "likes": 6244,
         "comments": 9
       },
       "blQPNauonCs": {
-        "views": 78322,
+        "views": 78325,
         "likes": 3035,
         "comments": 0
       },
@@ -7338,13 +7350,13 @@
         "comments": 16
       },
       "I2Akn5oSvLY": {
-        "views": 937,
-        "likes": 39,
+        "views": 959,
+        "likes": 41,
         "comments": 1
       },
       "gTG9evSpuWg": {
-        "views": 20886252,
-        "likes": 77558,
+        "views": 20886276,
+        "likes": 77559,
         "comments": 228
       },
       "D7VsFDJx4zw": {
