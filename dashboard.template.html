@@ -81,6 +81,8 @@
   .tbtn:hover { color: var(--text); }
   .tbtn.active { color: var(--text); }
   .tbtn.small { padding: 5px 12px; font-size: 12px; }
+  .artrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .artlbl { font-size: 12px; font-weight: 700; color: var(--muted); min-width: 64px; }
   #tableWrap { overflow-x: auto; }
   /* 모바일 */
   @media (max-width: 720px) {
@@ -1248,16 +1250,32 @@ function renderDetail(snaps, songs, ids){
 
   function paintButtons(){
     songBox.innerHTML = "";
-    const mk = (label, sel) => {
+    songBox.style.display = "block";
+    const mk = (label, sel, parent, tip) => {
       const b = document.createElement("button");
       b.className = "tbtn" + (state.sel === sel ? " active" : "");
       b.textContent = label;
+      if(tip) b.title = tip;
       if(state.sel === sel) b.style.borderColor = b.style.color = colorOf(sel);
       b.onclick = () => { state.sel = sel; paintButtons(); draw(); };
-      songBox.appendChild(b);
+      parent.appendChild(b);
     };
-    mk("전체 합계 (지분 반영)", "__total__");
-    ids.forEach(id => mk(songTitle(songs, id), id));
+    const row = (lbl) => {
+      const r = document.createElement("div"); r.className = "artrow";
+      if(lbl){ const s = document.createElement("span"); s.className = "artlbl"; s.textContent = lbl; r.appendChild(s); }
+      songBox.appendChild(r); return r;
+    };
+    mk("전체 합계 (지분 반영)", "__total__", row(""));
+    // 아티스트별로 묶어서 보여준다 (2026-09-27 민우님: 곡 버튼이 중구난방) — 누적 조회수 큰 아티스트부터
+    const artistOf = id => { const t = songTitle(songs, id), k = t.indexOf(" - "); return (k > 0 ? t.slice(0, k) : t).split(",")[0].trim(); };
+    const lastStats = snaps.length ? snaps[snaps.length-1].stats : {};
+    const groups = {};
+    ids.forEach(id => { (groups[artistOf(id)] = groups[artistOf(id)] || []).push(id); });
+    const sumOf = a => groups[a].reduce((s, id) => s + ((lastStats[id] && lastStats[id].views) || 0), 0);
+    Object.keys(groups).sort((a, b) => sumOf(b) - sumOf(a)).forEach(a => {
+      const r = row(a);
+      groups[a].forEach(id => { const t = songTitle(songs, id), k = t.indexOf(" - "); mk(k > 0 ? t.slice(k + 3) : t, id, r, t); });
+    });
 
     rangeBox.innerHTML = "";
     for(const [label, days] of RANGES){
