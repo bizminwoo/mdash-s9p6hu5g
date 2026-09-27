@@ -1,8 +1,20 @@
-{
-  "id": "20260920-wang",
-  "videoId": "blQPNauonCs",
-  "title": "왕준협 - 나의 어제와, 너의 내일이",
-  "days": 4,
-  "totalBudgetWon": 100000,
-  "startDate": "2026-09-20"
-}
+[
+  {
+    "id": "20260928-fishing",
+    "videoId": "crsPCJTNIgE",
+    "title": "카디코기 - Fishing Ground (Feat. Sihyeon Luliano)",
+    "days": 2,
+    "totalBudgetWon": 50000,
+    "startDate": "2026-09-28",
+    "template": "자동광고템플릿"
+  },
+  {
+    "id": "20260928-suicide",
+    "videoId": "Mmn_lwIf8xI",
+    "title": "카디코기 - Suicide",
+    "days": 2,
+    "totalBudgetWon": 50000,
+    "startDate": "2026-09-28",
+    "template": "자동광고템플릿2"
+  }
+]

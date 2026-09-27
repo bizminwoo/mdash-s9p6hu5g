@@ -1,5 +1,8 @@
 // ================================================================
-// 자동 신곡 광고 스크립트 v2.6 — 이민우 비서 제작 (2026-09-18: 문구 길이(전각 2칸) 제한 대응, 영상 자산+로고, 미리보기 처리, 종료일 시간대, 복구형)
+// 자동 신곡 광고 스크립트 v2.7 — 이민우 비서 제작 (2026-09-18: 문구 길이(전각 2칸) 제한 대응, 영상 자산+로고, 미리보기 처리, 종료일 시간대, 복구형)
+// v2.7 (2026-09-27): 여러 곡 동시 집행 — 명령 파일이 배열이면 곡마다 따로 처리.
+//                    명령마다 "template"(캠페인 이름)을 지정하면 곡별로 예산이 분리됨.
+//                    시작일 전에는 아무것도 켜지 않고 대기.
 // 매시간 실행. 명령 파일에 새 명령이 있으면 '자동광고템플릿' 캠페인에
 // 새 반응형 영상 광고를 걸고, 캠페인 총예산·종료일을 맞추고 켭니다.
 // 기간이 끝나면 자동으로 끕니다. 명령이 없으면 아무것도 하지 않습니다.
@@ -31,16 +34,23 @@ function cutWidth(str, maxWidth) {
 }
 
 function main() {
-  var cmd = null;
+  var raw = null;
   try {
-    cmd = JSON.parse(UrlFetchApp.fetch(CMD_URL, { muteHttpExceptions: true }).getContentText());
+    raw = JSON.parse(UrlFetchApp.fetch(CMD_URL, { muteHttpExceptions: true }).getContentText());
   } catch (e) {
     Logger.log('명령 파일 읽기 실패: ' + e);
     return;
   }
+  var cmds = Array.isArray(raw) ? raw : [raw];
+  for (var i = 0; i < cmds.length; i++) {
+    try { runOne(cmds[i]); } catch (e) { Logger.log('명령 처리 오류(' + (cmds[i] && cmds[i].id) + '): ' + e); }
+  }
+}
 
-  var it = AdsApp.videoCampaigns().withCondition("campaign.name = '" + TEMPLATE + "'").get();
-  if (!it.hasNext()) { Logger.log('템플릿 캠페인(' + TEMPLATE + ') 없음 — 대기'); return; }
+function runOne(cmd) {
+  var tmpl = (cmd && cmd.template) || TEMPLATE;
+  var it = AdsApp.videoCampaigns().withCondition("campaign.name = '" + tmpl + "'").get();
+  if (!it.hasNext()) { Logger.log('템플릿 캠페인(' + tmpl + ') 없음 — 대기'); return; }
   var camp = it.next();
 
   if (!cmd || !cmd.id || !cmd.videoId || !cmd.days || !cmd.totalBudgetWon || !cmd.startDate) {
@@ -61,11 +71,15 @@ function main() {
     manageEnd(camp, cmd);
     return;
   }
+  if (todayKst() < ymd(calDate(cmd.startDate))) {
+    Logger.log('시작일(' + cmd.startDate + ') 전 — 대기: ' + marker);
+    return;
+  }
 
   // 1) 명령 광고그룹 찾기 (없으면 생성). 매 실행마다 빠진 단계만 채워 넣는다(중간 실패 복구).
   var ag = null;
   var agIt = AdsApp.videoAdGroups()
-    .withCondition("campaign.name = '" + TEMPLATE + "'")
+    .withCondition("campaign.name = '" + tmpl + "'")
     .withCondition("ad_group.name = '" + marker + "'")
     .get();
   if (agIt.hasNext()) {
