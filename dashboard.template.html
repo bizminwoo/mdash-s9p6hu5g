@@ -261,6 +261,7 @@ function exSumOn(songs, id, dateStr){
   // 광고 집행 기간(adFrom~adTo)에는 조회수가 광고로 부풀려지므로 그 날짜의 합계·수익에서 뺀다.
   // adTo 를 안 적으면 "광고 진행 중"으로 보고 계속 제외한다.
   if(g.adFrom && dateStr && dateStr >= g.adFrom && (!g.adTo || dateStr <= g.adTo)) return true;
+  if(g.adRanges && dateStr && g.adRanges.some(r => dateStr >= r[0] && dateStr <= r[1])) return true;
   return false;
 }
 const todayStr = (() => { const n=new Date(), q=x=>String(x).padStart(2,"0");
@@ -282,6 +283,7 @@ function adCutRange(songs, id, from, to){
 }
 function adRunning(songs, id){
   const g = songs[id];
+  if(g && g.adRanges && g.adRanges.some(r => todayStr >= r[0] && todayStr <= r[1])) return true;
   return !!(g && g.adFrom && todayStr >= g.adFrom && (!g.adTo || todayStr <= g.adTo));
 }
 
