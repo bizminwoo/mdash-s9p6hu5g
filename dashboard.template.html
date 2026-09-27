@@ -445,17 +445,27 @@ function render(){
   const daysInMonth = new Date(Y, M, 0).getDate();
   const PER_STREAM = WON_PER_1000_DAILY / (1000 * 30); // 스트림당 원 = 6.3원 (민우님 지정 단가)
   const monthProj = (id) => {
-    let mtd = 0, days = 0;
+    let mtd = 0, days = 0, lastD = null;
     for(let i=1;i<snaps.length;i++){
       const [y,m] = snaps[i-1].date.split("-").map(Number);
       if(y !== Y || m !== M) continue; // 이번 달 일자만 집계
+      lastD = snaps[i-1].date;
       // 광고 집행 기간(adFrom~adTo) 등 제외일은 실측·일수 계산에서 모두 뺀다
       // (2026-09-16 민우님 지적: needy 예상 월 수익이 광고 뻥튀기 일자 기준으로 잡혀 있었음)
       if(exSumOn(songs, id, snaps[i-1].date)) continue;
       const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
       if(a && b && a.views!=null && b.views!=null){ mtd += Math.max(0, b.views - a.views - adCut(songs, id, snaps[i-1].date)); days++; }
     }
-    return days > 0 ? { mtd, days, projStreams: mtd / days * daysInMonth } : null;
+    if(days <= 0) return null;
+    // 실측 + 남은 날 추정 (2026-09-27 민우님 "광고 합산 다 제외"): 예전엔 일평균 × 그 달 일수라서
+    // 이미 지난 광고일·발매 전 날짜까지 평소 수치로 다시 채워 넣었다. 이제 지난 제외일은 0, 남은 날 중 제외일도 뺀다.
+    let rest = 0;
+    if(lastD){
+      const endStr = `${Y}-${String(M).padStart(2,"0")}-${String(daysInMonth).padStart(2,"0")}`;
+      let d = new Date(lastD + "T00:00:00Z");
+      for(;;){ d = new Date(d.getTime() + 86400000); const ds = d.toISOString().slice(0,10); if(ds > endStr) break; if(!exSumOn(songs, id, ds)) rest++; }
+    }
+    return { mtd, days, projStreams: mtd + mtd / days * rest };
   };
   let projDays = 0;
   rows.forEach(r => {
