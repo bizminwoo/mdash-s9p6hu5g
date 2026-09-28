@@ -7522,40 +7522,40 @@
     }
   ],
   "current": {
-    "time": "2026-09-29 05:14",
+    "time": "2026-09-29 06:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1386887,
+        "views": 1386935,
         "likes": 8732,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 934055,
+        "views": 934084,
         "likes": 16647,
         "comments": 21
       },
       "grqTg6WOJII": {
-        "views": 1081045,
+        "views": 1081118,
         "likes": 35794,
         "comments": 44
       },
       "THGi-LLhbxM": {
-        "views": 749095,
+        "views": 749124,
         "likes": 13843,
         "comments": 13
       },
       "Jsm2uVtQhmY": {
-        "views": 398505,
+        "views": 398480,
         "likes": 17544,
         "comments": 5
       },
       "K_viUNQs5lc": {
-        "views": 35065,
+        "views": 35066,
         "likes": 4071,
         "comments": 0
       },
       "VCqKgW6Lvb4": {
-        "views": 796749,
+        "views": 796779,
         "likes": 11663,
         "comments": 27
       },
@@ -7570,27 +7570,27 @@
         "comments": 0
       },
       "vD5_vs-ODsA": {
-        "views": 340781,
+        "views": 340783,
         "likes": 3991,
         "comments": 10
       },
       "-rFw4j4aqg0": {
-        "views": 110810,
+        "views": 110802,
         "likes": 3218,
         "comments": 0
       },
       "FwQg1oq0ZwY": {
-        "views": 5033,
+        "views": 5032,
         "likes": 5078,
         "comments": 0
       },
       "mE-BhncAh6E": {
-        "views": 4947,
+        "views": 4758,
         "likes": 9,
         "comments": 0
       },
       "HC61q5FWciY": {
-        "views": 44029,
+        "views": 44103,
         "likes": 5168,
         "comments": 0
       },
@@ -7600,12 +7600,12 @@
         "comments": 0
       },
       "crsPCJTNIgE": {
-        "views": 6080,
+        "views": 6198,
         "likes": 14,
         "comments": 0
       },
       "xZKpKdsJO2k": {
-        "views": 46597,
+        "views": 46591,
         "likes": 2867,
         "comments": 0
       },
@@ -7620,8 +7620,8 @@
         "comments": 0
       },
       "d40YQAsL_cU": {
-        "views": 546842,
-        "likes": 6169,
+        "views": 546897,
+        "likes": 6171,
         "comments": 8
       },
       "nUkXoDO8hIE": {
@@ -7635,13 +7635,13 @@
         "comments": 0
       },
       "Skywxm6bQKw": {
-        "views": 364702,
+        "views": 364739,
         "likes": 6261,
         "comments": 9
       },
       "blQPNauonCs": {
-        "views": 78976,
-        "likes": 3053,
+        "views": 79012,
+        "likes": 3056,
         "comments": 0
       },
       "zcbPF8HRvmE": {
@@ -7650,17 +7650,17 @@
         "comments": 7
       },
       "zpS9eHisf34": {
-        "views": 618477,
+        "views": 618531,
         "likes": 2243,
         "comments": 16
       },
       "I2Akn5oSvLY": {
-        "views": 32440,
+        "views": 32584,
         "likes": 111,
         "comments": 3
       },
       "gTG9evSpuWg": {
-        "views": 20910056,
+        "views": 20910202,
         "likes": 77590,
         "comments": 228
       },
@@ -31554,6 +31554,37 @@
         "I2Akn5oSvLY": 32365,
         "gTG9evSpuWg": 20909985,
         "D7VsFDJx4zw": 126565
+      },
+      "06": {
+        "tUcWwAO5zU8": 1386935,
+        "RsQDAygpF6k": 934084,
+        "grqTg6WOJII": 1081118,
+        "THGi-LLhbxM": 749124,
+        "Jsm2uVtQhmY": 398480,
+        "K_viUNQs5lc": 35066,
+        "VCqKgW6Lvb4": 796779,
+        "h8JV2rw7QOc": 142,
+        "qmF8dPz22nU": 52791,
+        "vD5_vs-ODsA": 340783,
+        "-rFw4j4aqg0": 110802,
+        "FwQg1oq0ZwY": 5032,
+        "mE-BhncAh6E": 4758,
+        "HC61q5FWciY": 44103,
+        "GAYhdUa2-q4": 72033,
+        "crsPCJTNIgE": 6198,
+        "xZKpKdsJO2k": 46591,
+        "VXGoK266B7A": 43757,
+        "Mmn_lwIf8xI": 1623,
+        "d40YQAsL_cU": 546897,
+        "nUkXoDO8hIE": 2558,
+        "uxbCjFWcoGU": 3357,
+        "Skywxm6bQKw": 364739,
+        "blQPNauonCs": 79012,
+        "zcbPF8HRvmE": 418792,
+        "zpS9eHisf34": 618531,
+        "I2Akn5oSvLY": 32584,
+        "gTG9evSpuWg": 20910202,
+        "D7VsFDJx4zw": 126565
       }
     }
   },
@@ -32552,7 +32583,8 @@
       "02": 0,
       "03": 0,
       "04": 0,
-      "05": 0
+      "05": 0,
+      "06": 0
     }
   }
 }
