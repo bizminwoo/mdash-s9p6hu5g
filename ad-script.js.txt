@@ -1,5 +1,6 @@
 // ================================================================
-// 자동 신곡 광고 스크립트 v2.9 — 이민우 비서 제작
+// 자동 신곡 광고 스크립트 v2.10 — 이민우 비서 제작
+// v2.10 (2026-09-28): 총예산 = 캠페인 시작일부터 이미 쓴 돈 + 이번 예산 (옛 캠페인 재사용 시 예산 초과로 안 도는 문제 수정).
 // v2.9 (2026-09-28): 광고그룹을 새로 만들지 않고 캠페인마다 '자동광고' 그룹 하나를 재사용 → 화면에서 정한 입찰가(타겟 CPV 15원) 유지.
 // v2.8 (2026-09-28): 광고 설명 = 곡 제목 그대로. (2026-09-18: 문구 길이(전각 2칸) 제한 대응, 영상 자산+로고, 미리보기 처리, 종료일 시간대, 복구형)
 // v2.7 (2026-09-27): 여러 곡 동시 집행 — 명령 파일이 배열이면 곡마다 따로 처리.
@@ -24,6 +25,15 @@ function ymd(d) {
 function calDate(str) { var p = str.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); }
 function kstDate(str) { return new Date(str + 'T00:00:00+09:00'); }
 function todayKst() { var t = new Date(Date.now() + 9 * 3600000); return ymd(t); }
+// 캠페인 시작일 ~ 명령 시작 전날까지 쓴 돈 (총예산 계산용)
+function priorSpend(camp, startStr) {
+  var sd = camp.getStartDate();
+  if (!sd) return 0;
+  var from = '' + sd.year + (sd.month < 10 ? '0' : '') + sd.month + (sd.day < 10 ? '0' : '') + sd.day;
+  var to = ymd(new Date(calDate(startStr).getTime() - 86400000));
+  if (to < from) return 0;
+  return camp.getStatsFor(from, to).getCost();
+}
 // 구글 광고 문구 길이 제한: 한글 등 전각 문자는 2칸으로 계산 → 폭 기준으로 자른다
 function cutWidth(str, maxWidth) {
   var out = '', w = 0;
@@ -107,11 +117,19 @@ function runOne(cmd) {
   while (adsIt.hasNext()) { var a = adsIt.next(); adList.push(a); if (a.getVideoId() === cmd.videoId && (!mine || a.isEnabled())) mine = a; }
   var isNew = !(mine && mine.isEnabled());
   if (isNew) {
-    // 새 명령 시작: 예산·종료일을 맞추고, 다른 곡 광고는 끈다
+    // 새 명령 시작: 종료일을 맞추고, 다른 곡 광고는 끈다
     camp.setEndDate(ymd(endDate));
-    camp.getBudget().setTotalAmount(cmd.totalBudgetWon);
     for (var j = 0; j < adList.length; j++) { if (adList[j] !== mine && adList[j].isEnabled()) adList[j].pause(); }
     if (mine) { mine.enable(); Logger.log('기존 광고 다시 켬: ' + marker); }
+  }
+  // 총예산은 "캠페인 시작일부터 전체" 기준이라, 이 명령 전까지 이미 쓴 돈 + 이번 예산으로 맞춘다 (v2.10)
+  // (2026-09-28 사고: 9/14 시작 캠페인에 5만원만 걸어 이미 쓴 10만원 때문에 Fishing Ground가 하루 종일 0회 노출)
+  var want = Math.round(priorSpend(camp, cmd.startDate) + cmd.totalBudgetWon);
+  var budget = camp.getBudget(), cur = null;
+  try { cur = budget.getTotalAmount(); } catch (e) {}
+  if (cur == null || Math.abs(cur - want) >= 1) {
+    budget.setTotalAmount(want);
+    Logger.log('총예산 ' + want + '원으로 설정 (이전 사용분 ' + (want - cmd.totalBudgetWon) + '원 + 이번 ' + cmd.totalBudgetWon + '원): ' + marker);
   }
   if (!mine) {
     // 영상 자산: 이미 등록된 유튜브 영상 자산이 있으면 재사용, 없으면 새로 등록 (adMedia는 2026년 폐지됨)
