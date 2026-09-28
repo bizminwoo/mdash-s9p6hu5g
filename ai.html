@@ -313,6 +313,44 @@ function ownedBase(songs, snaps, id){
 function byDate(a,b){ return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; }
 function mdShort(s){ const [,m,d] = s.split("-"); return Number(m)+"/"+Number(d); }
 
+// 최근 하루 곡별 셀에만 적용. 노출/상호작용/TrueView/earned views는 공개 광고조회 대용이 아니다.
+function recentDayAdResult(data, id, prev, latest) {
+  if (!data.songs[id]?.adVerificationPending) return null;
+  const raw = prev?.stats[id]?.views != null && latest?.stats[id]?.views != null
+    ? latest.stats[id].views - prev.stats[id].views : null;
+  const iso = s => /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(s || '')
+    ? s.replace(' ', 'T') + ':00+09:00' : null;
+  const start = iso(prev?.time), end = iso(latest?.time);
+  const reports = data.recentDayAdVerification?.[id] || [];
+  const report = reports.find(r => start && end && r.start === start && r.end === end
+    && r.accountTimeZone === 'Asia/Seoul') || null;
+  // 날짜뿐 아니라 공개 카운터 반영 구간까지 검증한 값만 차감한다.
+  const verified = raw != null && report?.status === 'verified'
+    && report.metric === 'youtube_public_views' && report.counterWindowAligned === true
+    && report.startViews === prev.stats[id].views && report.endViews === latest.stats[id].views
+    && Number.isSafeInteger(report.adPublicViews) && report.adPublicViews >= 0
+    && report.adPublicViews <= raw;
+  return { raw, start, end, report, ad: verified ? report.adPublicViews : null,
+    net: verified ? raw - report.adPublicViews : null };
+}
+
+function recentDayAdCell(result) {
+  const { raw, start, end, report, ad, net } = result;
+  const fmt = n => Number.isFinite(n) ? nf.format(n) : '미확인';
+  const signed = n => (n >= 0 ? '+' : '') + fmt(n);
+  const period = start && end ? `${start.slice(0,16).replace('T',' ')} → ${end.slice(0,16).replace('T',' ')} KST` : '시작·끝 기록시각 미확인';
+  let text = net == null ? '<b>— 광고 차감 미확인</b>' : `<b>${signed(net)}</b>`;
+  text += `<div class="muted" style="font-size:10.5px">전체 ${raw == null ? '미확인' : signed(raw)} · 광고 ${fmt(ad)}</div>`;
+  text += `<details class="muted" style="font-size:10.5px"><summary>기간·조회 근거</summary>${escapeHtml(period)}<br>`;
+  if (report) {
+    text += `Google Ads 확인: ${escapeHtml(report.checkedAtKst || '')}<br>`;
+    text += `TrueView ${fmt(report.observed?.trueViewViews)}회 (공개 광고조회와 다름)<br>`;
+    text += `노출 ${fmt(report.observed?.impressions)}회 · 상호작용 ${fmt(report.observed?.interactions)}회 (차감 안 함)<br>`;
+    text += escapeHtml(report.reason || '') + '<br>';
+  } else text += '이 기간의 검증된 공개 광고조회 자료 없음. 이전 날짜의 광고값은 재사용하지 않음.<br>';
+  return text + '집계 지연·소급 보정으로 공개 카운터 반영 구간과 광고 발생일이 다를 수 있음. 합계·수익은 기존 계산 유지.</details>';
+}
+
 // 합계에 넣을 때 쓰는 지분 가중치 — 공동제작 50% 곡은 조회수도 절반만 합계에 들어간다.
 // 곡별 표·개별 그래프는 유튜브 실제 수치 그대로이고, 합계(요약 카드·전체 합계 행·전체 합계 그래프)에서만 곱한다.
 // share 0 = 선급곡(수익 지분은 없지만 우리 곡이라 스트리밍 합계에는 100% 넣는다).
@@ -679,6 +717,8 @@ function render(){
         return `<b>≈ ${nf.format(p)}</b>${chg}`;
       })()}</td>
       <td class="delta up">${(() => {
+        const checkedAd = recentDayAdResult(DATA, r.id, prev, latest);
+        if(checkedAd) return recentDayAdCell(checkedAd);
         if(r.dViews == null) return "<span class='muted'>—</span>";
         if(prev && exSumOn(songs, r.id, prev.date)) return `<span class="exval">+${nf.format(r.dViews)}</span><div class="extag">📣 광고 — 합산 제외</div>`;
         const c = prev ? adCut(songs, r.id, prev.date) : 0;

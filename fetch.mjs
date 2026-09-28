@@ -206,7 +206,7 @@ async function main() {
   if (existsSync(DATA_FILE)) db = JSON.parse(readFileSync(DATA_FILE, "utf8"));
 
   // songs.json 의 제목/수익비율(share)/광고플래그(adViews)/보류플래그(pending)/광고기간(adFrom·adTo)을 항상 반영
-  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo, adViewsByDay, dist } of songs) {
+  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo, adViewsByDay, adVerificationPending, dist } of songs) {
     const vid = vidOf(url);
     db.songs[vid] = { ...(db.songs[vid] || {}), url,
       ...(title ? { title } : {}), share: share == null ? 1 : share };
@@ -219,6 +219,7 @@ async function main() {
     if (adTo) db.songs[vid].adTo = adTo; else delete db.songs[vid].adTo;
     // 부분 광고 조회 차감표 — 그날 증가분에서 광고분만 빼고 합계·수익에 넣는다 (2026-09-13)
     if (adViewsByDay) db.songs[vid].adViewsByDay = adViewsByDay; else delete db.songs[vid].adViewsByDay;
+    if (adVerificationPending) db.songs[vid].adVerificationPending = true; else delete db.songs[vid].adVerificationPending;
     if (release) db.songs[vid].release = release;   // 발매일 (신곡 비교의 기준점)
     if (dist) db.songs[vid].dist = dist; else delete db.songs[vid].dist;   // 유통사 (2026-09-15)
   }
@@ -262,6 +263,10 @@ async function main() {
   const SP_FILE = join(ROOT, "data", "spotify.json");
   const sp = existsSync(SP_FILE) ? readFileSync(SP_FILE, "utf8") : "null";
   const tpl = readFileSync(TEMPLATE, "utf8");
+  // 최근 하루 곡별 표시 전용. 기존 adViewsByDay/합산/수익 정책과 분리한다.
+  const adReportFile = join(ROOT, "data", "recent-day-ad-verification.json");
+  db.recentDayAdVerification = existsSync(adReportFile)
+    ? JSON.parse(readFileSync(adReportFile, "utf8")) : {};
   db.likesBuys = loadLikesBuys();   // 화면 표시용 (data/snapshots.json 에는 저장 안 됨)
   writeFileSync(OUTPUT, fillPage(tpl, db, sp, {
     nav: navHtml("index.html"),

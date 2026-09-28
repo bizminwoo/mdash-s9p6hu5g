@@ -1,0 +1,39 @@
+{
+  "I2Akn5oSvLY": [
+    {
+      "start": "2026-09-28T00:00:00+09:00",
+      "end": "2026-09-29T00:00:00+09:00",
+      "accountTimeZone": "Asia/Seoul",
+      "startViews": 2176,
+      "endViews": 29252,
+      "checkedAtKst": "2026-09-29 00:08 KST",
+      "status": "unverified",
+      "metric": "youtube_public_views",
+      "counterWindowAligned": false,
+      "adPublicViews": null,
+      "observed": {
+        "trueViewViews": 1518,
+        "impressions": 3830,
+        "interactions": 2271
+      },
+      "source": "Google Ads API v22, ad_group_ad, segments.date=2026-09-28. Single video asset mapped to I2Akn5oSvLY; confirmed by video.id report.",
+      "observedFields": {
+        "trueViewViews": "metrics.video_trueview_views",
+        "impressions": "metrics.impressions",
+        "interactions": "metrics.interactions"
+      },
+      "reason": "조회 시작 00:08 KST의 보고값이며 확정값 아님. v22에서 YouTube public views와 earned views 필드 미제공 확인. TrueView는 공개 광고조회와 다른 지표여서 차감하지 않음. 00:07 영상 보고는 TrueView 1,517/노출 3,828이었으며 이후 증가하여 아직 집계 중임을 확인.",
+      "limitations": [
+        "스냅샷 시각은 기록된 분 단위이며 공개 카운터의 관측 시각이지 실제 재생 발생 시각이 아님.",
+        "계정 시간대와 스냅샷 시간대는 Asia/Seoul로 같지만 공개 카운터 반영 지연의 시작/끝까지 일치한다고 증명할 수 없음.",
+        "Google Ads 보고는 수 시간 지연될 수 있고 YouTube Analytics 트래픽 소스는 48~72시간 지연 가능. 무효 조회수 보정은 최대 30일까지 가능.",
+        "earned views는 광고 시청 후 7일 내 연결 채널의 후속 시청으로 해당 영상의 유료 공개조회와 같지 않아 차감하지 않음.",
+        "기존 전체 합계·수익 및 다른 곡의 adViewsByDay 정책은 변경하지 않음. 이 자료는 최근 하루 곡별 셀 전용."
+      ],
+      "references": [
+        "https://support.google.com/google-ads/answer/2375431?hl=en",
+        "https://support.google.com/google-ads/answer/2544985?hl=en"
+      ]
+    }
+  ]
+}
