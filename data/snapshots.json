@@ -245,11 +245,13 @@
       "url": "https://www.youtube.com/watch?v=I2Akn5oSvLY",
       "title": "차가을 - 이별행동",
       "share": 0.5,
-      "adFrom": "2026-09-27",
-      "adTo": "2026-10-01",
       "release": "2026-09-27",
       "dist": "지니",
-      "pinUntil": "2026-09-27"
+      "pinUntil": "2026-09-27",
+      "adViewsByDay": {
+        "2026-09-27": 1014,
+        "2026-09-28": 3828
+      }
     }
   },
   "snapshots": [
@@ -7519,40 +7521,40 @@
     }
   ],
   "current": {
-    "time": "2026-09-29 00:00",
+    "time": "2026-09-29 00:07",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1386177,
+        "views": 1386203,
         "likes": 8728,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 933569,
-        "likes": 16647,
+        "views": 933598,
+        "likes": 16646,
         "comments": 21
       },
       "grqTg6WOJII": {
-        "views": 1080223,
+        "views": 1080242,
         "likes": 35793,
         "comments": 44
       },
       "THGi-LLhbxM": {
-        "views": 748572,
-        "likes": 13844,
+        "views": 748580,
+        "likes": 13843,
         "comments": 13
       },
       "Jsm2uVtQhmY": {
-        "views": 398238,
+        "views": 398243,
         "likes": 17544,
         "comments": 5
       },
       "K_viUNQs5lc": {
-        "views": 35056,
+        "views": 35058,
         "likes": 4071,
         "comments": 0
       },
       "VCqKgW6Lvb4": {
-        "views": 796389,
+        "views": 796406,
         "likes": 11660,
         "comments": 27
       },
@@ -7572,7 +7574,7 @@
         "comments": 10
       },
       "-rFw4j4aqg0": {
-        "views": 109838,
+        "views": 109864,
         "likes": 3216,
         "comments": 0
       },
@@ -7582,27 +7584,27 @@
         "comments": 0
       },
       "mE-BhncAh6E": {
-        "views": 3249,
+        "views": 3341,
         "likes": 9,
         "comments": 0
       },
       "HC61q5FWciY": {
-        "views": 43913,
+        "views": 43922,
         "likes": 5168,
         "comments": 0
       },
       "GAYhdUa2-q4": {
-        "views": 71530,
+        "views": 71547,
         "likes": 5178,
         "comments": 0
       },
       "crsPCJTNIgE": {
-        "views": 5852,
+        "views": 5851,
         "likes": 14,
         "comments": 0
       },
       "xZKpKdsJO2k": {
-        "views": 46520,
+        "views": 46526,
         "likes": 2867,
         "comments": 0
       },
@@ -7617,7 +7619,7 @@
         "comments": 0
       },
       "d40YQAsL_cU": {
-        "views": 545794,
+        "views": 545820,
         "likes": 6167,
         "comments": 8
       },
@@ -7632,13 +7634,13 @@
         "comments": 0
       },
       "Skywxm6bQKw": {
-        "views": 363962,
-        "likes": 6256,
+        "views": 363998,
+        "likes": 6257,
         "comments": 9
       },
       "blQPNauonCs": {
-        "views": 78806,
-        "likes": 3034,
+        "views": 78811,
+        "likes": 3035,
         "comments": 0
       },
       "zcbPF8HRvmE": {
@@ -7652,17 +7654,17 @@
         "comments": 16
       },
       "I2Akn5oSvLY": {
-        "views": 29252,
-        "likes": 105,
+        "views": 29427,
+        "likes": 106,
         "comments": 3
       },
       "gTG9evSpuWg": {
-        "views": 20906990,
+        "views": 20907101,
         "likes": 77583,
         "comments": 228
       },
       "D7VsFDJx4zw": {
-        "views": 126491,
+        "views": 126418,
         "likes": 1385,
         "comments": 0
       }
