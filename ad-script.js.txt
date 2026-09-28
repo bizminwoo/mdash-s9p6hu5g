@@ -1,5 +1,6 @@
 // ================================================================
-// 자동 신곡 광고 스크립트 v2.8 — 이민우 비서 제작
+// 자동 신곡 광고 스크립트 v2.9 — 이민우 비서 제작
+// v2.9 (2026-09-28): 광고그룹을 새로 만들지 않고 캠페인마다 '자동광고' 그룹 하나를 재사용 → 화면에서 정한 입찰가(타겟 CPV 15원) 유지.
 // v2.8 (2026-09-28): 광고 설명 = 곡 제목 그대로. (2026-09-18: 문구 길이(전각 2칸) 제한 대응, 영상 자산+로고, 미리보기 처리, 종료일 시간대, 복구형)
 // v2.7 (2026-09-27): 여러 곡 동시 집행 — 명령 파일이 배열이면 곡마다 따로 처리.
 //                    명령마다 "template"(캠페인 이름)을 지정하면 곡별로 예산이 분리됨.
@@ -13,6 +14,7 @@
 var CMD_URL = 'https://raw.githubusercontent.com/bizminwoo/mdash-s9p6hu5g/main/ad-command.json';
 var TEMPLATE = '자동광고템플릿';
 var MAX_BUDGET_WON = 200000; // 안전장치: 1회 총예산 최대 20만원 (초과 명령은 거부)
+var FIXED_AG = '자동광고';   // 캠페인마다 재사용하는 광고그룹 이름 (입찰가 유지)
 
 // 날짜 계산은 스크립트 서버 시간대와 무관하게 '달력 날짜'만 쓴다 (UTC 기준 산술)
 function ymd(d) {
@@ -77,32 +79,41 @@ function runOne(cmd) {
     return;
   }
 
-  // 1) 명령 광고그룹 찾기 (없으면 생성). 매 실행마다 빠진 단계만 채워 넣는다(중간 실패 복구).
-  var ag = null;
-  var agIt = AdsApp.videoAdGroups()
-    .withCondition("campaign.name = '" + tmpl + "'")
-    .withCondition("ad_group.name = '" + marker + "'")
-    .get();
-  if (agIt.hasNext()) {
-    ag = agIt.next();
-  } else {
-    camp.setEndDate(ymd(endDate));
-    camp.getBudget().setTotalAmount(cmd.totalBudgetWon);
-    // 템플릿에 남아있던 기존 광고그룹은 전부 일시중지
-    var ags = camp.videoAdGroups().get();
-    while (ags.hasNext()) { ags.next().pause(); }
-    var agOp = camp.newVideoAdGroupBuilder()
-      .withName(marker)
-      .withAdGroupType('VIDEO_RESPONSIVE')
-      .build();
+  // 1) 캠페인마다 광고그룹 하나('자동광고')를 계속 재사용하고 광고만 갈아끼운다.
+  //    입찰가(타겟 CPV)는 스크립트·API 모두 바꿀 수 없어서, 민우님이 화면에서 한 번 맞춰둔 광고그룹을 유지하기 위함 (v2.9)
+  var ag = null, g, cand = null, agsIt = camp.videoAdGroups().get(), others = [];
+  while (agsIt.hasNext()) {
+    g = agsIt.next();
+    if (g.getName() === FIXED_AG) ag = g;
+    else { others.push(g); if (!cand && g.isEnabled() && g.getName().indexOf('cmd-') === 0) cand = g; }
+  }
+  if (!ag && cand) {
+    // 처음 한 번: 지금 켜져 있는 명령 광고그룹(입찰가를 이미 맞춰둔 것)을 고정 광고그룹으로 이름만 바꿔 쓴다
+    cand.setName(FIXED_AG); ag = cand;
+    others = others.filter(function (x) { return x !== cand; });
+    Logger.log('고정 광고그룹 지정(기존 그룹 재사용, 입찰가 유지): ' + tmpl);
+  }
+  if (!ag) {
+    var agOp = camp.newVideoAdGroupBuilder().withName(FIXED_AG).withAdGroupType('VIDEO_RESPONSIVE').build();
     if (!agOp.isSuccessful()) { Logger.log('광고그룹 생성 실패: ' + agOp.getErrors().join(', ')); return; }
     ag = agOp.getResult();
-    Logger.log('광고그룹 생성: ' + marker);
+    Logger.log('⚠️ 고정 광고그룹 새로 생성: ' + tmpl + ' — 화면에서 타겟 CPV 입찰가를 한 번 맞춰주세요');
   }
+  for (var k = 0; k < others.length; k++) { if (others[k].isEnabled()) others[k].pause(); }
   if (!ag.isEnabled()) { ag.enable(); }
 
-  // 2) 광고그룹에 광고가 없으면 반응형 영상 광고 생성
-  if (!ag.videoAds().get().hasNext()) {
+  // 2) 이 곡 광고가 이미 켜져 있으면 그대로 둔다 (영상으로 판별 — 화면에서 문구를 고쳐도 같은 광고로 인식)
+  var mine = null, adsIt = ag.videoAds().get(), adList = [];
+  while (adsIt.hasNext()) { var a = adsIt.next(); adList.push(a); if (a.getVideoId() === cmd.videoId && (!mine || a.isEnabled())) mine = a; }
+  var isNew = !(mine && mine.isEnabled());
+  if (isNew) {
+    // 새 명령 시작: 예산·종료일을 맞추고, 다른 곡 광고는 끈다
+    camp.setEndDate(ymd(endDate));
+    camp.getBudget().setTotalAmount(cmd.totalBudgetWon);
+    for (var j = 0; j < adList.length; j++) { if (adList[j] !== mine && adList[j].isEnabled()) adList[j].pause(); }
+    if (mine) { mine.enable(); Logger.log('기존 광고 다시 켬: ' + marker); }
+  }
+  if (!mine) {
     // 영상 자산: 이미 등록된 유튜브 영상 자산이 있으면 재사용, 없으면 새로 등록 (adMedia는 2026년 폐지됨)
     var videoAsset = null;
     var assetIt = AdsApp.adAssets().assets()
