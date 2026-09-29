@@ -121,7 +121,7 @@
   <div class="panel">
     <h2>🏢 유통사별 추정 정산 <span class="muted" id="distLabel"></span></h2>
     <div id="distWrap"></div>
-    <div class="note">유통사별로 그 달 확정 스트리밍(광고·보류 제외 규칙 동일)을 모아 <b>× 유통사별 단가 × 지분</b>으로 추정한 <b>내 몫</b> 금액입니다. 단가: <b>지니 5.93원</b>(7월 실측 정산으로 보정) · 나머지 <b>6.0원</b>(실측 들어오면 보정). 선급곡(내 몫 0)은 "선급 회수 중"으로 표시하고 트랙 기준 금액만 참고로 병기합니다. CJ는 정산이 한 달 늦게 입금됩니다(7월분 → 10월말).</div>
+    <div class="note">표의 열은 <b>돈이 들어오는 달(입금월)</b>입니다. <b>지니는 서비스월 +2개월</b>(7월분 → 9월 입금), <b>쿼터·CJ·레이벡스 등 나머지는 +3개월</b>(7월분 → 10월 입금). 각 칸 아래 작은 글씨가 몇 월분인지입니다. 금액 = 그 서비스월 확정 스트리밍(광고·보류 제외 규칙 동일) <b>× 유통사별 단가 × 지분</b>으로 추정한 <b>내 몫</b>. 단가: <b>지니 5.93원</b>(7월 실측 보정) · 나머지 <b>6.0원</b>. 선급곡(내 몫 0)은 "선급 회수 중"으로 표시하고 트랙 기준 금액만 참고로 병기합니다. 아직 끝나지 않은 달의 몫은 <b>어제까지 확정분</b>만 들어 있어 날이 갈수록 늘어납니다. 수집 시작(6/29) 전 달은 "수집 전"으로 표시합니다.</div>
   </div>
   <div class="panel">
     <h2>📀 발매 타임라인 <span class="muted">— 최신 발매순, 언제 나온 앨범인지 한눈에</span></h2>
@@ -833,74 +833,77 @@ function render(){
   }
 }
 
-// 유통사별 추정 정산 (2026-09-15 민우님 지시) — 지난 두 달, 유통사별 확정 스트리밍 × 6.3원.
-// 큰 숫자 = 트랙 100% 기준(유통사 정산서 대조용), 작은 숫자 = 지분 반영 내 몫.
-// 광고·보류 제외 규칙(exSumOn·adCut)은 수익 계산과 동일. 마케팅 트랙은 ids에 없어 자동 제외.
+// 유통사별 추정 정산 — 입금월 기준 (2026-09-29 민우님: "서비스월 말고 정산받는 월로")
+//   입금월 = 서비스월 + 유통사별 지연: 지니 +2개월, 쿼터·CJ·레이벡스(그 외 전부) +3개월.
+//   열 = 이번 달부터, 지금 진행 중인 서비스월이 입금되는 달까지. 진행 중인 서비스월 몫은 "어제까지 확정분".
+//   큰 숫자 = 내 몫, 선급(내 몫 0)은 트랙 기준을 참고로 병기. 광고·보류 제외 규칙(exSumOn·adCut)은 수익 계산과 동일.
+const DIST_LAG = { "지니": 2 };
+const DIST_LAG_DEFAULT = 3;
 function renderDistRevenue(snaps, songs, ids){
   const wrap = document.getElementById("distWrap");
   const label = document.getElementById("distLabel");
   if(!wrap || snaps.length < 2) return;
   const [cy, cm] = snaps[snaps.length-1].date.split("-").map(Number);
-  // 지난 두 달 (진행 중인 이번 달 제외)
-  const months = [];
-  for(let k=2;k>=1;k--){
-    let y = cy, m = cm - k;
-    while(m < 1){ m += 12; y -= 1; }
-    months.push({ y, m });
-  }
-  const per = {};   // dist → { "y-m": {full, mine} }
+  const addM = (y, m, k) => { let t = y*12 + (m-1) + k; return { y: Math.floor(t/12), m: t%12 + 1 }; };
+  const keyOf = (o) => o.y + "-" + o.m;
+  const cur = { y: cy, m: cm };
+  const lagOf = d => DIST_LAG[d] ?? DIST_LAG_DEFAULT;
+  // 서비스월별 집계 per[dist]["y-m"] = {full, mine}
+  const per = {};
   for(let i=1;i<snaps.length;i++){
-    const [y,m] = snaps[i-1].date.split("-").map(Number);
-    const mo = months.find(x => x.y === y && x.m === m);
-    if(!mo) continue;
-    const key = mo.y + "-" + mo.m;
+    const day = snaps[i-1].date;
+    const [y,m] = day.split("-").map(Number);
+    const key = y + "-" + m;
     for(const id of ids){
-      if(exSumOn(songs, id, snaps[i-1].date)) continue;
+      if(exSumOn(songs, id, day)) continue;
       const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
       if(!(a && b && a.views!=null && b.views!=null)) continue;
       const dist = songs[id].dist || "미지정";
-      const inc = Math.max(0, b.views - a.views - adCut(songs, id, snaps[i-1].date)) * rateOf(songs, id);
-      per[dist] = per[dist] || {};
-      per[dist][key] = per[dist][key] || { full: 0, mine: 0 };
-      per[dist][key].full += inc;
+      const inc = Math.max(0, b.views - a.views - adCut(songs, id, day)) * rateOf(songs, id);
       const sh = songs[id].share == null ? 1 : songs[id].share;
-      per[dist][key].mine += inc * sh;
+      const c = ((per[dist] = per[dist] || {})[key] = per[dist][key] || { full: 0, mine: 0 });
+      c.full += inc; c.mine += inc * sh;
     }
   }
-  const dists = Object.keys(per).sort((a,b) => {
-    const kb = months[months.length-1].y + "-" + months[months.length-1].m;
-    return ((per[b][kb]||{}).full||0) - ((per[a][kb]||{}).full||0);
-  });
+  const dists = Object.keys(per).filter(d => d !== "미지정");
   if(!dists.length){ wrap.innerHTML = '<div class="empty">데이터가 쌓이면 표시됩니다.</div>'; return; }
-  if(label) label.textContent = "— " + months.map(x => x.m + "월").join(" · ") + " (확정 스트리밍 기준)";
+  // 수집 시작 전 달(1일부터 데이터가 없는 달)은 일부만 있어 금액이 틀리므로 "수집 전" 처리
+  const first = snaps[0].date, [fy, fm] = first.split("-").map(Number);
+  const fullFrom = first.endsWith("-01") ? { y: fy, m: fm } : addM(fy, fm, 1);
+  const before = (a, b) => a.y*12 + a.m < b.y*12 + b.m;
+  // 입금월 열: 이번 달 ~ (진행 중 서비스월 + 최대 지연)
+  const maxLag = Math.max(DIST_LAG_DEFAULT, ...Object.values(DIST_LAG));
+  const pays = []; for(let k=0;k<=maxLag;k++) pays.push(addM(cy, cm, k));
+  if(label) label.textContent = "— 입금월 기준 (지니: 서비스월+2개월 · 그 외: +3개월)";
   const fmtWon = v => nf.format(Math.round(v)) + "원";
-  // 큰 숫자 = 내 몫 (2026-09-15 민우님: 내 몫이 제일 중요). 선급(내 몫 0)만 트랙 기준을 참고로 병기.
-  const cellOf = (d, mo) => {
-    const v = per[d][mo.y + "-" + mo.m];
-    if(!v || !v.full) return "<span class='muted'>—</span>";
+  const cellOf = (d, pay) => {
+    const svc = addM(pay.y, pay.m, -lagOf(d));
+    const tag = `<div class="muted" style="font-size:10.5px;font-weight:400">${svc.m}월분${keyOf(svc) === keyOf(cur) ? " · 진행 중(어제까지)" : ""}</div>`;
+    if(before(cur, svc)) return { html: `<span class='muted'>—</span><div class="muted" style="font-size:10.5px">${svc.m}월분 (아직)</div>`, mine: 0 };
+    if(before(svc, fullFrom)) return { html: `<span class='muted'>수집 전</span><div class="muted" style="font-size:10.5px">${svc.m}월분</div>`, mine: 0 };
+    const v = per[d][keyOf(svc)];
+    if(!v || !v.full) return { html: `<span class='muted'>—</span>${tag}`, mine: 0 };
     if(Math.round(v.mine) === 0)
-      return `<span class="muted">선급 회수 중</span><div class="muted" style="font-size:11px">트랙 기준 ≈${fmtWon(v.full)}</div>`;
-    return `<b>${fmtWon(v.mine)}</b>`;
+      return { html: `<span class="muted">선급 회수 중</span><div class="muted" style="font-size:11px">트랙 기준 ≈${fmtWon(v.full)}</div>${tag}`, mine: 0 };
+    return { html: `<b>${fmtWon(v.mine)}</b>${tag}`, mine: v.mine, partial: keyOf(svc) === keyOf(cur) };
   };
-  let html = `<table><thead><tr><th>유통사</th>` +
-    months.map(x => `<th>${x.m}월 추정 정산</th>`).join("") + `</tr></thead><tbody>`;
-  // 유통사별 표시 참고 (단가 보정·입금 시기)
-  const DIST_NOTES = {
-    "지니": "단가 5.93원 (7월 실측 보정)",
-    "CJ": "정산 한 달 지연 — 7월분 10월말 입금",
-  };
+  // 정렬: 입금 빠른 유통사(지연 짧은 순) → 같은 지연이면 최근 서비스월 금액 큰 순
+  const lastKey = keyOf(addM(cy, cm, -1));
+  dists.sort((a,b) => lagOf(a) - lagOf(b) || (((per[b][lastKey]||{}).full||0) - ((per[a][lastKey]||{}).full||0)));
+  const DIST_NOTES = { "지니": "단가 5.93원 (7월 실측 보정) · 2개월 뒤 입금" };
+  let html = `<div style="overflow-x:auto"><table><thead><tr><th>유통사</th>` +
+    pays.map(p => `<th>${p.y !== cy ? p.y + "년 " : ""}${p.m}월 입금</th>`).join("") + `</tr></thead><tbody>`;
+  const totals = pays.map(() => ({ mine: 0, partial: false }));
   for(const d of dists){
-    const noteTag = DIST_NOTES[d] ? `<div class="muted" style="font-size:10.5px;font-weight:400">${DIST_NOTES[d]}</div>` : "";
-    html += `<tr><td class="song">${escapeHtml(d)}${noteTag}</td>` +
-      months.map(mo => `<td class="delta money">${cellOf(d, mo)}</td>`).join("") + `</tr>`;
+    const noteTag = `<div class="muted" style="font-size:10.5px;font-weight:400">${DIST_NOTES[d] || lagOf(d) + "개월 뒤 입금"}</div>`;
+    html += `<tr><td class="song">${escapeHtml(d)}${noteTag}</td>` + pays.map((p, j) => {
+      const c = cellOf(d, p); totals[j].mine += c.mine; if(c.partial) totals[j].partial = true;
+      return `<td class="delta money">${c.html}</td>`; }).join("") + `</tr>`;
   }
-  // 합계 행 — 내 몫 합계
-  html += `<tr class="totalrow"><td class="song">합계 (내 몫)</td>` + months.map(mo => {
-    let mn = 0;
-    for(const d of dists){ const v = per[d][mo.y + "-" + mo.m]; if(v) mn += v.mine; }
-    return mn ? `<td class="delta money"><b>${fmtWon(mn)}</b></td>` : `<td><span class='muted'>—</span></td>`;
-  }).join("") + `</tr>`;
-  wrap.innerHTML = html + `</tbody></table>`;
+  html += `<tr class="totalrow"><td class="song">합계 (내 몫)</td>` + totals.map(t =>
+    t.mine ? `<td class="delta money"><b>${fmtWon(t.mine)}</b>${t.partial ? `<div class="muted" style="font-size:10.5px;font-weight:400">진행 중인 달 포함</div>` : ""}</td>`
+           : `<td><span class='muted'>—</span></td>`).join("") + `</tr>`;
+  wrap.innerHTML = html + `</tbody></table></div>`;
 }
 
 // 발매 타임라인 (2026-09-15 민우님: 언제 나온 앨범인지 따로 모아 타임라인으로) — 최신 발매순, 월 단위 구분.
