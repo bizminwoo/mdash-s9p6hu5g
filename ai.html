@@ -286,6 +286,13 @@ function adRunning(songs, id){
   const g = songs[id];
   return !!(g && g.adFrom && todayStr >= g.adFrom && (!g.adTo || todayStr <= g.adTo));
 }
+// 합산 제외 사유 표시 (2026-09-29 전수점검: 인접권 정리 전 곡에도 "📣 광고"라고 뜨던 문제)
+function exLabel(songs, id, dateStr){
+  const g = songs[id] || {};
+  if(g.pending || (g.pendingUntil && dateStr && dateStr <= g.pendingUntil)) return "⏸ 정리 전";
+  if(g.adViews) return "📢 광고 조회";
+  return "📣 광고";
+}
 
 // 인접권을 나중에 산 곡(pendingUntil)은 인수 전 조회수가 남의 것이므로 우리 누적에서 뺀다.
 // 인수일(pendingUntil) 시점의 조회수를 기준선으로 잡고, 그 뒤에 늘어난 만큼만 우리 누적으로 센다.
@@ -400,7 +407,7 @@ function render(){
   }
 
   // 어제 동시간대 — 어제의 같은 N시 정각 값끼리 비교
-  const ydayBy = {};
+  const ydayBy = {}, ydayCut = {};
   let ydaySum = null, ydayHour = null, ydateStr = null;
   if(liveHour != null){
     const [cy,cm,cd] = latest.date.split("-").map(Number);
@@ -412,9 +419,14 @@ function render(){
       const a = estAt(id, ydate, 0) ?? base?.stats?.[id]?.views;
       const b = estAt(id, ydate, liveHour);
       if(a!=null && b!=null){ ydayBy[id] = b - a;
+        // 어제 광고분은 "하루 전체" 값이라 00→N시 구간엔 그 시각까지 나온 비율만큼만 뺀다
+        // (2026-09-29 전수점검: 하루치 광고를 통째로 빼서 어제 동시간이 작게, 오늘 ▲가 크게 보이던 문제)
+        const full = estAt(id, ydate, 24);
+        const frac = (full != null && full - a > 0) ? Math.min(1, (b - a) / (full - a)) : 1;
+        ydayCut[id] = Math.round(adCut(songs, id, ydate) * frac);
         // 어제 날짜 기준으로 제외 판정 + 어제 광고분 차감 (2026-09-16 민우님 지적:
         // needy 광고일이던 어제가 오늘 기준 판정 때문에 합계에 그대로 들어가 33,436으로 뻥튀기)
-        if(!exSumOn(songs, id, ydate)) ydaySum = (ydaySum||0) + Math.max(0, (b - a) - adCut(songs, id, ydate)) * wOf(songs, id); }
+        if(!exSumOn(songs, id, ydate)) ydaySum = (ydaySum||0) + Math.max(0, (b - a) - ydayCut[id]) * wOf(songs, id); }
     }
     if(ydaySum != null){ ydaySum = Math.round(ydaySum); ydayHour = liveHour; }
   }
@@ -540,9 +552,12 @@ function render(){
 
   // 요약 카드 (광고 조회 곡·보류 곡은 모든 합계에서 제외)
   const sRows = rows.filter(r => !exSum(songs, r.id));   // 광고조회·보류·광고집행중 곡 전부 제외
+  // 날짜별로 제외 판정하는 합계(최근 하루·이번 달)는 오늘 광고 중인 곡도 광고 전 날짜분은 넣는다.
+  // (2026-09-29 전수점검: 오늘 광고 중이라는 이유로 그 곡의 이번 달 1일~광고 전날까지가 통째로 빠지던 문제)
+  const mRows = rows.filter(r => !exSum(songs, r.id) || exLabel(songs, r.id, todayStr) === "📣 광고");
   // 최근 하루 = 어제 날짜 기준으로도 제외 판정 (2026-09-16 전수점검: 어제가 광고일이던 곡이 새어들어오던 구멍)
-  const sumDViews = Math.round(sRows.reduce((s,r)=> s + ((prev && exSumOn(songs, r.id, prev.date)) ? 0 : Math.max(0, (r.dViews||0) - (prev ? adCut(songs, r.id, prev.date) : 0)) * r.w), 0));
-  const sumDViewsPrev = Math.round(sRows.reduce((s,r)=> s + ((prev2 && exSumOn(songs, r.id, prev2.date)) ? 0 : Math.max(0, (r.dViewsPrev||0) - (prev2 ? adCut(songs, r.id, prev2.date) : 0)) * r.w), 0));
+  const sumDViews = Math.round(mRows.reduce((s,r)=> s + ((prev && exSumOn(songs, r.id, prev.date)) ? 0 : Math.max(0, (r.dViews||0) - (prev ? adCut(songs, r.id, prev.date) : 0)) * r.w), 0));
+  const sumDViewsPrev = Math.round(mRows.reduce((s,r)=> s + ((prev2 && exSumOn(songs, r.id, prev2.date)) ? 0 : Math.max(0, (r.dViewsPrev||0) - (prev2 ? adCut(songs, r.id, prev2.date) : 0)) * r.w), 0));
   let dViewsPctBadge = "";
   if(sumDViewsPrev > 0){
     const pct = (sumDViews - sumDViewsPrev) / sumDViewsPrev * 100;
@@ -551,9 +566,9 @@ function render(){
     dViewsPctBadge = ` <span class="dchg ${cls}" style="font-size:13px">${arrow}${Math.abs(pct).toFixed(1)}% <span class="muted">전일비</span></span>`;
   }
   const sumDLikes = sRows.reduce((s,r)=> s + (r.dLikes||0), 0);
-  const sumRevenue = Math.round(sRows.reduce((s,r)=> s + (r.revenue||0), 0));
+  const sumRevenue = Math.round(mRows.reduce((s,r)=> s + (r.revenue||0), 0));
   // 선급포함 = 내 몫 + 선급곡(지분 0)의 100% 기준 예상 수익 참고치 (2026-09-14 민우님 지시)
-  const sumRevenueIncl = Math.round(sRows.reduce((s,r)=> s + (r.share ? (r.revenue||0) : (r.revenueFull||0)), 0));
+  const sumRevenueIncl = Math.round(mRows.reduce((s,r)=> s + (r.share ? (r.revenue||0) : (r.revenueFull||0)), 0));
   const dayLabel = prev ? " ("+mdShort(prev.date)+")" : "";
   const curClock = cur?.time ? cur.time.slice(11) : "";
   // 오늘 현재까지 vs 어제 동시간대 증감 표시
@@ -572,7 +587,7 @@ function render(){
       const [y,m,d] = snaps[i-1].date.split("-").map(Number);
       if(y !== yy || m !== mm) continue;
       if(maxDay && d > maxDay) continue;
-      for(const r of sRows){
+      for(const r of mRows){
         if(exSumOn(songs, r.id, snaps[i-1].date)) continue;   // 광고 기간 등 그날 제외
         const a = snaps[i-1].stats[r.id], b = snaps[i].stats[r.id];
         if(a && b && a.views!=null && b.views!=null){ sum += Math.max(0, b.views - a.views - adCut(songs, r.id, snaps[i-1].date)) * r.w; any = true; }
@@ -728,8 +743,8 @@ function render(){
       <td class="delta" style="color:var(--muted)">${(() => {
         if(ydayBy[r.id] == null) return "<span class='muted'>—</span>";
         if(ydateStr && exSumOn(songs, r.id, ydateStr))
-          return `<span class="exval">+${nf.format(ydayBy[r.id])}</span><div class="extag">📣 광고 — 합산 제외</div>`;
-        const c = ydateStr ? adCut(songs, r.id, ydateStr) : 0;
+          return `<span class="exval">+${nf.format(ydayBy[r.id])}</span><div class="extag">${exLabel(songs, r.id, ydateStr)} — 합산 제외</div>`;
+        const c = ydayCut[r.id] || 0;
         if(c > 0) return "+"+nf.format(Math.max(0, ydayBy[r.id] - c))+`<div class="muted" style="font-size:10.5px">📣(${nf.format(ydayBy[r.id])})</div>`;
         return "+"+nf.format(ydayBy[r.id]);
       })()}</td>
@@ -738,8 +753,11 @@ function render(){
         const p = projOf[r.id];
         if(p == null) return "<span class='muted'>—</span>";
         let chg = "";
-        if(r.dViews){
-          const dd = Math.round((p - r.dViews) / r.dViews * 100);
+        // 비교 기준 = 어제 하루 중 광고분을 뺀 값 (예상치도 광고분을 뺀 값이라 같은 기준끼리 비교 — 2026-09-29 전수점검)
+        const base = (r.dViews == null || (prev && exSumOn(songs, r.id, prev.date) && exLabel(songs, r.id, prev.date) === "📣 광고")) ? null
+          : Math.max(0, r.dViews - (prev ? adCut(songs, r.id, prev.date) : 0));
+        if(base){
+          const dd = Math.round((p - base) / base * 100);
           chg = dd > 0 ? `<div class="dchg pos">▲ ${dd}%</div>` : dd < 0 ? `<div class="dchg neg">▼ ${-dd}%</div>` : `<div class="dchg flat">－ 0%</div>`;
         }
         return `<b>≈ ${nf.format(p)}</b>${chg}`;
@@ -748,7 +766,7 @@ function render(){
         const checkedAd = recentDayAdResult(DATA, r.id, prev, latest);
         if(checkedAd) return recentDayAdCell(checkedAd);
         if(r.dViews == null) return "<span class='muted'>—</span>";
-        if(prev && exSumOn(songs, r.id, prev.date)) return `<span class="exval">+${nf.format(r.dViews)}</span><div class="extag">📣 광고 — 합산 제외</div>`;
+        if(prev && exSumOn(songs, r.id, prev.date)) return `<span class="exval">+${nf.format(r.dViews)}</span><div class="extag">${exLabel(songs, r.id, prev.date)} — 합산 제외</div>`;
         const c = prev ? adCut(songs, r.id, prev.date) : 0;
         const cp = prev2 ? adCut(songs, r.id, prev2.date) : 0;
         const v = Math.max(0, r.dViews - c);
@@ -777,7 +795,7 @@ function render(){
         : r.mtdRevenue!=null ? won(r.mtdRevenue)
         : "<span class='muted'>—</span>"
       }</td>
-      <td class="delta like">${r.dLikes!=null ? "+"+nf.format(r.dLikes) : "<span class='muted'>—</span>"}</td>
+      <td class="delta like">${r.dLikes!=null ? (r.dLikes < 0 ? "" : "+")+nf.format(r.dLikes) : "<span class='muted'>—</span>"}</td>
       <td>${r.views!=null ? nf.format(r.views) : "—"}</td>
       <td>${r.likes!=null ? nf.format(r.likes) : "—"}</td>
     </tr>`).join("") + `</tbody></table>`;
@@ -954,13 +972,12 @@ function renderMonthly(snaps, songs, ids){
     const arrow = pct > 0 ? "▲" : pct < 0 ? "▼" : "－";
     return `<span class="dchg ${cls}" style="display:inline">${arrow} ${Math.abs(pct).toFixed(1)}%</span>`;
   };
-  // 그 달 말일 기준으로 제외 여부 판정 — 인접권이 9월부터 우리 것이면 8월 합계엔 안 들어간다
-  const monthEnd = (m) => `${m}-${String(new Date(Number(m.slice(0,4)), Number(m.slice(5,7)), 0).getDate()).padStart(2,"0")}`;
+  // 제외 여부는 날짜별로만 판정한다 — 인수 전(pendingUntil)·광고 기간 날짜만 빠진다.
+  // (2026-09-29 전수점검: 예전엔 "말일 기준"으로도 한 번 더 걸러서, 말일까지 광고인 곡은 그 달 전체가 빠졌음)
   const monthTotal = (m) => {
     // 일 단위로 제외 여부를 판정한다 — 광고 기간(adFrom~adTo)이 달 중간에 껴 있어도 그 날짜만 뺀다
     let s2 = 0, any = false;
     for(const id of ids){
-      if(exSumOn(songs, id, monthEnd(m))) continue;
       const byDay = dayOfMonth[m][id] || {};
       for(const [dd,v] of Object.entries(byDay)){
         const dstr = m + "-" + String(dd).padStart(2,"0");
@@ -974,7 +991,6 @@ function renderMonthly(snaps, songs, ids){
     if(!prev) return null;
     let s2 = 0, any = false;
     for(const id of ids){
-      if(exSumOn(songs, id, monthEnd(prev))) continue;
       for(const [dd,v] of Object.entries(dayOfMonth[prev][id] || {})){
         if(Number(dd) > lastDay) continue;
         const dstr = prev + "-" + String(dd).padStart(2,"0");
@@ -1525,6 +1541,18 @@ function renderSmallMultiples(snaps, songs, ids, opts = {}){
 
 // 마케팅 이벤트 마킹 (곡 videoId → [{d:날짜, n:내용}])
 const MAIN_EVENTS = {"THGi-LLhbxM":[{"d":"2026-08-08","n":"좋아요 5000 구매 (TEST, 14:26)"}],"Jsm2uVtQhmY":[{"d":"2026-08-13","n":"좋아요 1500 시간당 드립 구매 시작"}],"tUcWwAO5zU8":[{"d":"2026-08-17","n":"좋아요 5000 구매"}],"RsQDAygpF6k":[{"d":"2026-08-16","n":"좋아요 5000 구매"}],"Skywxm6bQKw":[{"d":"2026-09-17","n":"좋아요 5000 구매"}],"xZKpKdsJO2k":[{"d":"2026-09-15","n":"좋아요 드립 시작 (시간당 90~110)"},{"d":"2026-09-16","n":"좋아요 드립 종료 (총 2,937개)"}]};
+// 위 수기 목록 + 좋아요 구매 장부(likes-purchases.json)를 합친 곡별 이벤트
+// (2026-09-29 전수점검: 수기 목록이 9/17에 멈춰 있어 그 뒤 구매한 날이 표에 색칠되지 않던 문제)
+function eventsOf(id){
+  const out = [...(MAIN_EVENTS[id] || [])];
+  for(const e of ((DATA.likesBuys || {})[id] || [])){
+    const b = typeof e === "string" ? { at: e } : e;
+    if(!b || !b.at) continue;
+    if(b.from && b.from !== b.at && !out.some(x => x.d === b.from)) out.push({ d: b.from, n: "좋아요 구매 주문" });
+    if(!out.some(x => x.d === b.at)) out.push({ d: b.at, n: "좋아요 구매 반영 완료" + (b.n ? ` (${nf.format(b.n)}개)` : "") });
+  }
+  return out;
+}
 // 일자별 스트리밍 매트릭스 (곡 × 최근 10일, 전일 대비 증감 표시)
 function renderDailyMatrix(snaps, songs, ids){
   const wrap = document.getElementById("matrixWrap");
@@ -1549,7 +1577,7 @@ function renderDailyMatrix(snaps, songs, ids){
   // adOrig = 광고 포함 원본 — 있으면 메인 숫자는 광고 제외분, 아래에 📣(원본) 표기 (2026-09-15 민우님 확정)
   const cell = (v, prevV, ev, adOrig, ex) => {
     // ex = 그날 합산 통째 제외(광고 집행 기간) — 숫자는 흐리게 + 제외 표시, 전일비 생략
-    if(ex && v != null) return `<td><span class="exval">${nf.format(v)}</span><div class="extag">📣 제외</div></td>`;
+    if(ex && v != null) return `<td><span class="exval">${nf.format(v)}</span><div class="extag">${ex} 제외</div></td>`;
     let mk = "", badge = "";
     if(ev && ev.length){
       const hasBuy = ev.some(e => /구매/.test(e.n));
@@ -1579,13 +1607,13 @@ function renderDailyMatrix(snaps, songs, ids){
     for(let i=0;i<recent.length;i++){
       const v = daily(recent[i], id);
       const pv = i>0 ? daily(recent[i-1], id) : null;
-      const ev = (MAIN_EVENTS[id] || []).filter(e => e.d === recent[i].a.date);
+      const ev = eventsOf(id).filter(e => e.d === recent[i].a.date);
       // 광고 차감: 메인 = 광고 제외분, 📣(원본) 병기. 전일비 비교도 순수끼리.
       const c = adCut(songs, id, recent[i].a.date);
       const pc = i>0 ? adCut(songs, id, recent[i-1].a.date) : 0;
       const vAdj = (v != null && c > 0) ? Math.max(0, v - c) : v;
       const pvAdj = (pv != null && pc > 0) ? Math.max(0, pv - pc) : pv;
-      html += cell(vAdj, pvAdj, ev, (v != null && c > 0) ? v : null, exSumOn(songs, id, recent[i].a.date));
+      html += cell(vAdj, pvAdj, ev, (v != null && c > 0) ? v : null, exSumOn(songs, id, recent[i].a.date) ? exLabel(songs, id, recent[i].a.date) : null);
     }
     html += `</tr>`;
   }

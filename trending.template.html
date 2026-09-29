@@ -301,8 +301,11 @@ const TWT_EVENTS = {"j5cWxhNLFfI": [{"d": "2026-08-04", "n": "구매 5000"}, {"d
       let ypct = "<span class='zero'>—</span>";
       if(today != null && curH != null && ydate2){
         const a = vs.at(id, ydate2, 0), b = vs.at(id, ydate2, curH);
-        if(a != null && b != null && b - a > 0){
-          const p = Math.round((today - (b - a)) / (b - a) * 100);
+        // 오늘도 00시→curH시 정각으로 맞춰 비교 (2026-09-29 전수점검: 오늘은 15:13까지, 어제는 15:00까지라 ▲▼가 뒤집히던 문제)
+        const ta = vs.at(id, tSnap.date, 0), tb = vs.at(id, tSnap.date, curH);
+        const todayH = (ta != null && tb != null) ? tb - ta : null;
+        if(a != null && b != null && b - a > 0 && todayH != null){
+          const p = Math.round((todayH - (b - a)) / (b - a) * 100);
           ypct = p > 0 ? `<span class="up">▲ ${p}%</span>` : p < 0 ? `<span class="down">▼ ${-p}%</span>` : "－ 0%";
         }
       }
