@@ -517,7 +517,11 @@ function render(){
       const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
       if(a && b && a.views!=null && b.views!=null){ mtd += Math.max(0, b.views - a.views - adCut(songs, id, snaps[i-1].date)); days++; }
     }
-    return days > 0 ? { mtd, days, projStreams: mtd / days * daysInMonth } : null;
+    // 이번 달에 발매된 곡은 발매일부터만 센다 (2026-09-29 민우님: 월말에 신곡이 한 달치로 잡혀 예상 수익이 갑자기 뛰던 문제)
+    const rel = songs[id].release;
+    const relDay = (rel && +rel.slice(0,4) === Y && +rel.slice(5,7) === M) ? +rel.slice(8,10) : 1;
+    const liveDays = daysInMonth - relDay + 1;
+    return days > 0 ? { mtd, days, projStreams: mtd / days * liveDays } : null;
   };
   let projDays = 0;
   rows.forEach(r => {
