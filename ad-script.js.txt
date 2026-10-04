@@ -1,5 +1,7 @@
 // ================================================================
-// 자동 신곡 광고 스크립트 v2.10 — 이민우 비서 제작
+// 자동 신곡 광고 스크립트 v2.11 — 이민우 비서 제작
+// v2.11 (2026-10-04): 광고그룹 이름 = 곡 제목(같은 그룹을 재사용하며 이름만 바꿈 → 화면에서 정한 입찰가 유지).
+//                    명령에 "go": false 가 있으면 광고·예산·종료일만 준비하고 캠페인은 켜지 않음(민우님 확인 후 켬).
 // v2.10 (2026-09-28): 총예산 = 캠페인 시작일부터 이미 쓴 돈 + 이번 예산 (옛 캠페인 재사용 시 예산 초과로 안 도는 문제 수정).
 // v2.9 (2026-09-28): 광고그룹을 새로 만들지 않고 캠페인마다 '자동광고' 그룹 하나를 재사용 → 화면에서 정한 입찰가(타겟 CPV 15원) 유지.
 // v2.8 (2026-09-28): 광고 설명 = 곡 제목 그대로. (2026-09-18: 문구 길이(전각 2칸) 제한 대응, 영상 자산+로고, 미리보기 처리, 종료일 시간대, 복구형)
@@ -91,24 +93,25 @@ function runOne(cmd) {
 
   // 1) 캠페인마다 광고그룹 하나('자동광고')를 계속 재사용하고 광고만 갈아끼운다.
   //    입찰가(타겟 CPV)는 스크립트·API 모두 바꿀 수 없어서, 민우님이 화면에서 한 번 맞춰둔 광고그룹을 유지하기 위함 (v2.9)
-  var ag = null, g, cand = null, agsIt = camp.videoAdGroups().get(), others = [];
+  var want_ag = cutWidth(cmd.title || FIXED_AG, 250);   // v2.11: 광고그룹 이름 = 곡 제목
+  var ag = null, g, byTitle = null, byFixed = null, byOn = null, byCmd = null, agsIt = camp.videoAdGroups().get(), all = [];
   while (agsIt.hasNext()) {
-    g = agsIt.next();
-    if (g.getName() === FIXED_AG) ag = g;
-    else { others.push(g); if (!cand && g.isEnabled() && g.getName().indexOf('cmd-') === 0) cand = g; }
+    g = agsIt.next(); all.push(g);
+    var nm = g.getName();
+    if (nm === want_ag) byTitle = g;
+    else if (nm === FIXED_AG) byFixed = g;
+    else if (g.isEnabled() && nm.indexOf('cmd-') !== 0 && !byOn) byOn = g;
+    else if (g.isEnabled() && nm.indexOf('cmd-') === 0 && !byCmd) byCmd = g;
   }
-  if (!ag && cand) {
-    // 처음 한 번: 지금 켜져 있는 명령 광고그룹(입찰가를 이미 맞춰둔 것)을 고정 광고그룹으로 이름만 바꿔 쓴다
-    cand.setName(FIXED_AG); ag = cand;
-    others = others.filter(function (x) { return x !== cand; });
-    Logger.log('고정 광고그룹 지정(기존 그룹 재사용, 입찰가 유지): ' + tmpl);
-  }
+  ag = byTitle || byFixed || byOn || byCmd;
   if (!ag) {
-    var agOp = camp.newVideoAdGroupBuilder().withName(FIXED_AG).withAdGroupType('VIDEO_RESPONSIVE').build();
+    var agOp = camp.newVideoAdGroupBuilder().withName(want_ag).withAdGroupType('VIDEO_RESPONSIVE').build();
     if (!agOp.isSuccessful()) { Logger.log('광고그룹 생성 실패: ' + agOp.getErrors().join(', ')); return; }
     ag = agOp.getResult();
-    Logger.log('⚠️ 고정 광고그룹 새로 생성: ' + tmpl + ' — 화면에서 타겟 CPV 입찰가를 한 번 맞춰주세요');
+    Logger.log('⚠️ 광고그룹 새로 생성: ' + tmpl + ' — 화면에서 타겟 CPV 입찰가를 한 번 맞춰주세요');
   }
+  if (ag.getName() !== want_ag) { Logger.log('광고그룹 이름 변경: ' + ag.getName() + ' → ' + want_ag); ag.setName(want_ag); }
+  var others = all.filter(function (x) { return x !== ag; });
   for (var k = 0; k < others.length; k++) { if (others[k].isEnabled()) others[k].pause(); }
   if (!ag.isEnabled()) { ag.enable(); }
 
@@ -183,6 +186,12 @@ function runOne(cmd) {
   // 3) 종료일·총예산 재확인 후 캠페인 켜기
   if (camp.getEndDate() == null || ymd(new Date(Date.UTC(camp.getEndDate().year, camp.getEndDate().month - 1, camp.getEndDate().day))) != ymd(endDate)) {
     camp.setEndDate(ymd(endDate));
+  }
+  if (cmd.go === false) {
+    // v2.11: 확인 대기 — 준비만 하고 켜지 않음 (민우님이 "ㄱ" 하면 go:true로 바뀜)
+    if (camp.isEnabled()) camp.pause();
+    Logger.log('⏸ 준비 완료, 켜기 대기(go:false): ' + marker);
+    return;
   }
   if (!camp.isEnabled()) {
     camp.enable();
