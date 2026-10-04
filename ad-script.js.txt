@@ -1,5 +1,6 @@
 // ================================================================
-// 자동 신곡 광고 스크립트 v2.11 — 이민우 비서 제작
+// 자동 신곡 광고 스크립트 v2.12 — 이민우 비서 제작
+// v2.12 (2026-10-04): 1광고그룹 1광고 — 그룹 안의 다른 광고는 끄지 않고 삭제. 광고 이름도 곡 제목.
 // v2.11 (2026-10-04): 광고그룹 이름 = 곡 제목(같은 그룹을 재사용하며 이름만 바꿈 → 화면에서 정한 입찰가 유지).
 //                    명령에 "go": false 가 있으면 광고·예산·종료일만 준비하고 캠페인은 켜지 않음(민우님 확인 후 켬).
 // v2.10 (2026-09-28): 총예산 = 캠페인 시작일부터 이미 쓴 돈 + 이번 예산 (옛 캠페인 재사용 시 예산 초과로 안 도는 문제 수정).
@@ -122,9 +123,10 @@ function runOne(cmd) {
   if (isNew) {
     // 새 명령 시작: 종료일을 맞추고, 다른 곡 광고는 끈다
     camp.setEndDate(ymd(endDate));
-    for (var j = 0; j < adList.length; j++) { if (adList[j] !== mine && adList[j].isEnabled()) adList[j].pause(); }
+    for (var j = 0; j < adList.length; j++) { if (adList[j] !== mine) { adList[j].remove(); Logger.log('이전 광고 삭제(1그룹 1광고)'); } }
     if (mine) { mine.enable(); Logger.log('기존 광고 다시 켬: ' + marker); }
   }
+  if (!isNew) { for (var r = 0; r < adList.length; r++) { if (adList[r] !== mine) { adList[r].remove(); Logger.log('남은 다른 광고 삭제(1그룹 1광고)'); } } }
   // 총예산은 "캠페인 시작일부터 전체" 기준이라, 이 명령 전까지 이미 쓴 돈 + 이번 예산으로 맞춘다 (v2.10)
   // (2026-09-28 사고: 9/14 시작 캠페인에 5만원만 걸어 이미 쓴 10만원 때문에 Fishing Ground가 하루 종일 0회 노출)
   var want = Math.round(priorSpend(camp, cmd.startDate) + cmd.totalBudgetWon);
@@ -169,7 +171,7 @@ function runOne(cmd) {
     var title = cutWidth(cmd.title || '신곡 듣기', 90);          // 긴 광고 제목: 최대 90폭
     var artist = cutWidth((cmd.title || '신곡').split(' - ')[0], 15); // 짧은 제목: 최대 15폭 (한글 7자)
     var adOp = ag.newVideoAd().responsiveVideoAdBuilder()
-      .withAdName(marker)
+      .withAdName(cutWidth(cmd.title || marker, 250))   // v2.12: 광고 이름 = 곡 제목
       .withVideo(videoAsset)
       .withFinalUrl('https://www.youtube.com/watch?v=' + cmd.videoId)
       .withLongHeadline(title)
