@@ -137,6 +137,7 @@
     <div class="togglerow" id="songToggles"></div>
     <div class="togglerow" id="rangeToggles"></div>
     <div class="chartbox"><canvas id="detail"></canvas></div>
+    <div class="note" id="adNote" style="display:none">▒ <b>회색 띠 = 광고를 돌린 날</b>(그날 감상수는 광고로 부풀어 있음). 그래프 맨 위 <b>"↑숫자"</b> = 너무 튀어서 위가 잘린 날의 실제 값입니다. 평소 날들의 오르내림이 잘 보이도록 세로축을 평소 수치에 맞춰 잡았어요.</div>
     <div class="note" id="buyNote" style="display:none">💛 <b>노란 표시 = 좋아요를 산 날</b>. <b>실선 세로줄 + 꽉 찬 점</b> = <b>SNS헬퍼 주문내역에서 확인된 좋아요 반영 완료일</b>입니다(주문 접수일이 아니라 실제로 좋아요가 다 들어온 날). <b>점선 세로줄 + 빈 점</b> = 주문내역에 없는데 <b>좋아요가 평소의 20배 이상·하루 50개 이상 튄 날</b>이라 <b>구매로 추정</b>한 날입니다. 곡을 하나 골랐을 때만 표시하고, 전체 합계 그래프에는 표시하지 않습니다.</div>
   </div>
   <div class="panel">
@@ -1269,6 +1270,36 @@ function renderDetail(snaps, songs, ids){
     const buyIdx = new Set(), spikeIdx = new Set();
     rd.forEach((dt,i) => { if(buys.has(dt)) buyIdx.add(i); else if(spikes.has(dt)) spikeIdx.add(i); });
     const markIdx = new Set([...buyIdx, ...spikeIdx]);
+    // A. 세로축 자동 자르기 (2026-10-05) — 광고 등으로 몇 날만 크게 튀면 평소 증감이 납작해져 안 보인다.
+    //    튀는 날(사분위 기준 이상치)을 빼고 세로축 높이를 잡고, 잘린 날은 그래프 위에 "↑실제값"을 적는다.
+    let yCap = null;
+    {
+      const vals = d.filter(v => v != null).slice().sort((a,b) => a-b);
+      if(vals.length >= 5){
+        const q = (p) => vals[Math.min(vals.length-1, Math.floor(p*(vals.length-1)))];
+        const q1 = q(0.25), q3 = q(0.75), fence = q3 + 3*Math.max(q3 - q1, 1);
+        const normal = vals.filter(v => v <= fence);
+        const outN = vals.length - normal.length;
+        const nMax = normal.length ? normal[normal.length-1] : 0;
+        if(outN > 0 && outN <= vals.length*0.25 && nMax > 0 && vals[vals.length-1] > nMax*1.8) yCap = Math.ceil(nMax*1.15);
+      }
+    }
+    const capIdx = new Set();
+    if(yCap != null) d.forEach((v,i) => { if(v != null && v > yCap) capIdx.add(i); });
+    // B. 광고 기간 음영 (2026-10-05) — 곡을 하나 골랐을 때만. 광고 기간(adFrom~adTo)·광고 차감일(adViewsByDay)·
+    //    자동광고 명령 이력(adShade: [[시작,끝],...])에 해당하는 날에 회색 띠.
+    const adIdx = new Set();
+    if(state.sel !== "__total__"){
+      const g = songs[state.sel] || {};
+      const shade = Array.isArray(g.adShade) ? g.adShade : [];
+      rd.forEach((dt,i) => {
+        if(g.adFrom && dt >= g.adFrom && (!g.adTo || dt <= g.adTo)) adIdx.add(i);
+        else if(g.adViewsByDay && g.adViewsByDay[dt] != null) adIdx.add(i);
+        else if(shade.some(r => r && dt >= r[0] && dt <= (r[1] || r[0]))) adIdx.add(i);
+      });
+    }
+    const adNoteEl = document.getElementById("adNote");
+    if(adNoteEl) adNoteEl.style.display = (adIdx.size || capIdx.size) ? "" : "none";
     const BUY_C = "#ffc94a";
     document.getElementById("buyNote").style.display =
       (state.sel !== "__total__" && (anyBuy.size || anySpike.size)) ? "" : "none";
@@ -1299,7 +1330,7 @@ function renderDetail(snaps, songs, ids){
             : (spikeIdx.has(ctx.dataIndex) ? "💛 좋아요 급증일 (구매 추정)" : undefined) } } },
         scales: {
           x: { ticks: { color: "#8b93a3", maxTicksLimit: 12 }, grid: { display: false } },
-          y: { beginAtZero: false,
+          y: { beginAtZero: false, max: yCap ?? undefined,
             ticks: { color: "#8b93a3", callback: v => nf.format(v) }, grid: { color: "#232833" } }
         } },
       plugins: [{
@@ -1314,6 +1345,36 @@ function renderDetail(snaps, songs, ids){
           g.strokeStyle = "rgba(255,255,255,0.28)";
           g.lineWidth = 1;
           g.beginPath(); g.moveTo(x, a.top); g.lineTo(x, a.bottom); g.stroke();
+          g.restore();
+        }
+      }, {
+        id: "adBandsAndCaps",
+        beforeDatasetsDraw(ch){
+          if(!adIdx.size) return;
+          const { ctx: g, chartArea: a, scales } = ch;
+          const step = lbl.length > 1 ? (scales.x.getPixelForValue(1) - scales.x.getPixelForValue(0)) : 20;
+          g.save();
+          g.fillStyle = "rgba(160,170,190,0.13)";
+          for(const i of adIdx){ const x = scales.x.getPixelForValue(i); g.fillRect(x - step/2, a.top, step, a.bottom - a.top); }
+          g.restore();
+        },
+        afterDatasetsDraw(ch){
+          if(!capIdx.size) return;
+          const { ctx: g, chartArea: a, scales } = ch;
+          g.save();
+          g.font = "600 11px sans-serif"; g.textAlign = "center"; g.textBaseline = "top";
+          let lastRight = -Infinity, row = 0;
+          for(const i of [...capIdx].sort((p,q) => p-q)){
+            const x = scales.x.getPixelForValue(i);
+            const t = "↑" + nf.format(d[i]);
+            const w = g.measureText(t).width + 8;
+            // 붙어 있는 날끼리 글자가 겹치면 한 줄씩 아래로 내린다
+            row = (x - w/2 < lastRight) ? row + 1 : 0;
+            const y = a.top + 2 + row*18;
+            g.fillStyle = "rgba(20,23,30,0.85)"; g.fillRect(x - w/2, y, w, 16);
+            g.fillStyle = c; g.fillText(t, x, y + 2);
+            lastRight = x + w/2;
+          }
           g.restore();
         }
       }, {
