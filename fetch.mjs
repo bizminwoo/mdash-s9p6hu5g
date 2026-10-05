@@ -206,7 +206,7 @@ async function main() {
   if (existsSync(DATA_FILE)) db = JSON.parse(readFileSync(DATA_FILE, "utf8"));
 
   // songs.json 의 제목/수익비율(share)/광고플래그(adViews)/보류플래그(pending)/광고기간(adFrom·adTo)을 항상 반영
-  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo, adViewsByDay, adVerificationPending, dist } of songs) {
+  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo, adViewsByDay, adVerificationPending, dist, bottom } of songs) {
     const vid = vidOf(url);
     db.songs[vid] = { ...(db.songs[vid] || {}), url,
       ...(title ? { title } : {}), share: share == null ? 1 : share };
@@ -222,6 +222,7 @@ async function main() {
     if (adVerificationPending) db.songs[vid].adVerificationPending = true; else delete db.songs[vid].adVerificationPending;
     if (release) db.songs[vid].release = release;   // 발매일 (신곡 비교의 기준점)
     if (dist) db.songs[vid].dist = dist; else delete db.songs[vid].dist;   // 유통사 (2026-09-15)
+    if (bottom) db.songs[vid].bottom = true; else delete db.songs[vid].bottom;   // 목록 맨 아래 고정 (2026-10-05)
   }
   // 마케팅 트랙 반영 + marketing.json 에서 빠진 트랙은 목록에서 제거
   for (const { url, title, start } of marketing) {

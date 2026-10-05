@@ -377,7 +377,10 @@ function render(){
   const prev2 = snaps.length >= 3 ? snaps[snaps.length-3] : null;
   const songs = DATA.songs;
   const allIds = Object.keys(songs);
-  const ids = allIds.filter(id => !songs[id].marketing);   // 내 곡 (수익/합계 포함)
+  const ids = allIds.filter(id => !songs[id].marketing)
+    // bottom:true 곡은 모든 목록에서 맨 아래로 (2026-10-05 민우님 지시 — 블린 Love °C·이별을 준비해)
+    .sort((a,b) => (songs[a].bottom?1:0) - (songs[b].bottom?1:0));   // 내 곡 (수익/합계 포함)
+  const isBottom = (id) => !!(songs[id] && songs[id].bottom);
   const mkIds = allIds.filter(id => songs[id].marketing);  // 마케팅 트래킹 (별도 섹션)
 
   // 업데이트 시각 (6시간마다 갱신되는 현재값 기준)
@@ -507,6 +510,7 @@ function render(){
     // 날짜가 지나면 자동으로 원래대로 — 스밍 많은 순.
     const nd = new Date(), p2 = (n) => String(n).padStart(2,"0");
     const today = `${nd.getFullYear()}-${p2(nd.getMonth()+1)}-${p2(nd.getDate())}`;
+    if(isBottom(a.id) !== isBottom(b.id)) return isBottom(a.id) ? 1 : -1;
     const pa = (songs[a.id].pinUntil && songs[a.id].pinUntil >= today) ? 1 : 0;
     const pb = (songs[b.id].pinUntil && songs[b.id].pinUntil >= today) ? 1 : 0;
     if(pa !== pb) return pb - pa;
@@ -707,7 +711,8 @@ function render(){
     const f = (SORTS.find(x => x[1] === sortState.key) || SORTS[0])[2];
     const today = (() => { const n=new Date(); return `${n.getFullYear()}-${p2(n.getMonth()+1)}-${p2(n.getDate())}`; })();
     return rows.slice().sort((a,b) => {
-      const pa = (songs[a.id].pinUntil && songs[a.id].pinUntil >= today) ? 1 : 0;
+      if(isBottom(a.id) !== isBottom(b.id)) return isBottom(a.id) ? 1 : -1;
+    const pa = (songs[a.id].pinUntil && songs[a.id].pinUntil >= today) ? 1 : 0;
       const pb = (songs[b.id].pinUntil && songs[b.id].pinUntil >= today) ? 1 : 0;
       if(pa !== pb) return pb - pa;
       return f(b) - f(a);
@@ -1601,7 +1606,7 @@ function renderDailyMatrix(snaps, songs, ids){
   };
   // 곡 정렬: 가장 최근 하루치 기준 내림차순
   const last = recent[recent.length-1];
-  const order = [...ids].sort((x,y) => (daily(last,y)??-1) - (daily(last,x)??-1));
+  const order = [...ids].sort((x,y) => ((songs[x].bottom?1:0) - (songs[y].bottom?1:0)) || ((daily(last,y)??-1) - (daily(last,x)??-1)));
 
   let html = `<table><thead><tr><th>곡</th>` +
     recent.map(p => `<th>${p.label}</th>`).join("") + `</tr></thead><tbody>`;
