@@ -1217,7 +1217,8 @@ function renderDetail(snaps, songs, ids){
     rawDates.push(snaps[i-1].date);
     for(const id of ids){
       const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
-      daily[id].push((a && b && a.views!=null && b.views!=null) ? b.views - a.views : null);
+      // 하루 감상수는 음수가 될 수 없다 — 유튜브 조회수 보정으로 줄어든 날은 0으로 (2026-10-05 민우님 지시)
+      daily[id].push((a && b && a.views!=null && b.views!=null) ? Math.max(0, b.views - a.views) : null);
       likeUp[id].push((a && b && a.likes!=null && b.likes!=null) ? b.likes - a.likes : null);
     }
   }
@@ -1330,7 +1331,7 @@ function renderDetail(snaps, songs, ids){
             : (spikeIdx.has(ctx.dataIndex) ? "💛 좋아요 급증일 (구매 추정)" : undefined) } } },
         scales: {
           x: { ticks: { color: "#8b93a3", maxTicksLimit: 12 }, grid: { display: false } },
-          y: { beginAtZero: false, max: yCap ?? undefined,
+          y: { beginAtZero: true, min: 0, max: yCap ?? undefined,
             ticks: { color: "#8b93a3", callback: v => nf.format(v) }, grid: { color: "#232833" } }
         } },
       plugins: [{
@@ -1365,9 +1366,10 @@ function renderDetail(snaps, songs, ids){
           g.font = "600 11px sans-serif"; g.textAlign = "center"; g.textBaseline = "top";
           let lastRight = -Infinity, row = 0;
           for(const i of [...capIdx].sort((p,q) => p-q)){
-            const x = scales.x.getPixelForValue(i);
             const t = "↑" + nf.format(d[i]);
             const w = g.measureText(t).width + 8;
+            // 그래프 양 끝에서 글자가 잘리지 않게 안쪽으로 당긴다
+            const x = Math.min(Math.max(scales.x.getPixelForValue(i), a.left + w/2), a.right - w/2);
             // 붙어 있는 날끼리 글자가 겹치면 한 줄씩 아래로 내린다
             row = (x - w/2 < lastRight) ? row + 1 : 0;
             const y = a.top + 2 + row*18;
