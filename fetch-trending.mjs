@@ -165,8 +165,17 @@ async function main() {
   if (!renderOnly) {
     const today = localDate();
     console.log(`[${localTime()}] 인기 급상승 차트 수집 시작...`);
-    const chart = await fetchChart();
-    console.log(`  ✓ 차트 ${chart.length}곡`);
+    // 차트 API가 429(요청 과다) 등으로 막혀도 경쟁사·레이벡스 곡 수집은 계속한다 (2026-10-06:
+    // 06시 이후 차트 429로 스크립트 전체가 죽어 trending.json·레이벡스 공유 시트가 13시간 멈춘 사고).
+    let chart = [];
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try { chart = await fetchChart(); console.log(`  ✓ 차트 ${chart.length}곡`); break; }
+      catch (e) {
+        console.log(`  ⚠️ 차트 수집 실패(${attempt}/3): ${e.message}`);
+        if (attempt < 3) await new Promise((r) => setTimeout(r, 15000 * attempt));
+        else console.log("  → 차트는 이번 회차 건너뜀(이전 차트 유지), 경쟁사 곡 수집은 계속");
+      }
+    }
 
     // 곡 메타 갱신 (제목/아티스트/발매일, 차트 첫 진입일/마지막 목격일)
     for (const c of chart) {
@@ -202,8 +211,10 @@ async function main() {
     }
 
     // 오늘 차트 구성: 하루 첫 수집 기준 고정 + 현재 차트는 항상 갱신
-    if (!db.chartDates[today]) db.chartDates[today] = chart.map((c) => ({ id: c.id, pos: c.pos }));
-    db.chartCurrent = { time: localTime(), entries: chart.map((c) => ({ id: c.id, pos: c.pos })) };
+    if (chart.length) {
+      if (!db.chartDates[today]) db.chartDates[today] = chart.map((c) => ({ id: c.id, pos: c.pos }));
+      db.chartCurrent = { time: localTime(), entries: chart.map((c) => ({ id: c.id, pos: c.pos })) };
+    }
 
     // 조회수 수집: 현재 차트 + 차트아웃 추적 곡 + 경쟁사 곡 전부
     const ids = Object.keys(db.videos);
