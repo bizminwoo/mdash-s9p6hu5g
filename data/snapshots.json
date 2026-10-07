@@ -51,9 +51,10 @@
       "url": "https://www.youtube.com/watch?v=K_viUNQs5lc",
       "title": "블린 - 많이 기다렸다고 말해줄래",
       "share": 0.33,
-      "adViews": true,
       "release": "2026-07-24",
-      "dist": "레이벡스"
+      "dist": "레이벡스",
+      "adFrom": "2026-07-24",
+      "adTo": "2026-09-30"
     },
     "VCqKgW6Lvb4": {
       "url": "https://www.youtube.com/watch?v=VCqKgW6Lvb4",
@@ -66,19 +67,21 @@
       "url": "https://www.youtube.com/watch?v=h8JV2rw7QOc",
       "title": "블린 - Love °C",
       "share": 0.33,
-      "adViews": true,
       "release": "2026-07-29",
       "dist": "레이벡스",
-      "bottom": true
+      "bottom": true,
+      "adFrom": "2026-07-29",
+      "adTo": "2026-09-30"
     },
     "qmF8dPz22nU": {
       "url": "https://www.youtube.com/watch?v=qmF8dPz22nU",
       "title": "블린 - 이별을 준비해",
       "share": 0.33,
-      "adViews": true,
       "release": "2026-08-03",
       "dist": "레이벡스",
-      "bottom": true
+      "bottom": true,
+      "adFrom": "2026-08-03",
+      "adTo": "2026-09-30"
     },
     "vD5_vs-ODsA": {
       "url": "https://www.youtube.com/watch?v=vD5_vs-ODsA",
@@ -8952,45 +8955,45 @@
     }
   ],
   "current": {
-    "time": "2026-10-08 01:00",
+    "time": "2026-10-08 02:00",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1435402,
-        "likes": 8830,
+        "views": 1435537,
+        "likes": 8829,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 964084,
+        "views": 964184,
         "likes": 16699,
         "comments": 21
       },
       "grqTg6WOJII": {
-        "views": 1126078,
-        "likes": 35825,
+        "views": 1126207,
+        "likes": 35827,
         "comments": 44
       },
       "THGi-LLhbxM": {
-        "views": 782770,
+        "views": 782858,
         "likes": 16272,
         "comments": 13
       },
       "Jsm2uVtQhmY": {
-        "views": 416536,
+        "views": 416837,
         "likes": 19184,
         "comments": 5
       },
       "K_viUNQs5lc": {
-        "views": 45241,
+        "views": 45433,
         "likes": 4102,
         "comments": 0
       },
       "VCqKgW6Lvb4": {
-        "views": 825136,
+        "views": 825260,
         "likes": 17125,
         "comments": 27
       },
       "h8JV2rw7QOc": {
-        "views": 159,
+        "views": 161,
         "likes": 3017,
         "comments": 0
       },
@@ -9000,13 +9003,13 @@
         "comments": 0
       },
       "vD5_vs-ODsA": {
-        "views": 343489,
+        "views": 343552,
         "likes": 6707,
         "comments": 10
       },
       "-rFw4j4aqg0": {
-        "views": 154945,
-        "likes": 5690,
+        "views": 155395,
+        "likes": 5691,
         "comments": 0
       },
       "FwQg1oq0ZwY": {
@@ -9020,12 +9023,12 @@
         "comments": 0
       },
       "HC61q5FWciY": {
-        "views": 56679,
-        "likes": 8455,
+        "views": 56759,
+        "likes": 8454,
         "comments": 0
       },
       "GAYhdUa2-q4": {
-        "views": 103587,
+        "views": 103896,
         "likes": 8378,
         "comments": 0
       },
@@ -9035,12 +9038,12 @@
         "comments": 0
       },
       "xZKpKdsJO2k": {
-        "views": 49627,
+        "views": 49709,
         "likes": 2871,
         "comments": 0
       },
       "VXGoK266B7A": {
-        "views": 44217,
+        "views": 44230,
         "likes": 1508,
         "comments": 0
       },
@@ -9050,8 +9053,8 @@
         "comments": 0
       },
       "d40YQAsL_cU": {
-        "views": 620717,
-        "likes": 12827,
+        "views": 620834,
+        "likes": 12826,
         "comments": 8
       },
       "nUkXoDO8hIE": {
@@ -9065,13 +9068,13 @@
         "comments": 0
       },
       "Skywxm6bQKw": {
-        "views": 440111,
-        "likes": 6434,
+        "views": 440349,
+        "likes": 6437,
         "comments": 9
       },
       "blQPNauonCs": {
-        "views": 91194,
-        "likes": 5603,
+        "views": 91262,
+        "likes": 5604,
         "comments": 0
       },
       "zcbPF8HRvmE": {
@@ -9080,22 +9083,22 @@
         "comments": 7
       },
       "zpS9eHisf34": {
-        "views": 628457,
+        "views": 628466,
         "likes": 2270,
         "comments": 16
       },
       "I2Akn5oSvLY": {
-        "views": 269613,
-        "likes": 5931,
+        "views": 269783,
+        "likes": 5933,
         "comments": 5
       },
       "aacJLrnNOYk": {
-        "views": 319991,
-        "likes": 8748,
+        "views": 320017,
+        "likes": 8746,
         "comments": 0
       },
       "gTG9evSpuWg": {
-        "views": 21076955,
+        "views": 21077609,
         "likes": 77872,
         "comments": 232
       },
@@ -39662,6 +39665,38 @@
         "aacJLrnNOYk": 319991,
         "gTG9evSpuWg": 21076955,
         "D7VsFDJx4zw": 130791
+      },
+      "02": {
+        "tUcWwAO5zU8": 1435537,
+        "RsQDAygpF6k": 964184,
+        "grqTg6WOJII": 1126207,
+        "THGi-LLhbxM": 782858,
+        "Jsm2uVtQhmY": 416837,
+        "K_viUNQs5lc": 45433,
+        "VCqKgW6Lvb4": 825260,
+        "h8JV2rw7QOc": 161,
+        "qmF8dPz22nU": 52817,
+        "vD5_vs-ODsA": 343552,
+        "-rFw4j4aqg0": 155395,
+        "FwQg1oq0ZwY": 6916,
+        "mE-BhncAh6E": 8320,
+        "HC61q5FWciY": 56759,
+        "GAYhdUa2-q4": 103896,
+        "crsPCJTNIgE": 17523,
+        "xZKpKdsJO2k": 49709,
+        "VXGoK266B7A": 44230,
+        "Mmn_lwIf8xI": 1662,
+        "d40YQAsL_cU": 620834,
+        "nUkXoDO8hIE": 2579,
+        "uxbCjFWcoGU": 3392,
+        "Skywxm6bQKw": 440349,
+        "blQPNauonCs": 91262,
+        "zcbPF8HRvmE": 422342,
+        "zpS9eHisf34": 628466,
+        "I2Akn5oSvLY": 269783,
+        "aacJLrnNOYk": 320017,
+        "gTG9evSpuWg": 21077609,
+        "D7VsFDJx4zw": 130791
       }
     }
   },
@@ -40890,7 +40925,8 @@
     },
     "2026-10-08": {
       "00": 0,
-      "01": 0
+      "01": 0,
+      "02": 0
     }
   }
 }
