@@ -746,8 +746,21 @@ function render(){
         if(v == null) return "<span class='muted'>—</span>";
         if(r.adNow) return `<span class="exval">+${nf.format(v)}</span><div class="extag">📣 광고 — 합산 제외</div>`;
         const c = adCut(songs, r.id, todayStr);
-        if(c > 0) return "+"+nf.format(Math.max(0, v - c))+`<div class="muted" style="font-size:10.5px">📣(${nf.format(v)})</div>`;
-        return "+"+nf.format(v);
+        const net = Math.max(0, v - c);
+        // 어제 동시간 대비 등락 % (2026-10-08 민우님 요청) — 어제가 광고 등으로 제외된 날이면 비교 안 함, 광고분은 양쪽 다 뺀 값끼리
+        let cmp = "";
+        const yv = ydayBy[r.id];
+        if(yv != null && !(ydateStr && exSumOn(songs, r.id, ydateStr) && exLabel(songs, r.id, ydateStr) !== "⏸ 정리 전")){
+          const yNet = Math.max(0, yv - (ydayCut[r.id] || 0));
+          if(yNet > 0){
+            const pct = Math.round((net - yNet) / yNet * 100);
+            const cls = pct>0 ? "pos" : pct<0 ? "neg" : "flat";
+            const arrow = pct>0 ? "▲" : pct<0 ? "▼" : "－";
+            cmp = `<div class="dchg ${cls}">${arrow} ${Math.abs(pct)}%<span class="muted" style="font-weight:400"> 어제 동시간비</span></div>`;
+          }
+        }
+        if(c > 0) return "+"+nf.format(net)+`<div class="muted" style="font-size:10.5px">📣(${nf.format(v)})</div>`+cmp;
+        return "+"+nf.format(v)+cmp;
       })()}</td>
       <td class="delta" style="color:var(--muted)">${(() => {
         if(ydayBy[r.id] == null) return "<span class='muted'>—</span>";
