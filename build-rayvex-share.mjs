@@ -37,6 +37,10 @@ const nextDay = (d) => dstr(new Date(new Date(d + "T00:00:00").getTime() + 86400
 const days = [];
 { const base = new Date(today + "T00:00:00");
   for (let i = 13; i >= 0; i--) days.push(dstr(new Date(base.getTime() - i * 86400000))); }
+// 레이벡스 추적을 처음 시작한 2일(9/9~9/10)은 최근 14일 앞에 항상 고정해서 보여준다 (2026-10-08 민우님 지시)
+const PIN_DAYS = ["2026-09-09", "2026-09-10"].filter((d) => !days.includes(d));
+const lastPin = PIN_DAYS[PIN_DAYS.length - 1];
+days.unshift(...PIN_DAYS);
 
 // 그날 하루 증가분 (오늘은 현재까지) — 대시보드와 같은 계산. field: "views" | "likes"
 const dailyOf = (id, d, field = "views") => {
@@ -66,8 +70,10 @@ const dayColor = (d) => {
 };
 const dHead = (d) => {
   const c = dayColor(d);
-  return "<th" + (c ? " style='color:" + c + "'" : "") + ">" + mdShort(d) + (d === today ? "<br>오늘(현재)" : "") + "</th>";
+  return "<th" + (d === lastPin ? " class='pinend'" : "") + (c ? " style='color:" + c + "'" : "") + ">" + mdShort(d) +
+    (d === today ? "<br>오늘(현재)" : "") + (PIN_DAYS.includes(d) ? "<br><span class='pintag'>시작</span>" : "") + "</th>";
 };
+const dayCls = (d) => [d === today ? "today" : "", d === lastPin ? "pinend" : ""].filter(Boolean).join(" ");
 
 const head = "<tr><th class='song'>곡</th>" +
   days.map(dHead).join("") +
@@ -86,7 +92,7 @@ const totalRow = (() => {
     let inner = anyV ? "<b>" + nf.format(v) + "</b>" : "<span class='zero'>—</span>";
     if (anyL && lk !== 0) inner += "<span class='lk'>♥" + (lk > 0 ? "+" : "") + nf.format(lk) + "</span>";
     if (down > 0) inner += "<span class='lkdown'>▼" + nf.format(down) + "</span>";
-    return "<td class='" + (d === today ? "today" : "") + "'>" + inner + "</td>";
+    return "<td class='" + dayCls(d) + "'>" + inner + "</td>";
   }).join("");
   let tv = 0, tl = 0;
   for (const id of ids) { tv += DB.current?.stats?.[id]?.views || 0; tl += DB.current?.stats?.[id]?.likes || 0; }
@@ -101,7 +107,7 @@ const rows = ids.map((id) => {
     const n = dailyOf(id, d, "views");
     const lk = dailyOf(id, d, "likes");
     const isBuy = buyOn(id, d);
-    const cls = [d === today ? "today" : "", isBuy ? "buyday" : ""].filter(Boolean).join(" ");
+    const cls = [dayCls(d), isBuy ? "buyday" : ""].filter(Boolean).join(" ");
     let inner = fmt(n);
     if (lk != null && lk !== 0) inner += "<span class='lk'>♥" + (lk > 0 ? "+" : "") + nf.format(lk) + "</span>";
     if (isBuy) { const be=(buys[id]||[]).find(b=>{const f=b.from||b.at; return d>=f&&d<=b.at;}); inner += "<span class='buymark'>🛒"+(be&&be.n!=null?nf.format(be.n):'구매')+"</span>"; }
@@ -150,12 +156,14 @@ const html = `<!doctype html>
   .buymark { display:block; color:#f5b83d; font-size:10.5px; font-weight:700; margin-top:2px; }
   th.buys,td.buys { text-align:left; font-size:12px; color:var(--text); }
   .zero { color:#4a5162; }
+  th.pinend,td.pinend { border-right:2px dashed #3a4253; }
+  .pintag { font-size:10.5px; color:#f5b83d; font-weight:700; }
   .note { color:var(--muted); font-size:12px; margin-top:14px; line-height:1.7; }
 </style></head><body>
 <h1>🎵 레이벡스 음원 스트리밍 현황</h1>
 <div class="sub">유튜브뮤직 기준 · 마지막 갱신 ${updated} (KST) · 매시간 자동 갱신</div>
 <div class="wrap"><table><thead>${head}</thead><tbody>${totalRow}${rows}</tbody></table></div>
-<div class="note">숫자는 각 곡 유튜브 아트트랙의 일별 조회수 증가분, ♥는 그날 좋아요 증가분, <span style="color:#ff6b6b">▼</span>는 전곡 합계 행에서 그날 빠진 좋아요 합계입니다. "좋아요 감소(누적)" 열은 추적 시작 후 빠진 좋아요 총합입니다. "오늘(현재)" 칸은 오늘 0시부터 마지막 갱신 시각까지의 수치입니다.<br>
+<div class="note">숫자는 각 곡 유튜브 아트트랙의 일별 조회수 증가분, ♥는 그날 좋아요 증가분, <span style="color:#ff6b6b">▼</span>는 전곡 합계 행에서 그날 빠진 좋아요 합계입니다. "좋아요 감소(누적)" 열은 추적 시작 후 빠진 좋아요 총합입니다. "오늘(현재)" 칸은 오늘 0시부터 마지막 갱신 시각까지의 수치입니다. 맨 앞 "시작" 두 칸(9/9·9/10)은 추적을 처음 시작한 날로 항상 고정되고, 그 뒤는 최근 14일입니다.<br>
 🛒 금색 표시 칸 = 좋아요 구매를 넣은 날짜(숫자는 구매 수량). 좋아요 수 집계는 2026-09-11부터 시작되어 이전 날짜에는 ♥ 표시가 없습니다.</div>
 </body></html>
 `;
