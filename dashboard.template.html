@@ -1269,7 +1269,10 @@ function renderDetail(snaps, songs, ids){
   });
 
   const RANGES = [["1개월",30],["3개월",90],["1년",365],["전체",Infinity]];
-  const state = { sel: "__total__", range: Infinity };
+  // 좋아요 구매 표시 켜기/끄기 (2026-10-10 민우님 요청) — 브라우저에 기억해서 새로고침해도 유지
+  const BUY_KEY = "mdash.showBuys";
+  const loadShowBuys = () => { try { return localStorage.getItem(BUY_KEY) !== "off"; } catch(e){ return true; } };
+  const state = { sel: "__total__", range: Infinity, showBuys: loadShowBuys() };
   let chart = null;
 
   const colorOf = (sel) => sel === "__total__" ? "#c3c2b7" : palette[ids.indexOf(sel)%palette.length];
@@ -1283,7 +1286,7 @@ function renderDetail(snaps, songs, ids){
     const c = colorOf(state.sel);
     // 좋아요를 구매한 날 → 그래프에서 노란 세로줄 + 큰 노란 점으로 눈에 띄게
     // (기록: 구매봇 장부 / 추정: 좋아요 급증일 — 세로줄 모양으로 구분)
-    const buys = buySetOf(state.sel), spikes = spikeSetOf(state.sel);
+    const buys = state.showBuys ? buySetOf(state.sel) : new Set(), spikes = state.showBuys ? spikeSetOf(state.sel) : new Set();
     const buyIdx = new Set(), spikeIdx = new Set();
     rd.forEach((dt,i) => { if(buys.has(dt)) buyIdx.add(i); else if(spikes.has(dt)) spikeIdx.add(i); });
     const markIdx = new Set([...buyIdx, ...spikeIdx]);
@@ -1319,7 +1322,7 @@ function renderDetail(snaps, songs, ids){
     if(adNoteEl) adNoteEl.style.display = (adIdx.size || capIdx.size) ? "" : "none";
     const BUY_C = "#ffc94a";
     document.getElementById("buyNote").style.display =
-      (state.sel !== "__total__" && (anyBuy.size || anySpike.size)) ? "" : "none";
+      (state.showBuys && state.sel !== "__total__" && (anyBuy.size || anySpike.size)) ? "" : "none";
     if(chart) chart.destroy();
     chart = new Chart(document.getElementById("detail"), {
       type: "line",
@@ -1455,6 +1458,20 @@ function renderDetail(snaps, songs, ids){
       if(state.range === days) b.style.borderColor = b.style.color = "#e7eaf0";
       b.textContent = label;
       b.onclick = () => { state.range = days; paintButtons(); draw(); };
+      rangeBox.appendChild(b);
+    }
+    if(anyBuy.size || anySpike.size){
+      const b = document.createElement("button");
+      b.className = "tbtn small" + (state.showBuys ? " active" : "");
+      b.style.marginLeft = "12px";
+      if(state.showBuys) b.style.borderColor = b.style.color = "#ffc94a";
+      b.textContent = "💛 좋아요 구매 표시 " + (state.showBuys ? "ON" : "OFF");
+      b.title = "누르면 그래프의 노란 구매 표시를 켜고 끕니다";
+      b.onclick = () => {
+        state.showBuys = !state.showBuys;
+        try { localStorage.setItem(BUY_KEY, state.showBuys ? "on" : "off"); } catch(e){}
+        paintButtons(); draw();
+      };
       rangeBox.appendChild(b);
     }
   }
