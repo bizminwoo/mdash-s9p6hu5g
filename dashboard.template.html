@@ -1498,10 +1498,16 @@ function renderHourly(songs, ids){
     });
   };
 
+  // 곡 칸은 스트리밍순 — 가장 최근 1시간 유입(칸의 큰 숫자) 큰 곡부터, 같으면 오늘 누적 유입순.
+  // 색은 원래 곡 순서(idx) 기준이라 다른 차트와 같은 곡 = 같은 색 유지
+  const lastOf = (arr) => { for(let i = arr.length - 1; i >= 0; i--) if(arr[i] != null) return arr[i]; return -1; };
+  const sumOf = (arr) => arr.reduce((s, v) => s + (v || 0), 0);
+  const songFacets = ids.map((id, idx) => ({ title: songTitle(songs, id), color: palette[idx % palette.length],
+      today: seriesOf(today, id), yday: seriesOf(yday, id) }))
+    .sort((a, b) => (lastOf(b.today) - lastOf(a.today)) || (sumOf(b.today) - sumOf(a.today)));
   const facets = [
     { title: "전체 합계 (지분 반영)", color: "#c3c2b7", today: totalOf(today), yday: totalOf(yday) },
-    ...ids.map((id, idx) => ({ title: songTitle(songs, id), color: palette[idx % palette.length],
-      today: seriesOf(today, id), yday: seriesOf(yday, id) })),
+    ...songFacets,
   ];
 
   const gray = "#8b93a3";
