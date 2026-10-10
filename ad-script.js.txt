@@ -1,5 +1,6 @@
 // ================================================================
-// 자동 신곡 광고 스크립트 v2.14 — 이민우 비서 제작
+// 자동 신곡 광고 스크립트 v2.15 — 이민우 비서 제작
+// v2.15 (2026-10-10): 광고 생성이 '필수 항목 없음'으로 실패하면 예전에 성공하던 형식(광고 이름=cmd-…)으로 한 번 더 시도.
 // v2.14 (2026-10-10): 곡마다 광고그룹을 새로 만든다(이름 = 곡 제목). 기존 곡의 광고그룹은 이름을 바꾸거나 광고를 지우지 않고
 //                    일시중지만 해서 그대로 남긴다(민우님 지시). 새 그룹은 화면에서 타겟 CPV를 한 번 맞춰야 함 → go:false 로 준비 후 확인.
 // v2.13 (2026-10-05): 안전장치 한도 20만원 → 100만원. (입찰가는 화면에서 타겟 CPV 2원으로 조정됨)
@@ -163,18 +164,25 @@ function runOne(cmd) {
     var logoAsset = logoIt.next();
     var title = cutWidth(cmd.title || '신곡 듣기', 90);          // 긴 광고 제목: 최대 90폭
     var artist = cutWidth((cmd.title || '신곡').split(' - ')[0], 15); // 짧은 제목: 최대 15폭 (한글 7자)
-    var adOp = ag.newVideoAd().responsiveVideoAdBuilder()
-      .withAdName(cutWidth(cmd.title || marker, 250))   // v2.12: 광고 이름 = 곡 제목
-      .withVideo(videoAsset)
-      .withFinalUrl('https://www.youtube.com/watch?v=' + cmd.videoId)
-      .withLongHeadline(title)
-      .withHeadline(artist)
-      .withDescription(cutWidth(cmd.title || '신곡', 70))   // 2026-09-28 민우님: 설명은 곡 제목 그대로
-      // 클릭 유도문안(CTA)은 스크립트로 광고를 만들 때 구글이 필수로 요구해 뺄 수 없음 → 필요하면 화면에서 직접 해제
-      .withCallToAction('듣기')
-      .withLogoImages([logoAsset])
-      .build();
-    if (!adOp.isSuccessful()) { Logger.log('광고 생성 실패: ' + adOp.getErrors().join(', ')); return; }
+    var buildAd = function (adName) {
+      return ag.newVideoAd().responsiveVideoAdBuilder()
+        .withAdName(adName)
+        .withVideo(videoAsset)
+        .withFinalUrl('https://www.youtube.com/watch?v=' + cmd.videoId)
+        .withLongHeadline(title)
+        .withHeadline(artist)
+        .withDescription(cutWidth(cmd.title || '신곡', 70))   // 2026-09-28 민우님: 설명은 곡 제목 그대로
+        // 클릭 유도문안(CTA)은 스크립트로 광고를 만들 때 구글이 필수로 요구해 뺄 수 없음 → 필요하면 화면에서 직접 해제
+        .withCallToAction('듣기')
+        .withLogoImages([logoAsset])
+        .build();
+    };
+    var adOp = buildAd(cutWidth(cmd.title || marker, 250));   // v2.12: 광고 이름 = 곡 제목
+    if (!adOp.isSuccessful()) {
+      Logger.log('광고 생성 1차 실패(곡 제목 이름): ' + adOp.getErrors().join(', ') + ' → 예전 형식(' + marker + ')으로 재시도');
+      adOp = buildAd(marker);
+    }
+    if (!adOp.isSuccessful()) { Logger.log('광고 생성 실패: ' + adOp.getErrors().join(', ') + ' / 영상자산 ' + videoAsset.getId() + ' / 로고 ' + logoAsset.getId()); return; }
     Logger.log('광고 생성: ' + marker + ' / 영상 ' + cmd.videoId);
   }
 
