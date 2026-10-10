@@ -1,5 +1,7 @@
 // ================================================================
-// 자동 신곡 광고 스크립트 v2.13 — 이민우 비서 제작
+// 자동 신곡 광고 스크립트 v2.14 — 이민우 비서 제작
+// v2.14 (2026-10-10): 곡마다 광고그룹을 새로 만든다(이름 = 곡 제목). 기존 곡의 광고그룹은 이름을 바꾸거나 광고를 지우지 않고
+//                    일시중지만 해서 그대로 남긴다(민우님 지시). 새 그룹은 화면에서 타겟 CPV를 한 번 맞춰야 함 → go:false 로 준비 후 확인.
 // v2.13 (2026-10-05): 안전장치 한도 20만원 → 100만원. (입찰가는 화면에서 타겟 CPV 2원으로 조정됨)
 // v2.12 (2026-10-04): 1광고그룹 1광고 — 그룹 안의 다른 광고는 끄지 않고 삭제. 광고 이름도 곡 제목.
 // v2.11 (2026-10-04): 광고그룹 이름 = 곡 제목(같은 그룹을 재사용하며 이름만 바꿈 → 화면에서 정한 입찰가 유지).
@@ -93,28 +95,18 @@ function runOne(cmd) {
     return;
   }
 
-  // 1) 캠페인마다 광고그룹 하나('자동광고')를 계속 재사용하고 광고만 갈아끼운다.
-  //    입찰가(타겟 CPV)는 스크립트·API 모두 바꿀 수 없어서, 민우님이 화면에서 한 번 맞춰둔 광고그룹을 유지하기 위함 (v2.9)
-  var want_ag = cutWidth(cmd.title || FIXED_AG, 250);   // v2.11: 광고그룹 이름 = 곡 제목
-  var ag = null, g, byTitle = null, byFixed = null, byOn = null, byCmd = null, agsIt = camp.videoAdGroups().get(), all = [];
-  while (agsIt.hasNext()) {
-    g = agsIt.next(); all.push(g);
-    var nm = g.getName();
-    if (nm === want_ag) byTitle = g;
-    else if (nm === FIXED_AG) byFixed = g;
-    else if (g.isEnabled() && nm.indexOf('cmd-') !== 0 && !byOn) byOn = g;
-    else if (g.isEnabled() && nm.indexOf('cmd-') === 0 && !byCmd) byCmd = g;
-  }
-  ag = byTitle || byFixed || byOn || byCmd;
+  // 1) 곡마다 광고그룹 하나 (이름 = 곡 제목). 없으면 새로 만든다. 다른 곡 광고그룹은 이름·광고를 건드리지 않고 일시중지만 (v2.14)
+  var want_ag = cutWidth(cmd.title || marker, 250);
+  var ag = null, agsIt = camp.videoAdGroups().get(), all = [];
+  while (agsIt.hasNext()) { var g = agsIt.next(); all.push(g); if (g.getName() === want_ag && !ag) ag = g; }
   if (!ag) {
     var agOp = camp.newVideoAdGroupBuilder().withName(want_ag).withAdGroupType('VIDEO_RESPONSIVE').build();
     if (!agOp.isSuccessful()) { Logger.log('광고그룹 생성 실패: ' + agOp.getErrors().join(', ')); return; }
     ag = agOp.getResult();
-    Logger.log('⚠️ 광고그룹 새로 생성: ' + tmpl + ' — 화면에서 타겟 CPV 입찰가를 한 번 맞춰주세요');
+    Logger.log('🆕 광고그룹 새로 생성: ' + tmpl + ' / ' + want_ag + ' — 화면에서 타겟 CPV 입찰가를 확인해주세요');
   }
-  if (ag.getName() !== want_ag) { Logger.log('광고그룹 이름 변경: ' + ag.getName() + ' → ' + want_ag); ag.setName(want_ag); }
-  var others = all.filter(function (x) { return x !== ag; });
-  for (var k = 0; k < others.length; k++) { if (others[k].isEnabled()) others[k].pause(); }
+  var others = all.filter(function (x) { return x.getName() !== want_ag; });
+  for (var k = 0; k < others.length; k++) { if (others[k].isEnabled()) { others[k].pause(); Logger.log('다른 곡 광고그룹 일시중지(삭제 안 함): ' + others[k].getName()); } }
   if (!ag.isEnabled()) { ag.enable(); }
 
   // 2) 이 곡 광고가 이미 켜져 있으면 그대로 둔다 (영상으로 판별 — 화면에서 문구를 고쳐도 같은 광고로 인식)
