@@ -1272,7 +1272,10 @@ function renderDetail(snaps, songs, ids){
   // 좋아요 구매 표시 켜기/끄기 (2026-10-10 민우님 요청) — 브라우저에 기억해서 새로고침해도 유지
   const BUY_KEY = "mdash.showBuys";
   const loadShowBuys = () => { try { return localStorage.getItem(BUY_KEY) !== "off"; } catch(e){ return true; } };
-  const state = { sel: "__total__", range: Infinity, showBuys: loadShowBuys() };
+  // 세로축 자르기 켜기/끄기 (2026-10-10 민우님: 최근 상승 구간이 잘려 안 보임) — OFF면 튀는 날까지 전부 보이게
+  const CAP_KEY = "mdash.yCap";
+  const loadCap = () => { try { return localStorage.getItem(CAP_KEY) !== "off"; } catch(e){ return true; } };
+  const state = { sel: "__total__", range: Infinity, showBuys: loadShowBuys(), cap: loadCap() };
   let chart = null;
 
   const colorOf = (sel) => sel === "__total__" ? "#c3c2b7" : palette[ids.indexOf(sel)%palette.length];
@@ -1293,7 +1296,7 @@ function renderDetail(snaps, songs, ids){
     // A. 세로축 자동 자르기 (2026-10-05) — 광고 등으로 몇 날만 크게 튀면 평소 증감이 납작해져 안 보인다.
     //    튀는 날(사분위 기준 이상치)을 빼고 세로축 높이를 잡고, 잘린 날은 그래프 위에 "↑실제값"을 적는다.
     let yCap = null;
-    {
+    if(state.cap){
       const vals = d.filter(v => v != null).slice().sort((a,b) => a-b);
       if(vals.length >= 5){
         const q = (p) => vals[Math.min(vals.length-1, Math.floor(p*(vals.length-1)))];
@@ -1458,6 +1461,20 @@ function renderDetail(snaps, songs, ids){
       if(state.range === days) b.style.borderColor = b.style.color = "#e7eaf0";
       b.textContent = label;
       b.onclick = () => { state.range = days; paintButtons(); draw(); };
+      rangeBox.appendChild(b);
+    }
+    {
+      const b = document.createElement("button");
+      b.className = "tbtn small" + (state.cap ? " active" : "");
+      b.style.marginLeft = "12px";
+      if(state.cap) b.style.borderColor = b.style.color = "#e7eaf0";
+      b.textContent = "자르기 " + (state.cap ? "ON" : "OFF");
+      b.title = "ON: 튀는 날은 위를 잘라 평소 오르내림을 크게 / OFF: 튀는 날까지 전부 보이게";
+      b.onclick = () => {
+        state.cap = !state.cap;
+        try { localStorage.setItem(CAP_KEY, state.cap ? "on" : "off"); } catch(e){}
+        paintButtons(); draw();
+      };
       rangeBox.appendChild(b);
     }
     if(anyBuy.size || anySpike.size){
