@@ -1465,7 +1465,7 @@ function renderDetail(snaps, songs, ids){
       b.className = "tbtn small" + (state.showBuys ? " active" : "");
       b.style.marginLeft = "12px";
       if(state.showBuys) b.style.borderColor = b.style.color = "#ffc94a";
-      b.textContent = "💛 좋아요 구매 표시 " + (state.showBuys ? "ON" : "OFF");
+      b.textContent = state.showBuys ? "ON" : "OFF";
       b.title = "누르면 그래프의 노란 구매 표시를 켜고 끕니다";
       b.onclick = () => {
         state.showBuys = !state.showBuys;
