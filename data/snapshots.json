@@ -309,6 +309,15 @@
       "share": 1,
       "pending": true,
       "release": "2025-07-12"
+    },
+    "zQCC6gtvbxI": {
+      "url": "https://www.youtube.com/watch?v=zQCC6gtvbxI",
+      "title": "이든하 - 너랑 걷던 길은 아직 돌아서 가",
+      "share": 1,
+      "pinUntil": "2026-10-12",
+      "adFrom": "2026-10-10",
+      "adTo": "2026-10-12",
+      "release": "2026-10-10"
     }
   },
   "snapshots": [
@@ -9284,40 +9293,45 @@
           "views": 131856,
           "likes": 1427,
           "comments": 0
+        },
+        "zQCC6gtvbxI": {
+          "views": 2,
+          "likes": 0,
+          "comments": 0
         }
       }
     }
   ],
   "current": {
-    "time": "2026-10-10 13:00",
+    "time": "2026-10-10 13:24",
     "stats": {
       "tUcWwAO5zU8": {
-        "views": 1446601,
+        "views": 1446655,
         "likes": 8839,
         "comments": 2
       },
       "RsQDAygpF6k": {
-        "views": 969287,
+        "views": 969591,
         "likes": 16705,
         "comments": 21
       },
       "grqTg6WOJII": {
-        "views": 1137414,
+        "views": 1137496,
         "likes": 35841,
         "comments": 44
       },
       "THGi-LLhbxM": {
-        "views": 789425,
-        "likes": 16273,
+        "views": 789463,
+        "likes": 16274,
         "comments": 14
       },
       "Jsm2uVtQhmY": {
-        "views": 420784,
+        "views": 420823,
         "likes": 19183,
         "comments": 5
       },
       "K_viUNQs5lc": {
-        "views": 55106,
+        "views": 55581,
         "likes": 4129,
         "comments": 0
       },
@@ -9342,8 +9356,8 @@
         "comments": 10
       },
       "-rFw4j4aqg0": {
-        "views": 178566,
-        "likes": 5721,
+        "views": 178825,
+        "likes": 5722,
         "comments": 0
       },
       "FwQg1oq0ZwY": {
@@ -9362,7 +9376,7 @@
         "comments": 0
       },
       "GAYhdUa2-q4": {
-        "views": 120699,
+        "views": 120791,
         "likes": 8409,
         "comments": 0
       },
@@ -9387,7 +9401,7 @@
         "comments": 0
       },
       "d40YQAsL_cU": {
-        "views": 632013,
+        "views": 632113,
         "likes": 12832,
         "comments": 8
       },
@@ -9402,7 +9416,7 @@
         "comments": 0
       },
       "Skywxm6bQKw": {
-        "views": 460713,
+        "views": 460843,
         "likes": 6489,
         "comments": 9
       },
@@ -9427,23 +9441,28 @@
         "comments": 2
       },
       "I2Akn5oSvLY": {
-        "views": 280903,
+        "views": 280976,
         "likes": 5987,
         "comments": 5
       },
       "aacJLrnNOYk": {
-        "views": 365491,
-        "likes": 8772,
+        "views": 365815,
+        "likes": 8773,
+        "comments": 0
+      },
+      "zQCC6gtvbxI": {
+        "views": 2,
+        "likes": 0,
         "comments": 0
       },
       "gTG9evSpuWg": {
-        "views": 21120820,
-        "likes": 77952,
+        "views": 21121194,
+        "likes": 77954,
         "comments": 232
       },
       "D7VsFDJx4zw": {
-        "views": 132008,
-        "likes": 1427,
+        "views": 132020,
+        "likes": 1428,
         "comments": 0
       }
     }
