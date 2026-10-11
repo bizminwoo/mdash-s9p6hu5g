@@ -1,5 +1,8 @@
 // ================================================================
-// 자동 신곡 광고 스크립트 v2.18 — 이민우 비서 제작
+// 자동 신곡 광고 스크립트 v2.19 — 이민우 비서 제작
+// v2.19 (2026-10-12): 민우님이 화면/앱에서 끈 광고를 스크립트가 매시간 다시 켜던 문제 수정(10/11 23:43 이든하 그룹을 끄셨는데 00:05에 다시 켬).
+//                    명령마다 처음 한 번만 켜고(광고그룹에 'auto-started-명령id' 라벨), 그 뒤로는 켜고 끄기를 건드리지 않는다.
+//                    예산·종료일은 명령대로 계속 맞추고, 기간이 끝나면 끄는 것은 그대로.
 // v2.18 (2026-10-11): 구글 문서상 스크립트의 범용 API 호출(AdsApp.mutate)도 동영상 광고는 막혀 있을 가능성이 큼 → 3단계로 시도·대비.
 //                    ① 빌더에 비즈니스 이름 기능이 생겼으면 그걸로 ② 안 되면 API 직접 ③ 그래도 안 되면 '광고만 화면에서' 만들도록 안내하고
 //                    예산·기간·지역은 미리 맞춰두고 캠페인은 켜지 않음. 화면에서 이 영상 광고를 아무 그룹에 만들어두면
@@ -128,9 +131,16 @@ function runOne(cmd) {
     ag = agOp.getResult();
     Logger.log('🆕 광고그룹 새로 생성: ' + tmpl + ' / ' + want_ag + ' — 화면에서 타겟 CPV 입찰가를 확인해주세요');
   }
-  var others = all.filter(function (x) { return x.getName() !== want_ag; });
-  for (var k = 0; k < others.length; k++) { if (others[k].isEnabled()) { others[k].pause(); Logger.log('다른 곡 광고그룹 일시중지(삭제 안 함): ' + others[k].getName()); } }
-  if (!ag.isEnabled()) { ag.enable(); }
+  // v2.19: 이 명령으로 이미 한 번 켠 적이 있으면(라벨) 켜고 끄기는 건드리지 않는다 — 민우님이 화면에서 끈 걸 다시 켜지 않게
+  var startedLbl = cutWidth('auto-started-' + cmd.id, 80);
+  var started = hasLabel(ag, startedLbl);
+  if (started) {
+    Logger.log('이미 시작한 명령 — 켜기/끄기는 화면 설정 그대로 둠: ' + marker + (ag.isEnabled() ? '' : ' (광고그룹 꺼져 있음)'));
+  } else {
+    var others = all.filter(function (x) { return x.getName() !== want_ag; });
+    for (var k = 0; k < others.length; k++) { if (others[k].isEnabled()) { others[k].pause(); Logger.log('다른 곡 광고그룹 일시중지(삭제 안 함): ' + others[k].getName()); } }
+    if (!ag.isEnabled()) { ag.enable(); }
+  }
 
   // 2) 이 곡 광고가 이미 켜져 있으면 그대로 둔다 (영상으로 판별 — 화면에서 문구를 고쳐도 같은 광고로 인식)
   var mine = null, adsIt = ag.videoAds().get(), adList = [];
@@ -234,13 +244,29 @@ function runOne(cmd) {
     Logger.log('⏸ 준비 완료, 켜기 대기(go:false): ' + marker);
     return;
   }
-  if (!camp.isEnabled()) {
+  if (started) {
+    if (!camp.isEnabled()) Logger.log('캠페인 꺼져 있음(화면에서 끈 것으로 보고 그대로 둠): ' + marker);
+    else Logger.log('이미 집행 중: ' + marker);
+  } else if (!camp.isEnabled()) {
     camp.enable();
     Logger.log('✅ 광고 시작: ' + marker + ' / 총예산 ' + cmd.totalBudgetWon + '원 / ' + cmd.startDate + '~' + ymd(endDate));
   } else {
     Logger.log('이미 집행 중: ' + marker);
   }
+  if (!started && !AdsApp.getExecutionInfo().isPreview()) markStarted(ag, startedLbl);
   manageEnd(camp, cmd);
+}
+
+// v2.19: 명령별 '한 번 켰음' 표시 (광고그룹 라벨). 라벨 기능이 안 되면 예전처럼 동작(매번 켬)하고 로그만 남김.
+function hasLabel(ent, name) {
+  try { return ent.labels().withCondition("label.name = '" + name + "'").get().hasNext(); }
+  catch (e) { Logger.log('라벨 확인 실패(예전 방식으로 진행): ' + e); return false; }
+}
+function markStarted(ent, name) {
+  try {
+    if (!AdsApp.labels().withCondition("label.name = '" + name + "'").get().hasNext()) AdsApp.createLabel(name);
+    ent.applyLabel(name);
+  } catch (e) { Logger.log('라벨 붙이기 실패(다음 실행에도 켜기 시도함): ' + e); }
 }
 
 function manageEnd(camp, cmd) {
