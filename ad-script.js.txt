@@ -1,5 +1,9 @@
 // ================================================================
-// 자동 신곡 광고 스크립트 v2.16 — 이민우 비서 제작
+// 자동 신곡 광고 스크립트 v2.17 — 이민우 비서 제작
+// v2.17 (2026-10-11): 광고 생성 실패의 진짜 원인 수정 — 구글 광고 API 새 버전(v24~)에서 동영상 광고에 '비즈니스 이름'(business_name)과
+//                    로고가 필수가 됨. 화면에서 만든 광고엔 'oowsound'가 들어가 있지만 스크립트 광고 빌더엔 이 항목을 넣는 기능이 없음
+//                    → 스크립트 안에서 구글 API(AdsApp.mutate)로 직접 광고를 만들며 비즈니스 이름+로고를 넣는다.
+//                    + 다른 광고는 지우지 않고 일시중지만(삭제 동작 전부 제거). + 명령에 "allCountries": true 면 그 캠페인 지역 설정을 지워 전 세계로.
 // v2.16 (2026-10-10): 구글이 반응형 동영상 광고에서 로고 항목을 없앰(API v22에 logo_images 필드 없음) → 로고를 넣으면
 //                    '필수 항목 없음'으로 거절됨. 로고 없이 먼저 만들고, 그래도 안 되면 로고 넣어 재시도.
 // v2.15 (2026-10-10): 광고 생성이 '필수 항목 없음'으로 실패하면 예전에 성공하던 형식(광고 이름=cmd-…)으로 한 번 더 시도.
@@ -82,6 +86,12 @@ function runOne(cmd) {
   }
 
   var marker = 'cmd-' + cmd.id;
+  // v2.17: 전 세계 노출 (민우님 기본 설정: 지역 제한 없음 + 타겟 CPV 1원)
+  if (cmd.allCountries) {
+    var locIt = camp.targeting().targetedLocations().get(), nLoc = 0;
+    while (locIt.hasNext()) { locIt.next().remove(); nLoc++; }
+    if (nLoc) Logger.log('지역 설정 ' + nLoc + '개 삭제 → 전 세계 노출: ' + tmpl);
+  }
   if (cmd.totalBudgetWon > MAX_BUDGET_WON) {
     Logger.log('안전장치: 예산 ' + cmd.totalBudgetWon + '원이 한도(' + MAX_BUDGET_WON + ')를 초과 — 실행 거부');
     return;
@@ -119,10 +129,10 @@ function runOne(cmd) {
   if (isNew) {
     // 새 명령 시작: 종료일을 맞추고, 다른 곡 광고는 끈다
     camp.setEndDate(ymd(endDate));
-    for (var j = 0; j < adList.length; j++) { if (adList[j] !== mine) { adList[j].remove(); Logger.log('이전 광고 삭제(1그룹 1광고)'); } }
+    for (var j = 0; j < adList.length; j++) { if (adList[j] !== mine && adList[j].isEnabled()) { adList[j].pause(); Logger.log('같은 그룹의 다른 광고 일시중지(삭제 안 함)'); } }
     if (mine) { mine.enable(); Logger.log('기존 광고 다시 켬: ' + marker); }
   }
-  if (!isNew) { for (var r = 0; r < adList.length; r++) { if (adList[r] !== mine) { adList[r].remove(); Logger.log('남은 다른 광고 삭제(1그룹 1광고)'); } } }
+  if (!isNew) { for (var r = 0; r < adList.length; r++) { if (adList[r] !== mine && adList[r].isEnabled()) { adList[r].pause(); Logger.log('남은 다른 광고 일시중지(삭제 안 함)'); } } }
   // 총예산은 "캠페인 시작일부터 전체" 기준이라, 이 명령 전까지 이미 쓴 돈 + 이번 예산으로 맞춘다 (v2.10)
   // (2026-09-28 사고: 9/14 시작 캠페인에 5만원만 걸어 이미 쓴 10만원 때문에 Fishing Ground가 하루 종일 0회 노출)
   var want = Math.round(priorSpend(camp, cmd.startDate) + cmd.totalBudgetWon);
@@ -166,25 +176,30 @@ function runOne(cmd) {
     var logoAsset = logoIt.next();
     var title = cutWidth(cmd.title || '신곡 듣기', 90);          // 긴 광고 제목: 최대 90폭
     var artist = cutWidth((cmd.title || '신곡').split(' - ')[0], 15); // 짧은 제목: 최대 15폭 (한글 7자)
-    var buildAd = function (adName, withLogo) {
-      var bld = ag.newVideoAd().responsiveVideoAdBuilder()
-        .withAdName(adName)
-        .withVideo(videoAsset)
-        .withFinalUrl('https://www.youtube.com/watch?v=' + cmd.videoId)
-        .withLongHeadline(title)
-        .withHeadline(artist)
-        .withDescription(cutWidth(cmd.title || '신곡', 70))   // 2026-09-28 민우님: 설명은 곡 제목 그대로
-        // 클릭 유도문안(CTA)은 스크립트로 광고를 만들 때 구글이 필수로 요구해 뺄 수 없음 → 필요하면 화면에서 직접 해제
-        .withCallToAction('듣기');
-      if (withLogo) bld = bld.withLogoImages([logoAsset]);
-      return bld.build();
+    var adName = cutWidth(cmd.title || marker, 250);
+    // v2.17: 구글 API로 직접 생성 — 비즈니스 이름(필수)·로고(필수)·긴 제목·설명·영상·링크. 화면에서 만든 광고와 같은 구성(짧은 제목·버튼 없음).
+    var cid = AdsApp.currentAccount().getCustomerId().replace(/-/g, '');
+    var resOf = function (obj, kind) { try { var rn = obj.getResourceName && obj.getResourceName(); if (rn) return rn; } catch (e) {} return 'customers/' + cid + '/' + kind + '/' + obj.getId(); };
+    var vra = {
+      videos: [{ asset: resOf(videoAsset, 'assets') }],
+      longHeadlines: [{ text: title }],
+      descriptions: [{ text: cutWidth(cmd.title || '신곡', 70) }],
+      businessName: { text: cutWidth(cmd.businessName || 'oowsound', 25) },
+      logoImages: [{ asset: resOf(logoAsset, 'assets') }]
     };
-    var adOp = buildAd(cutWidth(cmd.title || marker, 250), false);   // v2.16: 로고 없이 (광고 이름 = 곡 제목)
-    if (!adOp.isSuccessful()) {
-      Logger.log('광고 생성 1차 실패(로고 없이): ' + adOp.getErrors().join(', ') + ' → 로고 넣어 재시도');
-      adOp = buildAd(cutWidth(cmd.title || marker, 250), true);
+    if (cmd.withButton) { vra.headlines = [{ text: artist }]; vra.callToActions = [{ text: '듣기' }]; }
+    var mres = null, okMutate = false, mErr = '';
+    try {
+      mres = AdsApp.mutate({ adGroupAdOperation: { create: {
+        adGroup: resOf(ag, 'adGroups'), status: 'ENABLED',
+        ad: { name: adName, finalUrls: ['https://www.youtube.com/watch?v=' + cmd.videoId], videoResponsiveAd: vra } } } });
+      okMutate = mres.isSuccessful();
+      if (!okMutate) mErr = (mres.getErrorMessages ? mres.getErrorMessages().join(', ') : '알 수 없음');
+    } catch (e) { mErr = '' + e; }
+    if (!okMutate) {
+      Logger.log('광고 생성 실패(API 직접): ' + mErr + ' / 영상자산 ' + videoAsset.getId() + ' / 로고 ' + logoAsset.getId() + ' / 그룹 ' + ag.getName());
+      return;
     }
-    if (!adOp.isSuccessful()) { Logger.log('광고 생성 실패: ' + adOp.getErrors().join(', ') + ' / 영상자산 ' + videoAsset.getId() + ' / 로고 ' + logoAsset.getId()); return; }
     Logger.log('광고 생성: ' + marker + ' / 영상 ' + cmd.videoId);
   }
 
