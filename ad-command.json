@@ -8,5 +8,17 @@
     "days": 3,
     "totalBudgetWon": 300000,
     "go": true
+  },
+  {
+    "id": "test-autocreate",
+    "template": "자동광고템플릿 #2",
+    "videoId": "lBfysK-tSrU",
+    "title": "카디코기 - 바보야 (Feat. 희진)",
+    "startDate": "2026-10-12",
+    "days": 2,
+    "totalBudgetWon": 10000,
+    "allCountries": true,
+    "go": false,
+    "_note": "자동 광고 생성 시험 — 꺼진 캠페인, go:false라 켜지지 않음(돈 안 나감)"
   }
 ]
