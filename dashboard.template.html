@@ -502,7 +502,9 @@ function render(){
     const dViews = (prev && cur.views!=null && pv.views!=null) ? cur.views - pv.views : null;
     const dViewsPrev = (prev2 && pv.views!=null && pv2.views!=null) ? pv.views - pv2.views : null; // 그 전날 하루치
     const dLikes = (prev && cur.likes!=null && pv.likes!=null) ? cur.likes - pv.likes : null;
-    const share = songs[id].share == null ? 1 : songs[id].share; // 수익 지분 (0=선급 제외)
+    // 수익 지분 (0=선급 제외). payout = 내가 정산해줘야 하는 몫(2026-10-12 바보야: 지분 100%·정산 30% → 수익 70%).
+    // 스트리밍 합계는 지분(share) 그대로, 수익만 payout 만큼 뺀다.
+    const share = Math.round((songs[id].share == null ? 1 : songs[id].share) * (1 - (songs[id].payout || 0)) * 1000) / 1000;
     return { id, title: songTitle(songs, id), url: songs[id].url, share, w: wOf(songs, id), adViews: songs[id].adViews, pending: songs[id].pending, adNow: adRunning(songs, id),
       views: cur.views, likes: cur.likes, dViews, dViewsPrev, dLikes,
       viewsOwned: cur.views != null ? Math.max(0, cur.views - ownedBase(songs, snaps, id)) : null };
@@ -807,7 +809,7 @@ function render(){
         r.pending ? `<span class='muted' title='인접권 정리 전 — 합계·수익에서 제외'>정리 전 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
         : r.adViews ? `<span class='muted' title='광고 조회 — 합계·예상에서 제외'>광고 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
         : r.share === 0 ? `<span class='muted'>선급 제외${r.revenueFull ? ` (≈${won(r.revenueFull)})` : ""}</span>`
-        : r.revenue!=null ? won(r.revenue) + (r.share !== 1 ? ` <span class='muted'>(${r.share*100}%)</span>` : "")
+        : r.revenue!=null ? won(r.revenue) + (r.share !== 1 ? ` <span class='muted'>(${Math.round(r.share*100)}%${songs[r.id] && songs[r.id].payout ? `, 정산 ${Math.round(songs[r.id].payout*100)}% 차감` : ""})</span>` : "")
         : "<span class='muted'>—</span>"
       }</td>
       <td class="delta money">${

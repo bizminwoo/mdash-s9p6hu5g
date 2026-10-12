@@ -312,7 +312,7 @@
   {
     "url": "https://www.youtube.com/watch?v=lBfysK-tSrU",
     "title": "카디코기 - 바보야 (Feat. 희진)",
-    "share": 0.7,
+    "share": 1,
     "release": "2026-10-11",
     "pinUntil": "2026-10-13",
     "dist": "다날",
@@ -320,6 +320,7 @@
     "adTo": "2026-10-14",
     "adViewsByDay": {
       "2026-10-11": 67408
-    }
+    },
+    "payout": 0.3
   }
 ]
