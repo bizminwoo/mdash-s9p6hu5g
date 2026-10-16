@@ -121,7 +121,7 @@
   <div class="panel">
     <h2>🏢 유통사별 추정 정산 <span class="muted" id="distLabel"></span></h2>
     <div id="distWrap"></div>
-    <div class="note">표의 열은 <b>돈이 들어오는 달(입금월)</b>입니다. <b>지니는 서비스월 +2개월</b>(7월분 → 9월 입금), <b>쿼터·CJ·레이벡스 등 나머지는 +3개월</b>(7월분 → 10월 입금). 각 칸 아래 작은 글씨가 몇 월분인지입니다. 금액 = 그 서비스월 확정 스트리밍(광고·보류 제외 규칙 동일) <b>× 유통사별 단가 × 지분</b>으로 추정한 <b>내 몫</b>. 단가: <b>지니 5.93원</b>(7월 실측 보정) · 나머지 <b>6.0원</b>. 선급곡(내 몫 0)은 "선급 회수 중"으로 표시하고 트랙 기준 금액만 참고로 병기합니다. 아직 끝나지 않은 달의 몫은 <b>어제까지 확정분</b>만 들어 있어 날이 갈수록 늘어납니다. 수집 시작(6/29) 전 달은 "수집 전"으로 표시합니다.</div>
+    <div class="note">표의 열은 <b>돈이 들어오는 달(입금월)</b>입니다. <b>지니는 서비스월 +2개월</b>(7월분 → 9월 입금), <b>쿼터·CJ·레이벡스 등 나머지는 +3개월</b>(7월분 → 10월 입금). 각 칸 아래 작은 글씨가 몇 월분인지입니다. 금액 = 그 서비스월 확정 스트리밍(광고·보류 제외 규칙 동일) <b>× 유통사별 단가 × 지분</b>으로 추정한 <b>내 몫</b>. 단가: <b>지니 6.30원</b>(7~8월 실측 보정) · 나머지 <b>6.0원</b>. 선급곡(내 몫 0)은 "선급 회수 중"으로 표시하고 트랙 기준 금액만 참고로 병기합니다. 아직 끝나지 않은 달의 몫은 <b>어제까지 확정분</b>만 들어 있어 날이 갈수록 늘어납니다. 수집 시작(6/29) 전 달은 "수집 전"으로 표시합니다.</div>
   </div>
   <div class="panel">
     <h2>📀 발매 타임라인 <span class="muted">— 최신 발매순, 언제 나온 앨범인지 한눈에</span></h2>
@@ -216,7 +216,8 @@ function estMonthly(dailyViews){
 // 지니: 7월 실측 3,613,607원 / 예상 3,837,982원(6.3원 기준) → 스트림당 5.93원.
 // 없는 유통사는 기본 6.0원 (CJ는 정산이 한 달 늦어 7월분이 10월말 입금 — 그때 보정 예정).
 const RATE_DEFAULT = WON_PER_1000_DAILY / (1000 * 30); // 6.0원
-const DIST_RATE = { "지니": 5.93 };
+// 2026-10-17: 8월 실측(내 몫) 2,402,165원 / 지분반영 조회 345,492회 = 6.95원. 7~8월 합산 6,015,772원 / 954,695회 → 6.30원 (두 달 합산으로 안정화).
+const DIST_RATE = { "지니": 6.30 };
 function rateOf(songs, id){ const d = songs[id] && songs[id].dist; return (d && DIST_RATE[d]) || RATE_DEFAULT; }
 // 곡 이름 밑 발매일 표시 (2026-09-15 민우님: 언제 나온 앨범인지 한눈에) — 30일 이내 신곡은 🆕
 function relDateTag(release){
@@ -914,7 +915,7 @@ function renderDistRevenue(snaps, songs, ids){
   // 정렬: 입금 빠른 유통사(지연 짧은 순) → 같은 지연이면 최근 서비스월 금액 큰 순
   const lastKey = keyOf(addM(cy, cm, -1));
   dists.sort((a,b) => lagOf(a) - lagOf(b) || (((per[b][lastKey]||{}).full||0) - ((per[a][lastKey]||{}).full||0)));
-  const DIST_NOTES = { "지니": "단가 5.93원 (7월 실측 보정) · 2개월 뒤 입금" };
+  const DIST_NOTES = { "지니": "단가 6.30원 (7~8월 실측 보정) · 2개월 뒤 입금" };
   let html = `<div style="overflow-x:auto"><table><thead><tr><th>유통사</th>` +
     pays.map(p => `<th>${p.y !== cy ? p.y + "년 " : ""}${p.m}월 입금</th>`).join("") + `</tr></thead><tbody>`;
   const totals = pays.map(() => ({ mine: 0, partial: false }));
