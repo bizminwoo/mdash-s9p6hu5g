@@ -6,9 +6,9 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // dir 이름 = Vercel 프로젝트 이름 = 공개 주소(<dir>.vercel.app). 짐작하기 어렵게 무작위 꼬리를 붙인다.
-// artist 를 주면 songs.json 에서 "가수 - " 로 시작하는 곡이 전부 자동으로 들어간다(신곡 등록 시 자동 추가). ids 로 곡을 직접 지정해도 된다.
+// 곡은 ids 로 직접 지정한다 — 민우님이 말할 때만 추가(2026-10-16: 자동 추가 원치 않음). artist 지정도 지원하지만 쓰지 않는다.
 const SHARES = [
-  { dir: "wjh-stream-k7q2m9", artist: "왕준협" },
+  { dir: "wjh-stream-k7q2m9", title: "왕준협 음원", ids: ["blQPNauonCs"] },
 ];
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
