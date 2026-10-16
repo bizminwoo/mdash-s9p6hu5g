@@ -6,8 +6,9 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 // dir 이름 = Vercel 프로젝트 이름 = 공개 주소(<dir>.vercel.app). 짐작하기 어렵게 무작위 꼬리를 붙인다.
+// artist 를 주면 songs.json 에서 "가수 - " 로 시작하는 곡이 전부 자동으로 들어간다(신곡 등록 시 자동 추가). ids 로 곡을 직접 지정해도 된다.
 const SHARES = [
-  { dir: "wjh-stream-k7q2m9", title: "왕준협 - 나의 어제와, 너의 내일이", ids: ["blQPNauonCs"] },
+  { dir: "wjh-stream-k7q2m9", artist: "왕준협" },
 ];
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
@@ -40,8 +41,12 @@ const HOLIDAYS = new Set(["2026-09-24", "2026-09-25", "2026-09-26", "2026-10-03"
 const dayColor = (d) => { const w = new Date(d + "T00:00:00").getDay(); return w === 0 || HOLIDAYS.has(d) ? "#ff6b6b" : w === 6 ? "#4b9fff" : null; };
 
 function build(share) {
-  const ids = share.ids;
+  const ids = share.ids || songs.filter((s) => s.title.startsWith(share.artist + " - "))
+    .sort((a, b) => String(a.release || "").localeCompare(String(b.release || ""))).map((s) => vidOf(s.url)).filter(Boolean);
+  const pageTitle = share.title || (share.artist + " 음원");
   const meta = (id) => songs.find((s) => vidOf(s.url) === id) || {};
+  const short = (id) => String(meta(id).title || id).replace(/^.*? - /, "");
+  const multi = ids.length > 1;
   // 기록 시작일 = 곡들 중 가장 이른 스냅샷 날짜 (발매일 이전은 제외)
   const allDates = Object.keys(byDate).sort();
   const first = allDates.find((d) => ids.some((id) => byDate[d].stats?.[id] != null)) || today;
@@ -85,20 +90,32 @@ function build(share) {
   // 날짜별 표 (최근이 위)
   let cum = null;
   const cumOf = (d) => ids.reduce((a, id) => a + ((d === today ? DB.current?.stats?.[id]?.views : byDate[nextDay(d)]?.stats?.[id]?.views) || 0), 0);
+  const num = (v) => (v == null ? "<span class='zero'>—</span>" : nf.format(v));
   const rows = series.slice().reverse().map((x) => {
     const c = dayColor(x.d);
     cum = cumOf(x.d);
-    return `<tr${x.partial ? " class='today'" : ""}><td class="dt"${c ? ` style="color:${c}"` : ""}>${mdShort(x.d)} (${DOW[new Date(x.d + "T00:00:00").getDay()]})${x.partial ? " <span class='tag'>오늘</span>" : ""}</td><td><b>${x.v == null ? "—" : nf.format(x.v)}</b></td><td>${nf.format(cum)}</td></tr>`;
+    const per = multi ? ids.map((id) => `<td>${num(dailyOf(id, x.d))}</td>`).join("") : "";
+    return `<tr${x.partial ? " class='today'" : ""}><td class="dt"${c ? ` style="color:${c}"` : ""}>${mdShort(x.d)} (${DOW[new Date(x.d + "T00:00:00").getDay()]})${x.partial ? " <span class='tag'>오늘</span>" : ""}</td><td><b>${num(x.v)}</b></td>${per}<td>${nf.format(cum)}</td></tr>`;
   }).join("");
+  const dateHead = `<tr><th>날짜</th><th>하루 조회수${multi ? "<br>(합계)" : ""}</th>${multi ? ids.map((id) => `<th>${esc(short(id))}</th>`).join("") : ""}<th>누적 조회수${multi ? "<br>(합계)" : ""}</th></tr>`;
+  // 곡별 요약 (2곡 이상일 때)
+  const songRows = ids.map((id) => {
+    const ds = days.filter((d) => d < today).map((d) => dailyOf(id, d)).filter((v) => v != null);
+    const y7 = ds.slice(-7);
+    const m = meta(id);
+    return `<tr><td class="dt"><a href="https://youtu.be/${id}" target="_blank" rel="noopener">${esc(short(id))}</a></td><td>${esc(m.release || "")}</td><td><b>${num(DB.current?.stats?.[id]?.views)}</b></td><td>${num(ds.at(-1))}</td><td>${y7.length ? nf.format(Math.round(y7.reduce((a, v) => a + v, 0) / y7.length)) : "—"}</td><td>${num(dailyOf(id, today))}</td></tr>`;
+  }).join("");
+  const songTable = multi ? `<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>곡</th><th>발매일</th><th>총 조회수</th><th>어제 하루</th><th>최근 7일 평균</th><th>오늘(현재까지)</th></tr></thead><tbody>${songRows}</tbody></table></div>` : "";
 
   const songList = ids.map((id) => { const m = meta(id); return `<a href="https://youtu.be/${id}" target="_blank" rel="noopener">${esc(m.title || id)}</a>${m.release ? ` · ${m.release} 발매` : ""}`; }).join("<br>");
   const tile = (label, value, detail) => `<div class="tile"><div class="tl">${label}</div><div class="tv">${value}</div>${detail ? `<div class="td">${detail}</div>` : ""}</div>`;
 
+  build.lastCount = ids.length;
   return `<!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>${esc(share.title)} · 스트리밍 현황</title>
+<title>${esc(pageTitle)} · 스트리밍 현황</title>
 <style>
   :root { --bg:#0f1115; --panel:#161a22; --line:#242a36; --text:#e8ebf1; --muted:#8b93a3; --bar:#3987e5; }
   * { box-sizing:border-box; }
@@ -132,20 +149,24 @@ function build(share) {
   th:first-child, td.dt { text-align:left; }
   tr.today td { background:rgba(57,135,229,0.10); }
   .tag { font-size:10.5px; color:#8fbaf0; }
+  .zero { color:#4a5162; }
+  td.dt a { color:var(--text); text-decoration:none; font-weight:600; }
+  th { white-space:nowrap; }
   .note { color:var(--muted); font-size:12px; margin-top:12px; line-height:1.7; }
 </style></head><body><div class="page">
-<h1>🎵 ${esc(share.title)} 스트리밍 현황</h1>
+<h1>🎵 ${esc(pageTitle)} 스트리밍 현황</h1>
 <div class="sub">유튜브뮤직 기준 · 마지막 갱신 ${esc(updated)} (KST) · 매시간 자동 갱신</div>
 <div class="songs">${songList}</div>
 <div class="tiles">
-${tile("총 조회수", nf.format(total), "")}
+${tile("총 조회수" + (multi ? ` (${ids.length}곡 합계)` : ""), nf.format(total), "")}
 ${tile("어제 하루", yest ? nf.format(yest.v) : "—", yest ? mdShort(yest.d) : "")}
 ${tile("최근 7일 하루 평균", avg7 == null ? "—" : nf.format(avg7), last7.length ? mdShort(last7[0].d) + "~" + mdShort(last7.at(-1).d) : "")}
 ${tile("오늘(현재까지)", todayV == null ? "—" : nf.format(todayV), "0시~" + esc(updated.slice(11)))}
 </div>
-<div class="card"><h2>하루 조회수</h2>
+${songTable}
+<div class="card"><h2>하루 조회수${multi ? " (전곡 합계)" : ""}</h2>
 <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="날짜별 하루 조회수 막대 그래프">${svg}</svg><div id="tip"></div></div>
-<div class="card" style="padding:0;overflow:hidden"><table><thead><tr><th>날짜</th><th>하루 조회수</th><th>누적 조회수</th></tr></thead><tbody>${rows}</tbody></table></div>
+<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead>${dateHead}</thead><tbody>${rows}</tbody></table></div></div>
 <div class="note">숫자는 유튜브 아트트랙의 하루 조회수 증가분(그날 0시 → 다음날 0시)입니다. "오늘" 칸과 그래프의 옅은 막대는 오늘 0시부터 마지막 갱신 시각까지의 수치입니다.${best ? ` 지금까지 하루 최고는 ${mdShort(best.d)} ${nf.format(best.v)}회입니다.` : ""}</div>
 </div>
 <script>
@@ -166,5 +187,5 @@ for (const share of SHARES) {
   const out = join(ROOT, share.dir);
   if (!existsSync(out)) mkdirSync(out);
   writeFileSync(join(out, "index.html"), build(share), "utf8");
-  console.log(`[완료] ${share.dir}/index.html — ${share.ids.length}곡, 갱신 ${updated}`);
+  console.log(`[완료] ${share.dir}/index.html — ${build.lastCount}곡, 갱신 ${updated}`);
 }
