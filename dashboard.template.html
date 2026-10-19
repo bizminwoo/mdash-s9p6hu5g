@@ -863,6 +863,9 @@ function render(){
 //   열 = 이번 달부터, 지금 진행 중인 서비스월이 입금되는 달까지. 진행 중인 서비스월 몫은 "어제까지 확정분".
 //   큰 숫자 = 내 몫, 선급(내 몫 0)은 트랙 기준을 참고로 병기. 광고·보류 제외 규칙(exSumOn·adCut)은 수익 계산과 동일.
 const DIST_LAG = { "지니": 2 };
+// 실제 정산 확정액 (내 몫, 서비스월 기준 "y-m") — 정산서가 오면 여기에 넣는다. 있으면 추정 대신 이 금액을 쓴다.
+// 2026-10-19 민우님: 지니 10월 입금(8월분) = 2,402,165원 확정.
+const DIST_ACTUAL = { "지니": { "2026-8": 2402165 } };
 const DIST_LAG_DEFAULT = 3;
 function renderDistRevenue(snaps, songs, ids){
   const wrap = document.getElementById("distWrap");
@@ -906,6 +909,8 @@ function renderDistRevenue(snaps, songs, ids){
     const tag = `<div class="muted" style="font-size:10.5px;font-weight:400">${svc.m}월분${keyOf(svc) === keyOf(cur) ? " · 진행 중(어제까지)" : ""}</div>`;
     if(before(cur, svc)) return { html: `<span class='muted'>—</span><div class="muted" style="font-size:10.5px">${svc.m}월분 (아직)</div>`, mine: 0 };
     if(before(svc, fullFrom)) return { html: `<span class='muted'>수집 전</span><div class="muted" style="font-size:10.5px">${svc.m}월분</div>`, mine: 0 };
+    const act = (DIST_ACTUAL[d] || {})[keyOf(svc)];
+    if(act != null) return { html: `<b>${fmtWon(act)}</b> <span class="muted" style="font-size:10.5px;font-weight:400">확정</span>${tag}`, mine: act };
     const v = per[d][keyOf(svc)];
     if(!v || !v.full) return { html: `<span class='muted'>—</span>${tag}`, mine: 0 };
     if(Math.round(v.mine) === 0)
