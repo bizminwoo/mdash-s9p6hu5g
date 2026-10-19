@@ -112,11 +112,6 @@
   <h1><!--__H1__--></h1>
   <div class="sub" id="updated"></div>
   <div class="cards" id="cards"></div>
-  <div class="panel" id="adSplitPanel" style="display:none">
-    <h2>📣 광고 곡 조회수 구분 <span class="muted">총 · 광고 · 실제</span></h2>
-    <div id="adSplitWrap"></div>
-    <div class="note">광고를 돌린 날들만 모아 <b>총 조회수(유튜브 공개 조회수 증가) = 광고 조회수 + 실제 조회수</b>로 나눴습니다. 광고 조회수는 구글 광고가 집계한 조회(TrueView)이고, 실제 조회수 = 총 − 광고입니다. 구글 집계와 유튜브 공개 조회수가 1:1은 아니라 실제 조회수는 대략치(조금 더 많을 수 있음)이며, 오늘 광고분은 구글에 몇 시간 늦게 반영됩니다. 최근 60일 안에 광고한 곡만 보여요. (2026-10-19 민우님 지시)</div>
-  </div>
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
     <div class="togglerow" id="sortToggles"></div>
@@ -753,7 +748,7 @@ function render(){
       <td class="delta up">${(() => {
         const v = liveBy[r.id];
         if(v == null) return "<span class='muted'>—</span>";
-        if(r.adNow) return `<span class="exval">+${nf.format(v)}</span><div class="extag">📣 광고 — 합산 제외</div>`;
+        if(r.adNow){ const a = adTv(songs, r.id, todayStr); return a != null ? adSplitCell(v, a, "총 +") : `<span class="exval">+${nf.format(v)}</span><div class="extag">📣 광고 — 합산 제외</div>`; }
         const c = adCut(songs, r.id, todayStr);
         const net = Math.max(0, v - c);
         // 어제 동시간 대비 등락 % (2026-10-08 민우님 요청) — 어제가 광고 등으로 제외된 날이면 비교 안 함, 광고분은 양쪽 다 뺀 값끼리
@@ -797,7 +792,7 @@ function render(){
         const checkedAd = recentDayAdResult(DATA, r.id, prev, latest);
         if(checkedAd) return recentDayAdCell(checkedAd);
         if(r.dViews == null) return "<span class='muted'>—</span>";
-        if(prev && exSumOn(songs, r.id, prev.date)) return `<span class="exval">+${nf.format(r.dViews)}</span><div class="extag">${exLabel(songs, r.id, prev.date)} — 합산 제외</div>`;
+        if(prev && exSumOn(songs, r.id, prev.date)){ const a = adTv(songs, r.id, prev.date); if(a != null) return adSplitCell(r.dViews, a, "총 +"); return `<span class="exval">+${nf.format(r.dViews)}</span><div class="extag">${exLabel(songs, r.id, prev.date)} — 합산 제외</div>`; }
         const c = prev ? adCut(songs, r.id, prev.date) : 0;
         const cp = prev2 ? adCut(songs, r.id, prev2.date) : 0;
         const v = Math.max(0, r.dViews - c);
@@ -827,7 +822,7 @@ function render(){
         : "<span class='muted'>—</span>"
       }</td>
       <td class="delta like">${r.dLikes!=null ? (r.dLikes < 0 ? "" : "+")+nf.format(r.dLikes) : "<span class='muted'>—</span>"}</td>
-      <td>${r.views!=null ? nf.format(r.views) : "—"}</td>
+      <td>${r.views!=null ? (adTvTotal(songs, r.id) ? adSplitCell((cur && cur.stats && cur.stats[r.id] && cur.stats[r.id].views != null) ? cur.stats[r.id].views : r.views, adTvTotal(songs, r.id), "총 ") : nf.format(r.views)) : "—"}</td>
       <td>${r.likes!=null ? nf.format(r.likes) : "—"}</td>
     </tr>`).join("") + `</tbody></table>`;
   }
@@ -835,7 +830,6 @@ function render(){
   paintTable();
 
   renderDistRevenue(snaps, songs, ids);
-  renderAdSplit(snaps, songs, ids, cur);
 
   renderReleaseTimeline(songs, ids, latest);
 
@@ -865,41 +859,13 @@ function render(){
   }
 }
 
-// 광고 곡 조회수 구분 (2026-10-19 민우님: "앞으로 광고하는 건 총/광고/실제로 나눠서") —
-//   songs[id].adTrueviewByDay(구글 광고 TrueView, 수집기가 매시간 기록)가 있는 날만 모아 공개 조회수 증가와 비교.
-function renderAdSplit(snaps, songs, ids, cur){
-  const panel = document.getElementById("adSplitPanel"), wrap = document.getElementById("adSplitWrap");
-  if(!panel || !wrap) return;
-  const byDate = {}; for(const sn of snaps) if(!byDate[sn.date]) byDate[sn.date] = sn;
-  const next = d => { const t = new Date(d + "T00:00:00"); t.setDate(t.getDate() + 1); const q = x => String(x).padStart(2, "0"); return `${t.getFullYear()}-${q(t.getMonth()+1)}-${q(t.getDate())}`; };
-  const today = (cur && cur.time ? cur.time : snaps[snaps.length-1].date).slice(0, 10);
-  const viewsAt = (id, d) => (d > today ? null : d === today && cur ? cur.stats?.[id]?.views : null) ?? byDate[d]?.stats?.[id]?.views;
-  const dayViews = (id, d) => {   // 그날 00시 → 다음날 00시(오늘은 현재까지)
-    const a = byDate[d]?.stats?.[id]?.views ?? (songs[id].release === d ? 0 : null);
-    const b = d === today ? cur?.stats?.[id]?.views : byDate[next(d)]?.stats?.[id]?.views;
-    return a == null || b == null ? null : b - a;
-  };
-  const cutoff = (() => { const t = new Date(today + "T00:00:00"); t.setDate(t.getDate() - 60); return t.toISOString().slice(0, 10); })();
-  const rows = [];
-  for(const id of ids){
-    const m = songs[id].adTrueviewByDay; if(!m) continue;
-    const days = Object.keys(m).filter(d => d >= cutoff && d <= today).sort(); if(!days.length) continue;
-    let tot = 0, ad = 0, ok = true;
-    for(const d of days){ const v = dayViews(id, d); if(v == null){ ok = false; continue; } tot += v; ad += m[d]; }
-    const live = days[days.length-1] >= today || (songs[id].adTo && songs[id].adTo >= today);
-    rows.push({ id, first: days[0], last: days[days.length-1], tot, ad, real: tot - ad, ok, live, n: days.length });
-  }
-  if(!rows.length){ panel.style.display = "none"; return; }
-  panel.style.display = "";
-  rows.sort((a,b) => (b.live - a.live) || b.first.localeCompare(a.first));
-  const md = d => Number(d.slice(5,7)) + "/" + Number(d.slice(8,10));
-  wrap.innerHTML = `<div style="overflow-x:auto"><table><thead><tr><th class="song">곡</th><th>광고한 날</th><th>총 조회수</th><th>광고 조회수</th><th>실제 조회수</th><th>실제 비율</th></tr></thead><tbody>` +
-    rows.map(r => `<tr><td class="song">${escapeHtml(songTitle(songs, r.id))}${r.live ? ' <span class="muted" title="광고 집행 중">📣 진행 중</span>' : ""}</td>` +
-      `<td>${md(r.first)}~${md(r.last)} <span class="muted">(${r.n}일)</span></td>` +
-      `<td><b>${nf.format(r.tot)}</b></td><td>${nf.format(r.ad)}</td>` +
-      `<td><b>${r.real >= 0 ? nf.format(r.real) : "<span class='muted'>집계 차이</span>"}</b>${r.ok ? "" : " <span class='muted' title='일부 날짜 수집값 없음'>*</span>"}</td>` +
-      `<td>${r.tot > 0 && r.real >= 0 ? Math.round(r.real / r.tot * 100) + "%" : "—"}</td></tr>`).join("") +
-    `</tbody></table></div>`;
+// 광고 곡 조회수 구분 (2026-10-19 민우님: "총/광고/실제로 나눠서 곡별 현황에 같이") —
+//   songs[id].adTrueviewByDay = 구글 광고 TrueView 날짜별(수집기가 매시간 기록). 실제 = 총 − 광고. 합계·수익 계산엔 안 씀.
+function adTv(songs, id, d){ const m = songs[id] && songs[id].adTrueviewByDay; return m && d && m[d] != null ? m[d] : null; }
+function adTvTotal(songs, id){ const m = songs[id] && songs[id].adTrueviewByDay; if(!m) return null; let t = 0; for(const k in m) t += m[k]; return t; }
+function adSplitCell(total, ad, prefix){
+  const real = total - ad;
+  return `<span class="exval">${prefix}${nf.format(total)}</span><div class="extag">📣 광고 ${nf.format(ad)} · 실제 <b>${real >= 0 ? nf.format(real) : "집계 차이"}</b></div>`;
 }
 
 // 유통사별 추정 정산 — 입금월 기준 (2026-09-29 민우님: "서비스월 말고 정산받는 월로")
