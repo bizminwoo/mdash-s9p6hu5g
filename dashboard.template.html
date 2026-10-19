@@ -957,7 +957,7 @@ function renderDistRevenue(snaps, songs, ids){
   // 정렬: 입금 빠른 유통사(지연 짧은 순) → 같은 지연이면 최근 서비스월 금액 큰 순
   const lastKey = keyOf(addM(cy, cm, -1));
   dists.sort((a,b) => lagOf(a) - lagOf(b) || (((per[b][lastKey]||{}).full||0) - ((per[a][lastKey]||{}).full||0)));
-  const DIST_NOTES = { "지니": "단가 6.30원 (7~8월 실측 보정) · 2개월 뒤 입금", "지니(승률)": "지니 발매 · 승률이형이 지니 정산 받는 대로 바로 정산 (2개월 뒤)" };
+  const DIST_NOTES = { "지니": "단가 6.30원 (7~8월 실측 보정) · 2개월 뒤 입금", "지니(승률)": "지니 발매 · 승률이형이 지니 정산 받는 대로 바로 정산 (2개월 뒤)", "다날": "서비스월 +2개월 정산 확인 → 그다음 달 25일 입금 (3개월 뒤)" };
   let html = `<div style="overflow-x:auto"><table><thead><tr><th>유통사</th>` +
     pays.map(p => `<th>${p.y !== cy ? p.y + "년 " : ""}${p.m}월 입금</th>`).join("") + `</tr></thead><tbody>`;
   const totals = pays.map(() => ({ mine: 0, partial: false }));
