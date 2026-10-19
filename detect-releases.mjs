@@ -28,11 +28,14 @@ const ARTISTS = [
   { name: "웨이브 콜", channelId: "UC8H__2h-a0OpwINMII-pLFA" },
   { name: "오연하",   channelId: "UCWl28XjlBtHl_ucicFqLSAg" },
   { name: "정승제",   channelId: "UCIt9lXUg2g5uEqdh8CcEt1w" },   // 2026-09-17 민우님 지시
+  // 2026-10-19 민우님: 임가영·이민정·김결은 신곡 나오자마자 상세추적
+  { name: "임가영",   channelId: "UC9bn3IJq-HVnqp10E-IUrsw" },   // Lim Ga Young - Topic
+  { name: "이민정",   channelId: "UCK_9vbUvtU4eQwSORzvMqDA" },   // Lee Min Jeong - Topic
+  { name: "김결",     channelId: "UCc5C8vxmv6FRK4m4RwO9Xew" },
   // 2026-09-29 민우님 지시: 아래는 신곡이 나오면 경쟁사 분석에만 붙이고 상세추적(시간별 좋아요)은 안 함
   { name: "선진",     channelId: "UCGNzWbxY1Otfq7_WVzVpecg", detail: false },
   { name: "스트레이", channelId: "UCQuYI15KJscpcm9iuLOgRFg", detail: false },
   { name: "지진석",   channelId: "UCJxMzuB_DWzdynwxXoxTdWQ", detail: false },
-  { name: "김결",     channelId: "UCc5C8vxmv6FRK4m4RwO9Xew", detail: false },
   { name: "앤씨아",   channelId: "UCJ8xHJb60uk1zlrIyVBLo-A", detail: false },
 ];
 
