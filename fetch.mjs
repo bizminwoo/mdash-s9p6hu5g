@@ -206,7 +206,7 @@ async function main() {
   if (existsSync(DATA_FILE)) db = JSON.parse(readFileSync(DATA_FILE, "utf8"));
 
   // songs.json 의 제목/수익비율(share)/광고플래그(adViews)/보류플래그(pending)/광고기간(adFrom·adTo)을 항상 반영
-  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo, adViewsByDay, adVerificationPending, dist, bottom, adShade, payout } of songs) {
+  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo, adViewsByDay, adVerificationPending, dist, bottom, adShade, payout, adTrueviewByDay } of songs) {
     const vid = vidOf(url);
     db.songs[vid] = { ...(db.songs[vid] || {}), url,
       ...(title ? { title } : {}), share: share == null ? 1 : share };
@@ -224,7 +224,9 @@ async function main() {
     if (dist) db.songs[vid].dist = dist; else delete db.songs[vid].dist;   // 유통사 (2026-09-15)
     if (bottom) db.songs[vid].bottom = true; else delete db.songs[vid].bottom;
     if (payout) db.songs[vid].payout = payout; else delete db.songs[vid].payout;   // 내가 정산해줘야 하는 몫 — 수익에서만 차감 (2026-10-12)   // 목록 맨 아래 고정 (2026-10-05)
-    if (Array.isArray(adShade) && adShade.length) db.songs[vid].adShade = adShade; else delete db.songs[vid].adShade;   // 그래프 광고 음영 전용 (합계·수익 계산엔 안 씀, 2026-10-05)
+    if (Array.isArray(adShade) && adShade.length) db.songs[vid].adShade = adShade; else delete db.songs[vid].adShade;
+    // 광고 조회수(구글 TrueView) 날짜별 — '광고 곡 조회수 구분' 표 전용, 합계·수익 계산엔 안 씀 (2026-10-19)
+    if (adTrueviewByDay) db.songs[vid].adTrueviewByDay = adTrueviewByDay; else delete db.songs[vid].adTrueviewByDay;   // 그래프 광고 음영 전용 (합계·수익 계산엔 안 씀, 2026-10-05)
   }
   // 마케팅 트랙 반영 + marketing.json 에서 빠진 트랙은 목록에서 제거
   for (const { url, title, start } of marketing) {
