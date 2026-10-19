@@ -217,7 +217,8 @@ function estMonthly(dailyViews){
 // 없는 유통사는 기본 6.0원 (CJ는 정산이 한 달 늦어 7월분이 10월말 입금 — 그때 보정 예정).
 const RATE_DEFAULT = WON_PER_1000_DAILY / (1000 * 30); // 6.0원
 // 2026-10-17: 8월 실측(내 몫) 2,402,165원 / 지분반영 조회 345,492회 = 6.95원. 7~8월 합산 6,015,772원 / 954,695회 → 6.30원 (두 달 합산으로 안정화).
-const DIST_RATE = { "지니": 6.30 };
+// 2026-10-19: CJ 7월분 실측 913,189원 / 추정 952,413원(6.0원) → 5.75원.
+const DIST_RATE = { "지니": 6.30, "CJ": 5.75 };
 function rateOf(songs, id){ const d = songs[id] && songs[id].dist; return (d && DIST_RATE[d]) || RATE_DEFAULT; }
 // 곡 이름 밑 발매일 표시 (2026-09-15 민우님: 언제 나온 앨범인지 한눈에) — 30일 이내 신곡은 🆕
 function relDateTag(release){
@@ -865,7 +866,8 @@ function render(){
 const DIST_LAG = { "지니": 2 };
 // 실제 정산 확정액 (내 몫, 서비스월 기준 "y-m") — 정산서가 오면 여기에 넣는다. 있으면 추정 대신 이 금액을 쓴다.
 // 2026-10-19 민우님: 지니 10월 입금(8월분) = 2,402,165원 확정.
-const DIST_ACTUAL = { "지니": { "2026-8": 2402165 } };
+// 2026-10-19 민우님: CJ 10월 입금(7월분) = 913,189원 확정.
+const DIST_ACTUAL = { "지니": { "2026-8": 2402165 }, "CJ": { "2026-7": 913189 } };
 const DIST_LAG_DEFAULT = 3;
 function renderDistRevenue(snaps, songs, ids){
   const wrap = document.getElementById("distWrap");
