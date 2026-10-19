@@ -184,7 +184,9 @@
   },
   {
     "url": "https://www.youtube.com/watch?v=qQ8BBgJFPWU",
-    "title": "김결 - 내 사랑 내 곁에"
+    "title": "김결 - 내 사랑 내 곁에",
+    "likes": true,
+    "likesTrack": true
   },
   {
     "url": "https://music.youtube.com/watch?v=D0VQCE4J_Jg",
@@ -208,7 +210,9 @@
   },
   {
     "url": "https://youtu.be/JrUwYB-h8uQ",
-    "title": "김결 - 햇빛"
+    "title": "김결 - 햇빛",
+    "likes": true,
+    "likesTrack": true
   },
   {
     "url": "https://youtu.be/cHTlFw9TQjQ",
@@ -242,7 +246,9 @@
   {
     "url": "https://youtu.be/j2wFPy9peIg",
     "title": "임가영 - 여사친",
-    "group": "iron"
+    "group": "iron",
+    "likes": true,
+    "likesTrack": true
   },
   {
     "url": "https://www.youtube.com/watch?v=pjvG81FjfA4",
@@ -481,17 +487,23 @@
   {
     "url": "https://youtu.be/ZaMdlGqjPpA",
     "title": "이민정 - 사랑만 할 수 없었을까",
-    "group": "iron"
+    "group": "iron",
+    "likes": true,
+    "likesTrack": true
   },
   {
     "url": "https://youtu.be/ymFhIjds9A0",
     "title": "문성욱, 이민정 - 사랑하지 않아",
-    "group": "iron"
+    "group": "iron",
+    "likes": true,
+    "likesTrack": true
   },
   {
     "url": "https://youtu.be/2oSjT3W9mDA",
     "title": "이민정 - 일분일초",
-    "group": "iron"
+    "group": "iron",
+    "likes": true,
+    "likesTrack": true
   },
   {
     "url": "https://youtu.be/4iRThhHVlT4",
@@ -501,7 +513,9 @@
   {
     "url": "https://youtu.be/j5cWxhNLFfI",
     "title": "임가영 - 그 밤 아래 우리 둘",
-    "group": "insta"
+    "group": "insta",
+    "likes": true,
+    "likesTrack": true
   },
   {
     "url": "https://youtu.be/TuNkrwce7Ew",
@@ -561,7 +575,9 @@
   {
     "url": "https://www.youtube.com/watch?v=3CDz-m8vaIU",
     "title": "임가영 - 원형의 시간",
-    "group": "insta"
+    "group": "insta",
+    "likes": true,
+    "likesTrack": true
   },
   {
     "url": "https://www.youtube.com/watch?v=8hZZEudH4xg",
@@ -576,7 +592,9 @@
   {
     "url": "https://www.youtube.com/watch?v=M8RQz7r-4w8",
     "title": "임가영 - 그리움쯤은 예상했던 것",
-    "group": "insta"
+    "group": "insta",
+    "likes": true,
+    "likesTrack": true
   },
   {
     "url": "https://www.youtube.com/watch?v=F3Ol70wm4oM",
@@ -737,6 +755,13 @@
     "likes": true,
     "likesTrack": true,
     "addedAt": "2026-10-17"
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=XmDTuNJE-t4",
+    "title": "우예린 - 소원빌기",
+    "likes": true,
+    "likesTrack": true,
+    "addedAt": "2026-10-19"
   },
   {
     "url": "https://www.youtube.com/watch?v=4egSTWL9zl8",

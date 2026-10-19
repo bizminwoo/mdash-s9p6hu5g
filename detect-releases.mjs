@@ -32,11 +32,12 @@ const ARTISTS = [
   { name: "임가영",   channelId: "UC9bn3IJq-HVnqp10E-IUrsw" },   // Lim Ga Young - Topic
   { name: "이민정",   channelId: "UCK_9vbUvtU4eQwSORzvMqDA" },   // Lee Min Jeong - Topic
   { name: "김결",     channelId: "UCc5C8vxmv6FRK4m4RwO9Xew" },
+  { name: "우예린",   channelId: "UC6qPjzlwj1IwIT5uCfzDflw" },   // 2026-10-19 민우님 (Topic)
+  { name: "앤씨아",   channelId: "UCJ8xHJb60uk1zlrIyVBLo-A" },   // 2026-10-19 민우님: 경쟁사분석만 → 상세추적
   // 2026-09-29 민우님 지시: 아래는 신곡이 나오면 경쟁사 분석에만 붙이고 상세추적(시간별 좋아요)은 안 함
   { name: "선진",     channelId: "UCGNzWbxY1Otfq7_WVzVpecg", detail: false },
   { name: "스트레이", channelId: "UCQuYI15KJscpcm9iuLOgRFg", detail: false },
   { name: "지진석",   channelId: "UCJxMzuB_DWzdynwxXoxTdWQ", detail: false },
-  { name: "앤씨아",   channelId: "UCJ8xHJb60uk1zlrIyVBLo-A", detail: false },
 ];
 
 const vidOf = (u) => (u.match(/[?&]v=([\w-]{11})/) || u.match(/youtu\.be\/([\w-]{11})/) || [])[1];
