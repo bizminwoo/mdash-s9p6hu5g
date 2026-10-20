@@ -929,8 +929,8 @@ function adSplitCell(total, ad, prefix){
 const DIST_LAG = { "지니": 2, "지니(승률)": 2, "CJ": 4 };
 // 실제 정산 확정액 (내 몫, 서비스월 기준 "y-m") — 정산서가 오면 여기에 넣는다. 있으면 추정 대신 이 금액을 쓴다.
 // 2026-10-19 민우님: 지니 10월 입금(8월분) = 2,402,165원 확정.
-// 2026-10-19 민우님: CJ 10월 입금 = 913,189원 확정. (10/20: 유튜브 1달 늦음 → 10월 입금은 6월 유튜브분)
-const DIST_ACTUAL = { "지니": { "2026-8": 2402165 }, "CJ": { "2026-6": 913189 } };
+// 2026-10-20 민우님: CJ 11/30 입금(8월 서비스분 = 7월 유튜브분) = 913,189원 확정 (50% 반영된 내 몫). 단가 5.75원은 이 값으로 맞춘 것.
+const DIST_ACTUAL = { "지니": { "2026-8": 2402165 }, "CJ": { "2026-7": 913189 } };
 const DIST_LAG_DEFAULT = 3;
 function renderDistRevenue(snaps, songs, ids){
   const wrap = document.getElementById("distWrap");
