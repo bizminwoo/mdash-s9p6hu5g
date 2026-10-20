@@ -126,7 +126,7 @@
   <div class="panel">
     <h2>🏢 유통사별 추정 정산 <span class="muted" id="distLabel"></span></h2>
     <div id="distWrap"></div>
-    <div class="note">표의 열은 <b>돈이 들어오는 달(입금월)</b>입니다. <b>지니는 서비스월 +2개월</b>(7월분 → 9월 입금), <b>쿼터·CJ·레이벡스 등 나머지는 +3개월</b>(7월분 → 10월 입금). 각 칸 아래 작은 글씨가 몇 월분인지입니다. 금액 = 그 서비스월 확정 스트리밍(광고·보류 제외 규칙 동일) <b>× 유통사별 단가 × 지분</b>으로 추정한 <b>내 몫</b>. 단가: <b>지니 6.30원</b>(7~8월 실측 보정) · 나머지 <b>6.0원</b>. 선급곡(내 몫 0)은 "선급 회수 중"으로 표시하고 트랙 기준 금액만 참고로 병기합니다. 아직 끝나지 않은 달의 몫은 <b>어제까지 확정분 + 오늘 12시가 지났으면 오늘 0~12시분</b>까지 들어 있어 날이 갈수록 늘어납니다(12시간 단위 갱신). 수집 시작(6/29) 전 달은 "수집 전"으로 표시합니다.</div>
+    <div class="note">표의 열은 <b>돈이 들어오는 달(입금월)</b>입니다. <b>지니는 서비스월 +2개월</b>(7월분 → 9월 입금), <b>CJ는 유튜브가 한 달 더 늦어 +4개월</b>(7월 유튜브분 → 11월 30일 입금), <b>쿼터·레이벡스 등 나머지는 +3개월</b>(7월분 → 10월 입금). 각 칸 아래 작은 글씨가 몇 월분인지입니다. 금액 = 그 서비스월 확정 스트리밍(광고·보류 제외 규칙 동일) <b>× 유통사별 단가 × 지분</b>으로 추정한 <b>내 몫</b>. 단가: <b>지니 6.30원</b>(7~8월 실측 보정) · 나머지 <b>6.0원</b>. 선급곡(내 몫 0)은 "선급 회수 중"으로 표시하고 트랙 기준 금액만 참고로 병기합니다. 아직 끝나지 않은 달의 몫은 <b>어제까지 확정분 + 오늘 12시가 지났으면 오늘 0~12시분</b>까지 들어 있어 날이 갈수록 늘어납니다(12시간 단위 갱신). 수집 시작(6/29) 전 달은 "수집 전"으로 표시합니다.</div>
   </div>
   <div class="panel">
     <h2>📀 발매 타임라인 <span class="muted">— 최신 발매순, 언제 나온 앨범인지 한눈에</span></h2>
@@ -925,11 +925,12 @@ function adSplitCell(total, ad, prefix){
 //   입금월 = 서비스월 + 유통사별 지연: 지니 +2개월, 쿼터·CJ·레이벡스(그 외 전부) +3개월.
 //   열 = 이번 달부터, 지금 진행 중인 서비스월이 입금되는 달까지. 진행 중인 서비스월 몫은 "어제까지 확정분".
 //   큰 숫자 = 내 몫, 선급(내 몫 0)은 트랙 기준을 참고로 병기. 광고·보류 제외 규칙(exSumOn·adCut)은 수익 계산과 동일.
-const DIST_LAG = { "지니": 2, "지니(승률)": 2 };
+// 2026-10-20 민우님: CJ는 서비스월 +2개월 공지 → 다음 달 30일 입금인데, 유튜브는 1달 더 늦게 들어감 → 유튜브 조회수 기준 +4개월.
+const DIST_LAG = { "지니": 2, "지니(승률)": 2, "CJ": 4 };
 // 실제 정산 확정액 (내 몫, 서비스월 기준 "y-m") — 정산서가 오면 여기에 넣는다. 있으면 추정 대신 이 금액을 쓴다.
 // 2026-10-19 민우님: 지니 10월 입금(8월분) = 2,402,165원 확정.
-// 2026-10-19 민우님: CJ 10월 입금(7월분) = 913,189원 확정.
-const DIST_ACTUAL = { "지니": { "2026-8": 2402165 }, "CJ": { "2026-7": 913189 } };
+// 2026-10-19 민우님: CJ 10월 입금 = 913,189원 확정. (10/20: 유튜브 1달 늦음 → 10월 입금은 6월 유튜브분)
+const DIST_ACTUAL = { "지니": { "2026-8": 2402165 }, "CJ": { "2026-6": 913189 } };
 const DIST_LAG_DEFAULT = 3;
 function renderDistRevenue(snaps, songs, ids){
   const wrap = document.getElementById("distWrap");
@@ -986,15 +987,15 @@ function renderDistRevenue(snaps, songs, ids){
   // 입금월 열: 이번 달 ~ (진행 중 서비스월 + 최대 지연)
   const maxLag = Math.max(DIST_LAG_DEFAULT, ...Object.values(DIST_LAG));
   const pays = []; for(let k=0;k<=maxLag;k++) pays.push(addM(cy, cm, k));
-  if(label) label.textContent = "— 입금월 기준 (지니: 서비스월+2개월 · 그 외: +3개월)";
+  if(label) label.textContent = "— 입금월 기준 (지니: 서비스월+2개월 · CJ: 유튜브 기준 +4개월 · 그 외: +3개월)";
   const fmtWon = v => nf.format(Math.round(v)) + "원";
   const cellOf = (d, pay) => {
     const svc = addM(pay.y, pay.m, -lagOf(d));
     const tag = `<div class="muted" style="font-size:10.5px;font-weight:400">${svc.m}월분${keyOf(svc) === keyOf(cur) ? ` · 진행 중(${partialLabel})` : ""}</div>`;
     if(before(cur, svc)) return { html: `<span class='muted'>—</span><div class="muted" style="font-size:10.5px">${svc.m}월분 (아직)</div>`, mine: 0 };
-    if(before(svc, fullFrom)) return { html: `<span class='muted'>수집 전</span><div class="muted" style="font-size:10.5px">${svc.m}월분</div>`, mine: 0 };
     const act = (DIST_ACTUAL[d] || {})[keyOf(svc)];
     if(act != null) return { html: `<b>${fmtWon(act)}</b> <span class="muted" style="font-size:10.5px;font-weight:400">확정</span>${tag}`, mine: act };
+    if(before(svc, fullFrom)) return { html: `<span class='muted'>수집 전</span><div class="muted" style="font-size:10.5px">${svc.m}월분</div>`, mine: 0 };
     const v = per[d][keyOf(svc)];
     if(!v || !v.full) return { html: `<span class='muted'>—</span>${tag}`, mine: 0 };
     if(Math.round(v.mine) === 0)
@@ -1004,7 +1005,7 @@ function renderDistRevenue(snaps, songs, ids){
   // 정렬: 입금 빠른 유통사(지연 짧은 순) → 같은 지연이면 최근 서비스월 금액 큰 순
   const lastKey = keyOf(addM(cy, cm, -1));
   dists.sort((a,b) => lagOf(a) - lagOf(b) || (((per[b][lastKey]||{}).full||0) - ((per[a][lastKey]||{}).full||0)));
-  const DIST_NOTES = { "지니": "단가 6.30원 (7~8월 실측 보정) · 2개월 뒤 입금", "지니(승률)": "지니 발매 · 승률이형이 지니 정산 받는 대로 바로 정산 (2개월 뒤)", "다날": "서비스월 +2개월 정산 확인 → 그다음 달 25일 입금 (3개월 뒤)", "CJ": "서비스월 +2개월 공지 → 그다음 달 30일 입금 (3개월 뒤)" };
+  const DIST_NOTES = { "지니": "단가 6.30원 (7~8월 실측 보정) · 2개월 뒤 입금", "지니(승률)": "지니 발매 · 승률이형이 지니 정산 받는 대로 바로 정산 (2개월 뒤)", "다날": "서비스월 +2개월 정산 확인 → 그다음 달 25일 입금 (3개월 뒤)", "CJ": "서비스월 +2개월 공지 → 그다음 달 30일 입금 · 유튜브는 1달 더 늦음 (유튜브 기준 4개월 뒤)" };
   let html = `<div style="overflow-x:auto"><table><thead><tr><th>유통사</th>` +
     pays.map(p => `<th>${p.y !== cy ? p.y + "년 " : ""}${p.m}월 입금</th>`).join("") + `</tr></thead><tbody>`;
   const totals = pays.map(() => ({ mine: 0, partial: false }));
