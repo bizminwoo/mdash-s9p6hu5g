@@ -897,9 +897,27 @@ function renderPending(snaps, songs, pIds, latest){
   const order = [...pIds].sort((a,b) => (songs[b].release||"").localeCompare(songs[a].release||""));
   // 누적 조회수는 하루 숫자와 헷갈리지 않게 맨 오른쪽 + 다른 색 칸 (2026-10-21 민우님 요청)
   const cumStyle = "background:rgba(255,193,7,.13);border-left:2px solid rgba(255,193,7,.55);font-weight:600";
+  // 가수(권리자)별 3덩어리 (2026-10-21 민우님): 권재학 / 웨이포인트(IFCHAN·윈·차우) / 나머지 = 최한솔
+  const artistOf = (id) => songTitle(songs, id).split(" - ")[0].trim();
+  const groupOf = (id) => {
+    const a = artistOf(id);
+    if(a === "권재학") return "권재학";
+    if(["IFCHAN", "윈", "차우"].includes(a)) return "웨이포인트";
+    return "최한솔";
+  };
+  const GROUPS = ["권재학", "웨이포인트", "최한솔"];
+  const sumOf = (ids, f) => { let t = 0, any = false; for(const id of ids){ const v = f(id); if(v != null){ t += v; any = true; } } return any ? t : null; };
+  const cell = (v) => v == null ? "<span class='muted'>—</span>" : nf.format(v);
   let html = `<div style="overflow-x:auto"><table><thead><tr><th>곡</th><th>발매</th>` +
     recent.map(p => `<th>${mdShort(p.date)}</th>`).join("") + `<th style="${cumStyle}">누적 조회수</th></tr></thead><tbody>`;
-  for(const id of order){
+  for(const g of GROUPS){
+    const gIds = order.filter(id => groupOf(id) === g);
+    if(!gIds.length) continue;
+    const gStyle = "background:rgba(120,140,255,.12);font-weight:700;border-top:2px solid rgba(120,140,255,.5)";
+    html += `<tr><td class="song" style="${gStyle}">${g} <span class="muted">· ${gIds.length}곡 합계</span></td><td style="${gStyle}"></td>` +
+      recent.map(p => `<td style="${gStyle}">${cell(sumOf(gIds, id => daily(p, id)))}</td>`).join("") +
+      `<td style="${gStyle};border-left:2px solid rgba(255,193,7,.55)">${cell(sumOf(gIds, curViews))}</td></tr>`;
+  for(const id of gIds){
     const cv = curViews(id);
     html += `<tr><td class="song"><a href="${songs[id].url}" target="_blank">${escapeHtml(songTitle(songs, id))}</a></td>` +
       `<td>${songs[id].release ? escapeHtml(songs[id].release) : "<span class='muted'>—</span>"}</td>`;
@@ -909,6 +927,7 @@ function renderPending(snaps, songs, pIds, latest){
     }
     html += `<td style="${cumStyle}">${cv != null ? nf.format(cv) : "<span class='muted'>수집 전</span>"}</td>`;
     html += `</tr>`;
+  }
   }
   html += `</tbody></table></div>`;
   wrap.innerHTML = html;
