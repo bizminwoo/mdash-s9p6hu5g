@@ -895,17 +895,19 @@ function renderPending(snaps, songs, pIds, latest){
     return s && s.views != null ? s.views : null;
   };
   const order = [...pIds].sort((a,b) => (songs[b].release||"").localeCompare(songs[a].release||""));
-  let html = `<div style="overflow-x:auto"><table><thead><tr><th>곡</th><th>발매</th><th>누적 조회수</th>` +
-    recent.map(p => `<th>${mdShort(p.date)}</th>`).join("") + `</tr></thead><tbody>`;
+  // 누적 조회수는 하루 숫자와 헷갈리지 않게 맨 오른쪽 + 다른 색 칸 (2026-10-21 민우님 요청)
+  const cumStyle = "background:rgba(255,193,7,.13);border-left:2px solid rgba(255,193,7,.55);font-weight:600";
+  let html = `<div style="overflow-x:auto"><table><thead><tr><th>곡</th><th>발매</th>` +
+    recent.map(p => `<th>${mdShort(p.date)}</th>`).join("") + `<th style="${cumStyle}">누적 조회수</th></tr></thead><tbody>`;
   for(const id of order){
     const cv = curViews(id);
     html += `<tr><td class="song"><a href="${songs[id].url}" target="_blank">${escapeHtml(songTitle(songs, id))}</a></td>` +
-      `<td>${songs[id].release ? escapeHtml(songs[id].release) : "<span class='muted'>—</span>"}</td>` +
-      `<td>${cv != null ? nf.format(cv) : "<span class='muted'>수집 전</span>"}</td>`;
+      `<td>${songs[id].release ? escapeHtml(songs[id].release) : "<span class='muted'>—</span>"}</td>`;
     for(const p of recent){
       const v = daily(p, id);
       html += `<td>${v == null ? "<span class='muted'>—</span>" : nf.format(v)}</td>`;
     }
+    html += `<td style="${cumStyle}">${cv != null ? nf.format(cv) : "<span class='muted'>수집 전</span>"}</td>`;
     html += `</tr>`;
   }
   html += `</tbody></table></div>`;
