@@ -890,13 +890,14 @@ function renderPending(snaps, songs, pIds, latest){
   };
   const order = [...pIds].sort((a,b) => (songs[b].release||"").localeCompare(songs[a].release||""));
   // 누적 조회수 칸은 뺌 (2026-10-21 민우님: "누적조회수는 필요가 없다") — 하루 스트리밍만 표시
-  // 가수(권리자)별 덩어리 (2026-10-21 민우님): 권재학 / 윤누구 / 웨이포인트(IFCHAN·윈·차우) / 교이 / 나머지 = 최한솔
+  // 가수(권리자)별 덩어리 (2026-10-21 민우님): 권재학 / 윤누구 / 웨이포인트(아래 WAYPOINT 목록) / 교이 / 나머지 = 최한솔
   const artistOf = (id) => songTitle(songs, id).split(" - ")[0].trim();
+  const WAYPOINT = ["IFCHAN", "윈", "차우", "Chris Andrian Yang", "yedira", "yuji", "ARMOR", "jung hyun jun"];
   const groupOf = (id) => {
     const a = artistOf(id);
     if(a === "권재학") return "권재학";
     if(a === "윤누구") return "윤누구";
-    if(["IFCHAN", "윈", "차우"].includes(a)) return "웨이포인트";
+    if(WAYPOINT.includes(a)) return "웨이포인트";
     if(a === "교이") return "교이";
     return "최한솔";
   };
