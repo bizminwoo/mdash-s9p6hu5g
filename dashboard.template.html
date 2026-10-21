@@ -897,15 +897,16 @@ function renderPending(snaps, songs, pIds, latest){
   const order = [...pIds].sort((a,b) => (songs[b].release||"").localeCompare(songs[a].release||""));
   // 누적 조회수는 하루 숫자와 헷갈리지 않게 맨 오른쪽 + 다른 색 칸 (2026-10-21 민우님 요청)
   const cumStyle = "background:rgba(255,193,7,.13);border-left:2px solid rgba(255,193,7,.55);font-weight:600";
-  // 가수(권리자)별 3덩어리 (2026-10-21 민우님): 권재학 / 웨이포인트(IFCHAN·윈·차우) / 나머지 = 최한솔
+  // 가수(권리자)별 덩어리 (2026-10-21 민우님): 권재학 / 웨이포인트(IFCHAN·윈·차우) / 교이 / 나머지 = 최한솔
   const artistOf = (id) => songTitle(songs, id).split(" - ")[0].trim();
   const groupOf = (id) => {
     const a = artistOf(id);
     if(a === "권재학") return "권재학";
     if(["IFCHAN", "윈", "차우"].includes(a)) return "웨이포인트";
+    if(a === "교이") return "교이";
     return "최한솔";
   };
-  const GROUPS = ["권재학", "웨이포인트", "최한솔"];
+  const GROUPS = ["권재학", "웨이포인트", "교이", "최한솔"];
   const sumOf = (ids, f) => { let t = 0, any = false; for(const id of ids){ const v = f(id); if(v != null){ t += v; any = true; } } return any ? t : null; };
   const cell = (v) => v == null ? "<span class='muted'>—</span>" : nf.format(v);
   let html = `<div style="overflow-x:auto"><table><thead><tr><th>곡</th><th>발매</th>` +
