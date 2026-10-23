@@ -10,7 +10,8 @@ import { fileURLToPath } from "node:url";
 const SHARES = [
   { dir: "wjh-stream-k7q2m9", title: "왕준협 음원", ids: ["blQPNauonCs"] },
   // 2026-10-23 민우님: 최한솔 쪽 8곡(천성·나찬·투엣·귀울임·상혁·용대) + 왕준협
-  { dir: "chs-stream-r4t8wz", title: "음원",
+  // from: 왕준협 9/20~9/24 광고 기간은 날짜째 빼달라 (2026-10-23 민우님)
+  { dir: "chs-stream-r4t8wz", title: "음원", from: "2026-09-25",
     ids: ["blQPNauonCs", "GHrFZ1icrhg", "Cg_DLUay35I", "E7dgtMSboxg", "by6TSMwKpOs", "rlL4nsh-pz0", "a2H7UILaWmY", "4wUp5GIGHbM", "l8nG3iczo8s"] },
 ];
 
@@ -52,7 +53,9 @@ function build(share) {
   const multi = ids.length > 1;
   // 기록 시작일 = 곡들 중 가장 이른 스냅샷 날짜 (발매일 이전은 제외)
   const allDates = Object.keys(byDate).sort();
-  const first = allDates.find((d) => ids.some((id) => byDate[d].stats?.[id] != null)) || today;
+  const first0 = allDates.find((d) => ids.some((id) => byDate[d].stats?.[id] != null)) || today;
+  // share.from: 이 날짜 전(광고 기간 등)은 그래프·표·평균에서 아예 뺀다
+  const first = share.from && share.from > first0 ? share.from : first0;
   const days = [];
   for (let d = first; d <= today; d = nextDay(d)) days.push(d);
   const series = days.map((d) => {
