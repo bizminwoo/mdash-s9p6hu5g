@@ -9,6 +9,9 @@ import { fileURLToPath } from "node:url";
 // 곡은 ids 로 직접 지정한다 — 민우님이 말할 때만 추가(2026-10-16: 자동 추가 원치 않음). artist 지정도 지원하지만 쓰지 않는다.
 const SHARES = [
   { dir: "wjh-stream-k7q2m9", title: "왕준협 음원", ids: ["blQPNauonCs"] },
+  // 2026-10-23 민우님: 최한솔 쪽 8곡(천성·나찬·투엣·귀울임·상혁·용대) + 왕준협
+  { dir: "chs-stream-r4t8wz", title: "음원",
+    ids: ["blQPNauonCs", "GHrFZ1icrhg", "Cg_DLUay35I", "E7dgtMSboxg", "by6TSMwKpOs", "rlL4nsh-pz0", "a2H7UILaWmY", "4wUp5GIGHbM", "l8nG3iczo8s"] },
 ];
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
