@@ -34,9 +34,12 @@ const ARTISTS = [
   { name: "김결",     channelId: "UCc5C8vxmv6FRK4m4RwO9Xew" },
   { name: "우예린",   channelId: "UC6qPjzlwj1IwIT5uCfzDflw" },   // 2026-10-19 민우님 (Topic)
   { name: "앤씨아",   channelId: "UCJ8xHJb60uk1zlrIyVBLo-A" },   // 2026-10-19 민우님: 경쟁사분석만 → 상세추적
+  // 2026-10-25 민우님: 로코베리·선진·그믐달·스트레이는 발매되면 말 안 해도 바로 상세추적
+  { name: "선진",     channelId: "UCGNzWbxY1Otfq7_WVzVpecg" },   // Sunjin - Topic
+  { name: "스트레이", channelId: "UCQuYI15KJscpcm9iuLOgRFg" },   // The Stray - Topic
+  { name: "로코베리", channelId: "UCxSjpAHSqTXKaFoAazV09TA" },   // Rocoberry - Topic
+  { name: "그믐달",   channelId: "UCC9QFzk4mXQNjHArqAem8OA" },   // Dark Moon - Topic
   // 2026-09-29 민우님 지시: 아래는 신곡이 나오면 경쟁사 분석에만 붙이고 상세추적(시간별 좋아요)은 안 함
-  { name: "선진",     channelId: "UCGNzWbxY1Otfq7_WVzVpecg", detail: false },
-  { name: "스트레이", channelId: "UCQuYI15KJscpcm9iuLOgRFg", detail: false },
   { name: "지진석",   channelId: "UCJxMzuB_DWzdynwxXoxTdWQ", detail: false },
 ];
 
