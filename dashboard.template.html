@@ -835,7 +835,7 @@ function render(){
         : "<span class='muted'>—</span>"
       }</td>
       <td class="delta like">${r.dLikes!=null ? (r.dLikes < 0 ? "" : "+")+nf.format(r.dLikes) : "<span class='muted'>—</span>"}</td>
-      <td>${r.views!=null ? (adTvTotal(songs, r.id) ? adSplitCell((cur && cur.stats && cur.stats[r.id] && cur.stats[r.id].views != null) ? cur.stats[r.id].views : r.views, adTvTotal(songs, r.id), "총 ") : nf.format(r.views)) : "—"}</td>
+      <td>${r.views!=null ? (adTvTotal(songs, r.id) && songs[r.id].adFrom ? (() => { const tot = (cur && cur.stats && cur.stats[r.id] && cur.stats[r.id].views != null) ? cur.stats[r.id].views : r.views; const rl = realCum(songs, snaps, r.id, tot); return rl == null ? nf.format(tot) : adSplitCell(tot, tot - rl, "총 "); })() : nf.format(r.views)) : "—"}</td>
       <td>${r.likes!=null ? nf.format(r.likes) : "—"}</td>
     </tr>`).join("") + `</tbody></table>`;
   }
@@ -930,9 +930,25 @@ function renderPending(snaps, songs, pIds, latest){
 //   songs[id].adTrueviewByDay = 구글 광고 TrueView 날짜별(수집기가 매시간 기록). 실제 = 총 − 광고. 합계·수익 계산엔 안 씀.
 function adTv(songs, id, d){ const m = songs[id] && songs[id].adTrueviewByDay; return m && d && m[d] != null ? m[d] : null; }
 function adTvTotal(songs, id){ const m = songs[id] && songs[id].adTrueviewByDay; if(!m) return null; let t = 0; for(const k in m) t += m[k]; return t; }
+// 누적 "실제" = 광고 기간(adFrom~adTo) 날짜에 늘어난 조회수는 통째로 빼고 나머지 날만 더한 값 (2026-10-27 민우님 "ㄲ")
+//   구글 TrueView만 빼면 공개 조회수의 광고분(약 1.8배)이 덜 빠져 실제가 부풀었음 → 수익 계산과 같은 기준으로.
+function realCum(songs, snaps, id, totalNow){
+  const g = songs[id] || {}, isAd = d => g.adFrom && d >= g.adFrom && (!g.adTo || d <= g.adTo);
+  let real = null, first = null;
+  for(let i=0;i<snaps.length;i++){
+    const v = snaps[i].stats[id]; if(!v || v.views == null) continue;
+    if(first == null){ first = i; real = (g.adFrom && snaps[i].date > g.adFrom) ? 0 : v.views; continue; }
+    const a = snaps[i-1].stats[id]; if(!a || a.views == null) continue;
+    if(!isAd(snaps[i-1].date)) real += Math.max(0, v.views - a.views - adCut(songs, id, snaps[i-1].date));
+  }
+  if(real == null) return null;
+  const last = snaps[snaps.length-1], lv = last.stats[id];
+  if(lv && lv.views != null && totalNow != null && !isAd(last.date)) real += Math.max(0, totalNow - lv.views);
+  return Math.min(real, totalNow ?? real);
+}
 function adSplitCell(total, ad, prefix){
   const real = total - ad;
-  return `<span class="exval">${prefix}${nf.format(total)}</span><div class="extag">📣 광고 ${nf.format(ad)} · 실제 <b>${real >= 0 ? nf.format(real) : "집계 차이"}</b></div>`;
+  return `<span class="exval">${prefix}${nf.format(total)}</span><div class="extag">📣 ${prefix.trim() === "총" ? "광고 기간" : "광고"} ${nf.format(ad)} · 실제 <b>${real >= 0 ? nf.format(real) : "집계 차이"}</b></div>`;
 }
 
 // 유통사별 추정 정산 — 입금월 기준 (2026-09-29 민우님: "서비스월 말고 정산받는 월로")
