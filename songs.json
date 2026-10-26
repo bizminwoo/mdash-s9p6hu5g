@@ -123,7 +123,7 @@
     "pendingUntil": "2026-08-31",
     "adFrom": "2026-09-04",
     "adTo": "2026-09-06",
-    "dist": "레이벡스",
+    "dist": "다날",
     "adTrueviewByDay": {
       "2026-09-03": 1202,
       "2026-09-04": 3132,
@@ -132,6 +132,10 @@
     },
     "adViewsByDay": {
       "2026-09-03": 1202
+    },
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
     }
   },
   {
@@ -140,7 +144,11 @@
     "share": 1,
     "release": "2025-11-04",
     "pendingUntil": "2026-08-31",
-    "dist": "레이벡스"
+    "dist": "다날",
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
+    }
   },
   {
     "url": "https://www.youtube.com/watch?v=mE-BhncAh6E",
@@ -148,7 +156,7 @@
     "share": 1,
     "release": "2025-07-06",
     "pendingUntil": "2026-08-31",
-    "dist": "레이벡스",
+    "dist": "다날",
     "adFrom": "2026-09-28",
     "adTo": "2026-09-30",
     "adShade": [
@@ -160,6 +168,10 @@
     "adTrueviewByDay": {
       "2026-09-28": 1710,
       "2026-09-29": 2145
+    },
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
     }
   },
   {
@@ -168,7 +180,11 @@
     "share": 1,
     "release": "2024-11-19",
     "pendingUntil": "2026-08-31",
-    "dist": "레이벡스"
+    "dist": "다날",
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
+    }
   },
   {
     "url": "https://www.youtube.com/watch?v=GAYhdUa2-q4",
@@ -176,7 +192,11 @@
     "share": 1,
     "release": "2024-11-19",
     "pendingUntil": "2026-08-31",
-    "dist": "레이벡스"
+    "dist": "다날",
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
+    }
   },
   {
     "url": "https://www.youtube.com/watch?v=crsPCJTNIgE",
@@ -184,7 +204,7 @@
     "share": 1,
     "release": "2024-10-29",
     "pendingUntil": "2026-08-31",
-    "dist": "레이벡스",
+    "dist": "다날",
     "adFrom": "2026-09-28",
     "adTo": "2026-09-30",
     "adShade": [
@@ -195,6 +215,10 @@
     ],
     "adTrueviewByDay": {
       "2026-09-29": 4560
+    },
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
     }
   },
   {
@@ -205,10 +229,14 @@
     "pendingUntil": "2026-08-31",
     "adFrom": "2026-09-14",
     "adTo": "2026-09-15",
-    "dist": "레이벡스",
+    "dist": "다날",
     "adTrueviewByDay": {
       "2026-09-14": 2025,
       "2026-09-15": 14614
+    },
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
     }
   },
   {
@@ -217,7 +245,7 @@
     "share": 1,
     "release": "2024-10-29",
     "pendingUntil": "2026-08-31",
-    "dist": "레이벡스",
+    "dist": "다날",
     "adViewsByDay": {
       "2026-09-18": 7120,
       "2026-09-19": 28
@@ -233,6 +261,10 @@
     "adTrueviewByDay": {
       "2026-09-18": 3037,
       "2026-09-19": 24488
+    },
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
     }
   },
   {
@@ -241,7 +273,11 @@
     "share": 1,
     "release": "2024-10-29",
     "pendingUntil": "2026-08-31",
-    "dist": "레이벡스"
+    "dist": "다날",
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
+    }
   },
   {
     "url": "https://www.youtube.com/watch?v=d40YQAsL_cU",
@@ -269,7 +305,11 @@
     "share": 1,
     "release": "2024-08-30",
     "pendingUntil": "2026-08-31",
-    "dist": "레이벡스"
+    "dist": "다날",
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
+    }
   },
   {
     "url": "https://www.youtube.com/watch?v=uxbCjFWcoGU",
@@ -277,7 +317,11 @@
     "share": 1,
     "release": "2024-09-30",
     "pendingUntil": "2026-08-31",
-    "dist": "레이벡스"
+    "dist": "다날",
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
+    }
   },
   {
     "url": "https://www.youtube.com/watch?v=Skywxm6bQKw",
@@ -304,7 +348,7 @@
     "title": "왕준협 - 나의 어제와, 너의 내일이",
     "share": 0.5,
     "release": "2026-09-20",
-    "dist": "레이벡스",
+    "dist": "다날",
     "adFrom": "2026-09-20",
     "adTo": "2026-09-24",
     "adShade": [
@@ -318,6 +362,10 @@
       "2026-09-21": 13169,
       "2026-09-22": 13918,
       "2026-09-23": 13486
+    },
+    "distBefore": {
+      "until": "2026-08-31",
+      "dist": "레이벡스"
     }
   },
   {

@@ -947,6 +947,12 @@ const DIST_LAG = { "지니": 2, "지니(승률)": 2, "CJ": 4 };
 // 2026-10-20 민우님: CJ 10/30 입금(6월 유튜브분 + 7월 국내) = 131,604원 확정 — 6월은 유튜브 스트리밍이 매우 낮았음.
 const DIST_ACTUAL = { "지니": { "2026-8": 2402165 }, "CJ": { "2026-6": 131604, "2026-7": 913189 } };
 const DIST_LAG_DEFAULT = 3;
+// 유통사를 옮긴 곡: distBefore = {until:"YYYY-MM-DD", dist:"이전 유통사"} — 그날까지는 이전 유통사로 정산 (2026-10-26 민우님: 카디코기·왕준협 9월분부터 다날)
+function distOn(songs, id, day){
+  const g = songs[id] || {}, b = g.distBefore;
+  if(b && b.until && day && day <= b.until) return b.dist || "미지정";
+  return g.dist || "미지정";
+}
 function renderDistRevenue(snaps, songs, ids){
   const wrap = document.getElementById("distWrap");
   const label = document.getElementById("distLabel");
@@ -966,7 +972,7 @@ function renderDistRevenue(snaps, songs, ids){
       if(exSumOn(songs, id, day)) continue;
       const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
       if(!(a && b && a.views!=null && b.views!=null)) continue;
-      const dist = songs[id].dist || "미지정";
+      const dist = distOn(songs, id, day);
       const inc = Math.max(0, b.views - a.views - adCut(songs, id, day)) * rateOf(songs, id);
       const sh = songs[id].share == null ? 1 : songs[id].share;
       const c = ((per[dist] = per[dist] || {})[key] = per[dist][key] || { full: 0, mine: 0 });
@@ -984,7 +990,7 @@ function renderDistRevenue(snaps, songs, ids){
         if(exSumOn(songs, id, td)) continue;
         const a = snaps[snaps.length-1].stats[id], b = h12[id];
         if(!(a && a.views != null && b != null)) continue;
-        const dist = songs[id].dist || "미지정";
+        const dist = distOn(songs, id, td);
         const inc = Math.max(0, b - a.views - adCut(songs, id, td)) * rateOf(songs, id);
         const sh = songs[id].share == null ? 1 : songs[id].share;
         const c = ((per[dist] = per[dist] || {})[key] = per[dist][key] || { full: 0, mine: 0 });

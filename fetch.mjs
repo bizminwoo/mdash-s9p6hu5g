@@ -206,7 +206,7 @@ async function main() {
   if (existsSync(DATA_FILE)) db = JSON.parse(readFileSync(DATA_FILE, "utf8"));
 
   // songs.json 의 제목/수익비율(share)/광고플래그(adViews)/보류플래그(pending)/광고기간(adFrom·adTo)을 항상 반영
-  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo, adViewsByDay, adVerificationPending, dist, bottom, adShade, payout, adTrueviewByDay } of songs) {
+  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo, adViewsByDay, adVerificationPending, dist, distBefore, bottom, adShade, payout, adTrueviewByDay } of songs) {
     const vid = vidOf(url);
     db.songs[vid] = { ...(db.songs[vid] || {}), url,
       ...(title ? { title } : {}), share: share == null ? 1 : share };
@@ -222,6 +222,7 @@ async function main() {
     if (adVerificationPending) db.songs[vid].adVerificationPending = true; else delete db.songs[vid].adVerificationPending;
     if (release) db.songs[vid].release = release;   // 발매일 (신곡 비교의 기준점)
     if (dist) db.songs[vid].dist = dist; else delete db.songs[vid].dist;   // 유통사 (2026-09-15)
+    if (distBefore) db.songs[vid].distBefore = distBefore; else delete db.songs[vid].distBefore;   // 유통사 이전 기록 {until, dist} (2026-10-26)
     if (bottom) db.songs[vid].bottom = true; else delete db.songs[vid].bottom;
     if (payout) db.songs[vid].payout = payout; else delete db.songs[vid].payout;   // 내가 정산해줘야 하는 몫 — 수익에서만 차감 (2026-10-12)   // 목록 맨 아래 고정 (2026-10-05)
     if (Array.isArray(adShade) && adShade.length) db.songs[vid].adShade = adShade; else delete db.songs[vid].adShade;
