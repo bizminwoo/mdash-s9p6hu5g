@@ -999,7 +999,9 @@ function renderDistRevenue(snaps, songs, ids){
       partialLabel = "오늘 12시까지";
     }
   }
-  const dists = Object.keys(per).filter(d => d !== "미지정");
+  // 2026-10-26 민우님: 레이벡스 유통사 줄은 없앤다 (카디코기·왕준협은 9월분부터 다날, 남은 블린 2곡은 정산표에서 빼도 됨)
+  const DIST_HIDDEN = ["레이벡스"];
+  const dists = Object.keys(per).filter(d => d !== "미지정" && !DIST_HIDDEN.includes(d));
   if(!dists.length){ wrap.innerHTML = '<div class="empty">데이터가 쌓이면 표시됩니다.</div>'; return; }
   // 수집 시작 전 달(1일부터 데이터가 없는 달)은 일부만 있어 금액이 틀리므로 "수집 전" 처리
   const first = snaps[0].date, [fy, fm] = first.split("-").map(Number);
