@@ -1580,14 +1580,17 @@ function renderDetail(snaps, songs, ids){
     };
     mk("전체 합계 (지분 반영)", "__total__", row(""));
     // 아티스트별로 묶어서 보여준다 (2026-09-27 민우님: 곡 버튼이 중구난방) — 누적 조회수 큰 아티스트부터
-    const artistOf = id => { const t = songTitle(songs, id), k = t.indexOf(" - "); return (k > 0 ? t.slice(0, k) : t).split(",")[0].trim(); };
+    // 2026-10-27 민우님: 최한솔 쪽 가수(나찬·용대·천성·상혁·투엣·귀울임)는 "최한솔" 한 줄로 묶음 — 버튼에는 "가수 - 곡명"으로 표시
+    const CHS = ["나찬", "용대", "천성", "상혁", "투엣", "귀울임"];
+    const rawArtist = id => { const t = songTitle(songs, id), k = t.indexOf(" - "); return (k > 0 ? t.slice(0, k) : t).split(",")[0].trim(); };
+    const artistOf = id => CHS.includes(rawArtist(id)) ? "최한솔" : rawArtist(id);
     const lastStats = snaps.length ? snaps[snaps.length-1].stats : {};
     const groups = {};
     ids.forEach(id => { (groups[artistOf(id)] = groups[artistOf(id)] || []).push(id); });
     const sumOf = a => groups[a].reduce((s, id) => s + ((lastStats[id] && lastStats[id].views) || 0), 0);
     Object.keys(groups).sort((a, b) => sumOf(b) - sumOf(a)).forEach(a => {
       const r = row(a);
-      groups[a].forEach(id => { const t = songTitle(songs, id), k = t.indexOf(" - "); mk(k > 0 ? t.slice(k + 3) : t, id, r, t); });
+      groups[a].forEach(id => { const t = songTitle(songs, id), k = t.indexOf(" - "); mk(a === "최한솔" ? t : (k > 0 ? t.slice(k + 3) : t), id, r, t); });
     });
 
     rangeBox.innerHTML = "";
