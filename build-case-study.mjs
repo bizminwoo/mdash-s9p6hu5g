@@ -279,7 +279,7 @@ const perCons = ALL_ACQ.reduce((a, id) => a + (avgOver(id, r30, yest) || 0), 0) 
 const perBefore = beforeTotal / ids.length;
 const feeOf = (daily) => daily * 30 * RATE_NB * FEE;   // 곡 하루 스트리밍 → 유통사 월 수익
 const pieRows = [10, 30, 50, 100].map((n) => `<tr><td class="dt">${n}곡</td><td>월 ${man(feeOf(perBefore) * n)}</td><td><b>월 ${man(feeOf(perCons) * n)}</b></td><td><b class="upc">월 ${man(feeOf(perBase) * n)}</b></td><td>연 ${man(feeOf(perCons) * n * 12)} ~ ${man(feeOf(perBase) * n * 12)}</td></tr>`).join("");
-const pie = `<h3>🚀 귀사 카탈로그에 적용하면 — 파이가 얼마나 커지나</h3>
+const pie = `<h3>🚀 쿼터뮤직 카탈로그에 적용하면 — 파이가 얼마나 커지나</h3>
 <div class="card"><h2>마케팅이 안 된 곡을 인수해 마케팅했을 때, 유통사 수익 (수수료 ${FEE * 100}% 가정)</h2>
 <div class="tiles" style="margin-bottom:12px">
 ${tile("곡당 하루 스트리밍 · 지금", nf.format(Math.round(perBefore)) + "회", "마케팅 전 (이번 사례 곡당 평균)")}
