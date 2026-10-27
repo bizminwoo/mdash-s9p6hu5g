@@ -255,7 +255,23 @@ const newChart = (() => {
 })();
 const newHead = `<h3>➕ 인수 후 추가 발매 — 같은 아티스트 신곡</h3>`;
 const newNote = `<div class="ml" style="margin:4px 0 0">하루 조회수 · ${md(newRel)} 발매</div>`;
-const newArtist = `${newHead}
+// 2026-10-27 민우님: 미팅 흐름·함께 앨범 내는 조건·"마케팅비는 제작비로 안 잡고 바로 정산"을 추가 발매 위에 설명
+const howWork = `<h3>🤝 함께하는 방식</h3>
+<div class="card"><h2>① 지금 있는 곡 — 저희가 인접권을 인수해 마케팅합니다</h2><div class="pgrid">
+<div class="pbox"><div class="ph">아티스트가 얻는 것</div><div class="pb"><b>인지도 상승</b> + 늘어난 <b>저작권·실연권 수입</b></div></div>
+<div class="pbox"><div class="ph">마케팅 비용</div><div class="pb"><b>전액 저희가 부담</b>합니다</div></div>
+</div></div>
+<div class="card"><h2>② 앞으로 — 계속 함께 앨범을 냅니다</h2><div class="pgrid">
+<div class="pbox"><div class="ph">아티스트</div><div class="pb"><b>곡 · 앨범 자켓</b></div></div>
+<div class="pbox"><div class="ph">저희</div><div class="pb"><b>유통 실무 · 마케팅</b></div></div>
+<div class="pbox"><div class="ph">목표</div><div class="pb">각자 <b>가장 잘하는 것</b>에 집중합니다</div></div>
+</div></div>
+<div class="card"><h2>③ 핵심 — 마케팅비는 제작비로 잡지 않고, 바로 정산합니다</h2><div class="pgrid">
+<div class="pbox"><div class="ph">일반적인 기획사</div><div class="pb">마케팅비 1억 원을 쓰면<br>수익으로 <b>그 1억을 다 갚을 때까지 정산을 못 받습니다</b></div></div>
+<div class="pbox" style="border-color:#2f6b52"><div class="ph">저희</div><div class="pb">마케팅비를 1억을 쓰든 10억을 쓰든<br><b class="upc">제작비로 잡지 않고 첫 정산부터 바로 배분</b>합니다</div></div>
+</div></div>`;
+const newArtist = `${howWork}
+${newHead}
 <div class="tiles">
 ${tile(NEW_NAME + " 하루 평균", nf.format(Math.round(newAvg)) + "회", `${md(newOrg[0]?.d || yest)}~${md(yest)}`, "up")}
 ${tile("쌓인 조회수", nf.format(newSum) + "회", `${md(newOrg[0]?.d || yest)}~${md(yest)}`)}
