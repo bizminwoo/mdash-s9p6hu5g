@@ -123,13 +123,15 @@ ${m}<div class="ml">하루 조회수 · 점선 = 인수 전 평균 · 세로선 
 
 // ── 수익으로 보면 (2026-10-27 민우님: "원래 인접권이 얼마 나왔는데, 이제는 저작권만으로 그보다 훨씬 많이 번다")
 // 인접권 단가 = 내 대시보드 다날 기본 단가(스트림당 6.0원). 저작권 단가는 확인된 값이 들어오기 전엔 비워 둔다(추측 금지).
-const RATE_NB = 6.0, RATE_CP = null;
+// 2026-10-27 민우님 "실연권+저작권은 아티스트한테 가니까 그걸로" → 국내 음원 전송사용료 징수규정 비율(제작 48.25 : 저작 10.5 : 실연 6.25)로 환산.
+//   유튜브뮤직은 이 규정을 그대로 따르지 않으므로 페이지에 "추정"으로 표기한다.
+const RATE_NB = 6.0, RATE_CP = RATE_NB * (10.5 + 6.25) / 48.25;
 const tile = (l, v, d, cls = "") => `<div class="tile"><div class="tl">${l}</div><div class="tv ${cls}">${v}</div>${d ? `<div class="td">${d}</div>` : ""}</div>`;
 const man = (won) => (won >= 10000 ? nf.format(Math.round(won / 10000)) + "만 원" : nf.format(Math.round(won / 1000) * 1000) + "원");
 const monBefore = beforeTotal * 30, monAfter = recent30 * 30;
 const moneyRows = [
   ["인수 전 · 인접권", man(monBefore * RATE_NB), `하루 ${nf.format(Math.round(beforeTotal))}회 기준`, "pre"],
-  ...(RATE_CP ? [["인수 후 · 저작권만", man(monAfter * RATE_CP), `하루 ${nf.format(Math.round(recent30))}회 기준`, "cp"]] : []),
+  ...(RATE_CP ? [["인수 후 · 실연권+저작권", man(monAfter * RATE_CP), `하루 ${nf.format(Math.round(recent30))}회 기준 · 아티스트 몫`, "cp"]] : []),
   // 2026-10-27 민우님 "인접권 수익은 빼, 인접권은 내가 가지고 있는 거니까" — 인수 후 인접권 수입은 보여주지 않는다
 ];
 const mmax = Math.max(...moneyRows.map((r) => parseFloat(r[1].replace(/[^\d.]/g, "")) * (r[1].includes("만") ? 10000 : 1)));
@@ -143,7 +145,7 @@ moneyRows.forEach(([l, v, sub, cls], i) => {
 const moneyCard = `<h3>💰 수익으로 보면 (한 달 기준)</h3>
 <div class="tiles">
 ${tile("인수 전 인접권 수입", "월 " + man(monBefore * RATE_NB), "인수 전 하루 평균 × 30일")}
-${RATE_CP ? tile("지금 저작권 수입만", "월 " + man(monAfter * RATE_CP), `${md(r30)}~${md(yest)} 하루 평균 × 30일`, "up") : ""}
+${RATE_CP ? tile("지금 실연권+저작권 (아티스트 몫)", "월 " + man(monAfter * RATE_CP), `${md(r30)}~${md(yest)} 하루 평균 × 30일 · 인수 전 인접권의 ${Math.round(monAfter * RATE_CP / (monBefore * RATE_NB))}배`, "up") : ""}
 ${tile("인수 전 한 달 스트리밍", nf.format(Math.round(monBefore)) + "회", "인수 전 하루 평균 × 30일")}
 ${tile("지금 한 달 스트리밍", nf.format(Math.round(monAfter)) + "회", `${md(r30)}~${md(yest)} 하루 평균 × 30일`, "up")}
 </div>
@@ -200,7 +202,7 @@ ${moneyCard}
 · <b>광고를 집행한 날의 조회수는 그 곡에서 전부 뺐습니다.</b> 유료 노출이 섞여 있어서, 광고 없이 늘어난 조회수만 셉니다.<br>
 · 인수 전 평균 = 발매일부터 인수 시점까지의 누적 조회수 ÷ 일수. 인수 직전 실제 하루 조회수는 이보다 더 낮았습니다(인수 직전 하루 측정값: 전곡 ${nf.format(byDate["2026-08-28"] && byDate["2026-08-29"] ? ids.reduce((a, id) => a + ((byDate["2026-08-29"].stats[id]?.views ?? 0) - (byDate["2026-08-28"].stats[id]?.views ?? byDate["2026-08-29"].stats[id]?.views ?? 0)), 0) : 0)}회).<br>
 · 날짜별 그래프에서 막대가 없는 날은 집계 기록이 빠진 날입니다.<br>
-· 수익 = 하루 조회수 × 30일 × 스트림당 단가(${RATE_CP ? `저작권 ${RATE_CP}원 · ` : ""}인수 전 인접권 ${RATE_NB}원). 실제 정산액은 월별로 조금씩 다를 수 있습니다.</div>
+· 수익 = 하루 조회수 × 30일 × 스트림당 단가(인접권 ${RATE_NB}원${RATE_CP ? ` · 실연권+저작권 ${RATE_CP.toFixed(2)}원` : ""}).<br>· 실연권+저작권 금액은 국내 음원 스트리밍 배분 비율(제작자 48.25% · 저작권자 10.5% · 실연자 6.25%)로 인접권 단가에서 환산한 <b>추정치</b>입니다. 유튜브뮤직은 별도 계약으로 정산돼 실제 금액은 다를 수 있습니다.</div>
 </div>
 <script>
 (() => { const tip = document.getElementById('tip'), card = tip.parentElement;
