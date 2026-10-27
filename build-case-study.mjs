@@ -191,9 +191,9 @@ const page = (v) => `<!doctype html>
 ${v.intro}
 <div class="tiles">
 ${tile("인수 전 하루 평균 (전곡)", nf.format(Math.round(beforeTotal)) + "회", "발매~인수 기간 평균")}
-${tile(`${md(r30)}~${md(yest)} 하루 평균 (전곡)`, nf.format(Math.round(recent30)) + "회", `${md(r30)}~${md(yest)} · 광고일 제외`)}
+${tile(`${md(r30)}~${md(yest)} 하루 평균 (전곡)`, nf.format(Math.round(recent30)) + "회", `${md(r30)}~${md(yest)}`)}
 ${tile("변화", mult(recent30, beforeTotal) + "배", `인수 전 대비 ${md(r30)}~${md(yest)}`, "up")}
-${tile("인수 후 늘어난 조회수", "+" + nf.format(gained) + "회", `${md(yest)}까지 · 인수 시점 누적 ${nf.format(atAcqTotal)}회 · 광고일 제외`)}
+${tile("인수 후 늘어난 조회수", "+" + nf.format(gained) + "회", `${md(yest)}까지 · 인수 시점 누적 ${nf.format(atAcqTotal)}회`)}
 </div>
 <div class="card"><h2>기간별 하루 평균 조회수 (전곡 합계)</h2><svg viewBox="0 0 ${PW} ${PH}">${psvg}</svg></div>
 <div class="card"><h2>날짜별 하루 조회수 (전곡 합계)</h2><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="날짜별 하루 조회수">${svg}</svg><div id="tip"></div></div>
@@ -201,7 +201,6 @@ ${tile("인수 후 늘어난 조회수", "+" + nf.format(gained) + "회", `${md(
 <div class="sgrid">${cards}</div>
 ${v.money}
 <div class="note">· 하루 조회수 = 유튜브 아트트랙 조회수의 하루 증가분(그날 0시 → 다음날 0시).<br>
-· <b>광고를 집행한 날의 조회수는 그 곡에서 전부 뺐습니다.</b> 유료 노출이 섞여 있어서, 광고 없이 늘어난 조회수만 셉니다.<br>
 · 인수 전 평균 = 발매일부터 인수 시점까지의 누적 조회수 ÷ 일수. 인수 직전 실제 하루 조회수는 이보다 더 낮았습니다(인수 직전 하루 측정값: 전곡 ${nf.format(byDate["2026-08-28"] && byDate["2026-08-29"] ? ids.reduce((a, id) => a + ((byDate["2026-08-29"].stats[id]?.views ?? 0) - (byDate["2026-08-28"].stats[id]?.views ?? byDate["2026-08-29"].stats[id]?.views ?? 0)), 0) : 0)}회).<br>
 · 날짜별 그래프에서 막대가 없는 날은 집계 기록이 빠진 날입니다.<br>
 ${v.moneyNote}</div>
@@ -226,6 +225,8 @@ const NEW_ID = "lBfysK-tSrU", NEW_NAME = "신곡 Track N";
 const FEE = 0.2;   // 유통 수수료 가정 20% (민우님 "대충 20%")
 const newRel = meta(NEW_ID).release;
 const newSer = []; for (let d = newRel; d <= yest; d = nextDay(d)) newSer.push({ d, v: daily(NEW_ID, d), ad: isAd(NEW_ID, d) });
+// 2026-10-27 민우님 "하루 조회수에서 광고라는 부분 다 빼줘" — 페이지에 광고 표시·문구를 안 쓰고, 신곡 그래프는 광고 끝난 날부터 그린다
+while (newSer.length && newSer[0].v == null) newSer.shift();
 const newOrg = newSer.filter((x) => x.v != null);
 const newAvg = newOrg.length ? newOrg.reduce((a, x) => a + x.v, 0) / newOrg.length : 0;
 const newSum = newOrg.reduce((a, x) => a + x.v, 0);
@@ -244,18 +245,18 @@ const newChart = (() => {
   return `<svg viewBox="0 0 ${NW} ${NH}">${s}<line x1="${L}" x2="${NW - Rr}" y1="${yy(0)}" y2="${yy(0)}" class="base"/></svg>`;
 })();
 const newHead = `<h3>➕ 인수 후 추가 발매 — 같은 아티스트 신곡</h3>`;
-const newNote = `<div class="ml" style="margin:4px 0 0">하루 조회수 · 회색 = 광고 기간(숫자에서 제외) · ${md(newRel)} 발매</div>`;
+const newNote = `<div class="ml" style="margin:4px 0 0">하루 조회수 · ${md(newRel)} 발매</div>`;
 const newArtist = `${newHead}
 <div class="tiles">
-${tile(NEW_NAME + " 하루 평균", nf.format(Math.round(newAvg)) + "회", `광고 끝난 뒤 ${md(newOrg[0]?.d || yest)}~${md(yest)}`, "up")}
-${tile("광고 없이 쌓인 조회수", nf.format(newSum) + "회", `${md(yest)}까지 · 광고일 제외`)}
+${tile(NEW_NAME + " 하루 평균", nf.format(Math.round(newAvg)) + "회", `${md(newOrg[0]?.d || yest)}~${md(yest)}`, "up")}
+${tile("쌓인 조회수", nf.format(newSum) + "회", `${md(newOrg[0]?.d || yest)}~${md(yest)}`)}
 ${tile("신곡 실연권+저작권 (아티스트 몫)", "월 " + man(newAvg * 30 * RATE_CP), "하루 평균 × 30일 · 추정")}
 </div>
 <div class="card"><h2>${NEW_NAME} 하루 조회수</h2>${newChart}${newNote}</div>`;
 const catFee = { b: monBefore * RATE_NB * FEE, a: monAfter * RATE_NB * FEE }, newFee = newAvg * 30 * RATE_NB * FEE;
 const newDist = `${newHead}
 <div class="tiles">
-${tile(NEW_NAME + " 하루 평균", nf.format(Math.round(newAvg)) + "회", `광고 끝난 뒤 ${md(newOrg[0]?.d || yest)}~${md(yest)}`, "up")}
+${tile(NEW_NAME + " 하루 평균", nf.format(Math.round(newAvg)) + "회", `${md(newOrg[0]?.d || yest)}~${md(yest)}`, "up")}
 ${tile("신곡 음원 매출", "월 " + man(newAvg * 30 * RATE_NB), "하루 평균 × 30일")}
 ${tile("신곡 유통사 수익", "월 " + man(newFee), `수수료 ${FEE * 100}% 가정`, "up")}
 </div>
@@ -267,19 +268,19 @@ const PAGES = [
     h1: "🎤 인접권은 넘기고, 저작권·실연권 수입과 인지도를 키우세요",
     intro: box("제안 구조", [
       ["아티스트가 가져가는 것", `<b>저작권 + 실연권 수입</b>은 그대로 아티스트 몫<br>스트리밍이 늘어난 만큼 함께 늘어납니다`],
-      ["인지도", `누적 조회수 <b>${nf.format(atAcqTotal)}회 → ${nf.format(cumNow)}회</b><br>${md(yest)} 기준 · 광고일 제외`],
+      ["인지도", `누적 조회수 <b>${nf.format(atAcqTotal)}회 → ${nf.format(cumNow)}회</b><br>${md(yest)} 기준`],
       ["저희가 하는 것", `인접권 인수 후<br><b>마케팅 기획·집행·비용</b>을 직접 맡습니다`],
       ["그다음", `<b>신곡 추가 발매</b>까지 함께<br>신곡의 저작권·실연권도 아티스트 몫`],
     ]),
     money: moneyCard + newArtist,
-    moneyNote: `· 수익 = 하루 조회수 × 30일 × 스트림당 단가(인수 전 인접권 ${RATE_NB}원 · 실연권+저작권 ${RATE_CP.toFixed(2)}원).<br>· 실연권+저작권 금액은 국내 음원 스트리밍 배분 비율(제작자 48.25% · 저작권자 10.5% · 실연자 6.25%)로 환산한 <b>추정치</b>입니다. 유튜브뮤직은 별도 계약으로 정산돼 실제 금액은 다를 수 있습니다.<br>· 신곡은 발매 직후 광고 기간 조회수를 빼고, 광고가 끝난 뒤 ${md(yest)}까지만 셉니다.` },
+    moneyNote: `· 수익 = 하루 조회수 × 30일 × 스트림당 단가(인수 전 인접권 ${RATE_NB}원 · 실연권+저작권 ${RATE_CP.toFixed(2)}원).<br>· 실연권+저작권 금액은 국내 음원 스트리밍 배분 비율(제작자 48.25% · 저작권자 10.5% · 실연자 6.25%)로 환산한 <b>추정치</b>입니다. 유튜브뮤직은 별도 계약으로 정산돼 실제 금액은 다를 수 있습니다.` },
   { dir: "case-b-r7m4k1", // 유통사용
     title: "사례 · 저활성 카탈로그 재활성화",
     h1: "📈 발매 후 묻혀 있던 곡, 다시 살린 사례",
     intro: box("어떻게 했나", [
       ["대상", `발매 후 하루 스트리밍이<br><b>곡당 수십 회</b> 수준이던 기존 발매곡 ${ids.length}곡`],
       ["방법", `인접권을 인수해<br><b>직접 마케팅</b>으로 다시 노출`],
-      ["결과", `하루 스트리밍 <b>${nf.format(Math.round(beforeTotal))}회 → ${nf.format(Math.round(recent30))}회</b><br>약 ${mult(recent30, beforeTotal)}배 · 광고일 제외`],
+      ["결과", `하루 스트리밍 <b>${nf.format(Math.round(beforeTotal))}회 → ${nf.format(Math.round(recent30))}회</b><br>약 ${mult(recent30, beforeTotal)}배`],
       ["그다음", `같은 아티스트 <b>신곡 추가 발매</b><br>발매할 때마다 유통 매출이 더해집니다`],
     ]),
     money: `<h3>💰 유통 매출로 보면 (한 달 기준 · 기존 발매곡 ${ids.length}곡)</h3>
@@ -295,7 +296,7 @@ ${tile("인수 전", "월 " + man(catFee.b), `기존 발매곡 ${ids.length}곡`
 ${tile("지금 — 기존곡 + 신곡 1곡", "월 " + man(catFee.a + newFee), `기존곡 ${man(catFee.a)} + 신곡 ${man(newFee)}`, "up")}
 ${tile("추가 발매 1곡당 더해진 수익", "월 +" + man(newFee), "신곡이 나올 때마다 쌓입니다")}
 </div>`,
-    moneyNote: `· 음원 매출 = 하루 조회수 × 30일 × 스트림당 ${RATE_NB}원(유튜브뮤직 제작자 정산 단가 기준 추정). 유통사 수익 = 음원 매출 × 수수료 ${FEE * 100}%(가정). 실제 수수료율은 계약마다 다릅니다.<br>· 신곡은 발매 직후 광고 기간 조회수를 빼고, 광고가 끝난 뒤 ${md(yest)}까지만 셉니다.` },
+    moneyNote: `· 음원 매출 = 하루 조회수 × 30일 × 스트림당 ${RATE_NB}원(유튜브뮤직 제작자 정산 단가 기준 추정). 유통사 수익 = 음원 매출 × 수수료 ${FEE * 100}%(가정). 실제 수수료율은 계약마다 다릅니다.` },
 ];
 for (const p of PAGES) {
   const out = join(ROOT, p.dir);
