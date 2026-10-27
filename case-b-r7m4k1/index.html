@@ -31,7 +31,7 @@
   .kl { color:var(--muted); font-size:11px; } .kv { font-size:18px; font-weight:700; margin-top:2px; }
   .mini { width:100%; height:72px; } .ml { color:var(--muted); font-size:10.5px; margin-top:4px; }
   .note { color:var(--muted); font-size:12px; margin-top:14px; line-height:1.8; }
-  .pgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:8px; } .pbox { background:#11151c; border:1px solid var(--line); border-radius:10px; padding:12px 14px; } .ph { color:var(--muted); font-size:12px; margin-bottom:6px; } .pb { font-size:14px; line-height:1.6; } .adz { fill:#2a303c; }
+  .pgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:8px; } .pbox { background:#11151c; border:1px solid var(--line); border-radius:10px; padding:12px 14px; } .ph { color:var(--muted); font-size:12px; margin-bottom:6px; } .pb { font-size:14px; line-height:1.6; } .adz { fill:#2a303c; } table.pt { width:100%; border-collapse:collapse; font-size:13.5px; } .pt th, .pt td { text-align:right; padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap; } .pt th { color:var(--muted); font-weight:600; font-size:12px; } .pt th:first-child, .pt td.dt { text-align:left; } .upc { color:var(--up); } .calc { display:flex; flex-wrap:wrap; gap:14px 28px; align-items:center; margin:16px 0 8px; padding:14px; background:#11151c; border:1px solid var(--line); border-radius:10px; font-size:13.5px; } .calc input { vertical-align:middle; margin:0 8px; width:160px; } .cres { font-size:14px; } .cres b { font-size:20px; color:var(--up); }
 </style></head><body><div class="page">
 <h1>📈 발매 후 묻혀 있던 곡, 다시 살린 사례</h1>
 <div class="sub">아티스트 K 기존 발매곡 6곡 · 발매 후 하루 스트리밍이 낮던 곡의 인접권을 인수해 직접 마케팅<br>유튜브뮤직 기준 · 인수(9/1)부터 10/21까지 · 아티스트·곡명은 가명</div>
@@ -76,7 +76,29 @@
 <div class="tile"><div class="tl">인수 전</div><div class="tv ">월 4,000원</div><div class="td">기존 발매곡 6곡</div></div>
 <div class="tile"><div class="tl">지금 — 기존곡 + 신곡 1곡</div><div class="tv up">월 190만 원</div><div class="td">기존곡 91만 원 + 신곡 99만 원</div></div>
 <div class="tile"><div class="tl">추가 발매 1곡당 더해진 수익</div><div class="tv ">월 +99만 원</div><div class="td">신곡이 나올 때마다 쌓입니다</div></div>
+</div><h3>🚀 귀사 카탈로그에 적용하면 — 파이가 얼마나 커지나</h3>
+<div class="card"><h2>마케팅이 안 된 곡을 인수해 마케팅했을 때, 유통사 수익 (수수료 20% 가정)</h2>
+<div class="tiles" style="margin-bottom:12px">
+<div class="tile"><div class="tl">곡당 하루 스트리밍 · 지금</div><div class="tv ">19회</div><div class="td">마케팅 전 (이번 사례 곡당 평균)</div></div>
+<div class="tile"><div class="tl">곡당 하루 스트리밍 · 마케팅 후</div><div class="tv up">2,295 ~ 4,193회</div><div class="td">보수적 ~ 이번 사례 평균</div></div>
+<div class="tile"><div class="tl">곡당 유통사 수익 · 마케팅 후</div><div class="tv up">월 8만 원 ~ 15만 원</div><div class="td">곡당 하루 스트리밍 × 30일 × 단가 × 수수료</div></div>
 </div>
+<div style="overflow-x:auto"><table class="pt"><thead><tr><th>인수 곡 수</th><th>지금 (마케팅 전)</th><th>마케팅 후 · 보수적</th><th>마케팅 후 · 이번 사례 수준</th><th>1년 기준</th></tr></thead><tbody><tr><td class="dt">10곡</td><td>월 7,000원</td><td><b>월 83만 원</b></td><td><b class="upc">월 151만 원</b></td><td>연 992만 원 ~ 1,812만 원</td></tr><tr><td class="dt">30곡</td><td>월 2만 원</td><td><b>월 248만 원</b></td><td><b class="upc">월 453만 원</b></td><td>연 2,975만 원 ~ 5,435만 원</td></tr><tr><td class="dt">50곡</td><td>월 3만 원</td><td><b>월 413만 원</b></td><td><b class="upc">월 755만 원</b></td><td>연 4,958만 원 ~ 9,058만 원</td></tr><tr><td class="dt">100곡</td><td>월 7만 원</td><td><b>월 826만 원</b></td><td><b class="upc">월 1,510만 원</b></td><td>연 9,916만 원 ~ 1.8억 원</td></tr></tbody></table></div>
+<div class="calc">
+<label>인수 곡 수 <input id="pn" type="range" min="1" max="300" value="50"><b id="pnv">50</b>곡</label>
+<label>신곡 추가 발매 <input id="pr" type="range" min="0" max="30" value="5"><b id="prv">5</b>곡</label>
+<div class="cres">유통사 수익 <b id="pres"></b><div class="ax" id="pdet"></div></div>
+</div>
+<script>
+(() => { const fc = {"b":691.1227391140583,"c":82636.87272727277,"a":150962.88888888893,"nw":992154.8571428572};
+  const man = (w) => w >= 1e8 ? (Math.round(w / 1e7) / 10) + '억 원' : w >= 1e4 ? Math.round(w / 1e4).toLocaleString('ko-KR') + '만 원' : Math.round(w).toLocaleString('ko-KR') + '원';
+  const n = document.getElementById('pn'), r = document.getElementById('pr');
+  const up = () => { const N = +n.value, R = +r.value; document.getElementById('pnv').textContent = N; document.getElementById('prv').textContent = R;
+    const lo = fc.c * N + fc.nw * R, hi = fc.a * N + fc.nw * R;
+    document.getElementById('pres').textContent = '월 ' + man(lo) + ' ~ ' + man(hi);
+    document.getElementById('pdet').textContent = '지금(마케팅 전) 월 ' + man(fc.b * N) + ' → 1년 ' + man(lo * 12) + ' ~ ' + man(hi * 12) + ' · 신곡 1곡당 월 ' + man(fc.nw); };
+  n.oninput = r.oninput = up; up(); })();
+</script></div>
 <div class="note">· 하루 조회수 = 유튜브 아트트랙 조회수의 하루 증가분(그날 0시 → 다음날 0시).<br>
 · 인수 전 평균 = 발매일부터 인수 시점까지의 누적 조회수 ÷ 일수. 인수 직전 실제 하루 조회수는 이보다 더 낮았습니다(인수 직전 하루 측정값: 전곡 44회).<br>
 · 날짜별 그래프에서 막대가 없는 날은 집계 기록이 빠진 날입니다.<br>

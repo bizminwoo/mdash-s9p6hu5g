@@ -128,7 +128,7 @@ ${m}<div class="ml">하루 조회수 · 점선 = 인수 전 평균 · 세로선 
 //   유튜브뮤직은 이 규정을 그대로 따르지 않으므로 페이지에 "추정"으로 표기한다.
 const RATE_NB = 6.0, RATE_CP = RATE_NB * (10.5 + 6.25) / 48.25;
 const tile = (l, v, d, cls = "") => `<div class="tile"><div class="tl">${l}</div><div class="tv ${cls}">${v}</div>${d ? `<div class="td">${d}</div>` : ""}</div>`;
-const man = (won) => (won >= 10000 ? nf.format(Math.round(won / 10000)) + "만 원" : nf.format(Math.round(won / 1000) * 1000) + "원");
+const man = (won) => (won >= 1e8 ? (Math.round(won / 1e7) / 10) + "억 원" : won >= 10000 ? nf.format(Math.round(won / 10000)) + "만 원" : nf.format(Math.round(won / 1000) * 1000) + "원");
 const monBefore = beforeTotal * 30, monAfter = recent30 * 30;
 const moneyRows = [
   ["인수 전 · 인접권", man(monBefore * RATE_NB), `하루 ${nf.format(Math.round(beforeTotal))}회 기준`, "pre"],
@@ -266,6 +266,37 @@ ${tile("신곡 음원 매출", "월 " + man(newAvg * 30 * RATE_NB), "하루 평�
 ${tile("신곡 유통사 수익", "월 " + man(newFee), `수수료 ${FEE * 100}% 가정`, "up")}
 </div>
 <div class="card"><h2>${NEW_NAME} 하루 조회수</h2>${newChart}${newNote}</div>`;
+// ── 파이가 얼마나 커지나 (2026-10-27 민우님: "너네가 가진 마케팅 안 된 음원을 내가 인수해서 마케팅하면 파이가 얼마나 커지는지")
+//   곡당 기준 = 이번 사례 곡 평균. 보수 = 인수한 카디코기 11곡 전체(안 오른 곡 포함) 곡당 평균 — 페이지엔 "보수적"으로만 표기.
+const ALL_ACQ = [...ids, "mE-BhncAh6E", "Mmn_lwIf8xI", "nUkXoDO8hIE", "uxbCjFWcoGU", "VXGoK266B7A"];
+const perBase = recent30 / ids.length;
+const perCons = ALL_ACQ.reduce((a, id) => a + (avgOver(id, r30, yest) || 0), 0) / ALL_ACQ.length;
+const perBefore = beforeTotal / ids.length;
+const feeOf = (daily) => daily * 30 * RATE_NB * FEE;   // 곡 하루 스트리밍 → 유통사 월 수익
+const pieRows = [10, 30, 50, 100].map((n) => `<tr><td class="dt">${n}곡</td><td>월 ${man(feeOf(perBefore) * n)}</td><td><b>월 ${man(feeOf(perCons) * n)}</b></td><td><b class="upc">월 ${man(feeOf(perBase) * n)}</b></td><td>연 ${man(feeOf(perCons) * n * 12)} ~ ${man(feeOf(perBase) * n * 12)}</td></tr>`).join("");
+const pie = `<h3>🚀 귀사 카탈로그에 적용하면 — 파이가 얼마나 커지나</h3>
+<div class="card"><h2>마케팅이 안 된 곡을 인수해 마케팅했을 때, 유통사 수익 (수수료 ${FEE * 100}% 가정)</h2>
+<div class="tiles" style="margin-bottom:12px">
+${tile("곡당 하루 스트리밍 · 지금", nf.format(Math.round(perBefore)) + "회", "마케팅 전 (이번 사례 곡당 평균)")}
+${tile("곡당 하루 스트리밍 · 마케팅 후", nf.format(Math.round(perCons)) + " ~ " + nf.format(Math.round(perBase)) + "회", "보수적 ~ 이번 사례 평균", "up")}
+${tile("곡당 유통사 수익 · 마케팅 후", "월 " + man(feeOf(perCons)) + " ~ " + man(feeOf(perBase)), "곡당 하루 스트리밍 × 30일 × 단가 × 수수료", "up")}
+</div>
+<div style="overflow-x:auto"><table class="pt"><thead><tr><th>인수 곡 수</th><th>지금 (마케팅 전)</th><th>마케팅 후 · 보수적</th><th>마케팅 후 · 이번 사례 수준</th><th>1년 기준</th></tr></thead><tbody>${pieRows}</tbody></table></div>
+<div class="calc">
+<label>인수 곡 수 <input id="pn" type="range" min="1" max="300" value="50"><b id="pnv">50</b>곡</label>
+<label>신곡 추가 발매 <input id="pr" type="range" min="0" max="30" value="5"><b id="prv">5</b>곡</label>
+<div class="cres">유통사 수익 <b id="pres"></b><div class="ax" id="pdet"></div></div>
+</div>
+<script>
+(() => { const fc = ${JSON.stringify({ b: feeOf(perBefore), c: feeOf(perCons), a: feeOf(perBase), nw: newFee })};
+  const man = (w) => w >= 1e8 ? (Math.round(w / 1e7) / 10) + '억 원' : w >= 1e4 ? Math.round(w / 1e4).toLocaleString('ko-KR') + '만 원' : Math.round(w).toLocaleString('ko-KR') + '원';
+  const n = document.getElementById('pn'), r = document.getElementById('pr');
+  const up = () => { const N = +n.value, R = +r.value; document.getElementById('pnv').textContent = N; document.getElementById('prv').textContent = R;
+    const lo = fc.c * N + fc.nw * R, hi = fc.a * N + fc.nw * R;
+    document.getElementById('pres').textContent = '월 ' + man(lo) + ' ~ ' + man(hi);
+    document.getElementById('pdet').textContent = '지금(마케팅 전) 월 ' + man(fc.b * N) + ' → 1년 ' + man(lo * 12) + ' ~ ' + man(hi * 12) + ' · 신곡 1곡당 월 ' + man(fc.nw); };
+  n.oninput = r.oninput = up; up(); })();
+</script></div>`;
 const box =(title, items) => `<div class="card"><h2>${title}</h2><div class="pgrid">${items.map(([h, b]) => `<div class="pbox"><div class="ph">${h}</div><div class="pb">${b}</div></div>`).join("")}</div></div>`;
 const PAGES = [
   { dir: DIR, // 아티스트용
@@ -301,13 +332,13 @@ ${tile("지금 유통사 수익", "월 " + man(catFee.a), `수수료 ${FEE * 100
 ${tile("인수 전", "월 " + man(catFee.b), `기존 발매곡 ${ids.length}곡`)}
 ${tile("지금 — 기존곡 + 신곡 1곡", "월 " + man(catFee.a + newFee), `기존곡 ${man(catFee.a)} + 신곡 ${man(newFee)}`, "up")}
 ${tile("추가 발매 1곡당 더해진 수익", "월 +" + man(newFee), "신곡이 나올 때마다 쌓입니다")}
-</div>`,
+</div>` + pie,
     moneyNote: `· 음원 매출 = 하루 조회수 × 30일 × 스트림당 ${RATE_NB}원(유튜브뮤직 제작자 정산 단가 기준 추정). 유통사 수익 = 음원 매출 × 수수료 ${FEE * 100}%(가정). 실제 수수료율은 계약마다 다릅니다.` },
 ];
 for (const p of PAGES) {
   const out = join(ROOT, p.dir);
   if (!existsSync(out)) mkdirSync(out);
-  writeFileSync(join(out, "index.html"), page(p).replace("</style>", "  .pgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:8px; } .pbox { background:#11151c; border:1px solid var(--line); border-radius:10px; padding:12px 14px; } .ph { color:var(--muted); font-size:12px; margin-bottom:6px; } .pb { font-size:14px; line-height:1.6; } .adz { fill:#2a303c; }\n</style>"), "utf8");
+  writeFileSync(join(out, "index.html"), page(p).replace("</style>", "  .pgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:8px; } .pbox { background:#11151c; border:1px solid var(--line); border-radius:10px; padding:12px 14px; } .ph { color:var(--muted); font-size:12px; margin-bottom:6px; } .pb { font-size:14px; line-height:1.6; } .adz { fill:#2a303c; } table.pt { width:100%; border-collapse:collapse; font-size:13.5px; } .pt th, .pt td { text-align:right; padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap; } .pt th { color:var(--muted); font-weight:600; font-size:12px; } .pt th:first-child, .pt td.dt { text-align:left; } .upc { color:var(--up); } .calc { display:flex; flex-wrap:wrap; gap:14px 28px; align-items:center; margin:16px 0 8px; padding:14px; background:#11151c; border:1px solid var(--line); border-radius:10px; font-size:13.5px; } .calc input { vertical-align:middle; margin:0 8px; width:160px; } .cres { font-size:14px; } .cres b { font-size:20px; color:var(--up); }\n</style>"), "utf8");
   console.log(`[완료] ${p.dir}/index.html`);
 }
 console.log(`인수전 ${Math.round(beforeTotal)}/일 → ${Math.round(recent30)}/일 (${mult(recent30, beforeTotal)}배), 인수후 +${gained}, 누적 ${atAcqTotal}→${cumNow}`);
