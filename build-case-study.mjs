@@ -151,11 +151,11 @@ ${tile("지금 한 달 스트리밍", nf.format(Math.round(monAfter)) + "회", `
 </div>
 ${RATE_CP ? `<div class="card"><h2>한 달 수입 비교</h2><svg viewBox="0 0 ${PW} ${MH2}">${msvg}</svg></div>` : ""}`;
 
-const html = `<!doctype html>
+const page = (v) => `<!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>사례 A · 인접권 인수 후 스트리밍 변화</title>
+<title>${v.title}</title>
 <style>
   :root { --bg:#0f1115; --panel:#161a22; --line:#242a36; --text:#e8ebf1; --muted:#8b93a3; --bar:#3987e5; --pre:#5b6375; --up:#3ccf8e; }
   * { box-sizing:border-box; }
@@ -185,8 +185,9 @@ const html = `<!doctype html>
   .mini { width:100%; height:72px; } .ml { color:var(--muted); font-size:10.5px; margin-top:4px; }
   .note { color:var(--muted); font-size:12px; margin-top:14px; line-height:1.8; }
 </style></head><body><div class="page">
-<h1>📈 사례 A — 인접권 인수 후 스트리밍 변화</h1>
+<h1>${v.h1}</h1>
 <div class="sub">${esc(ARTIST)} 기존 발매곡 ${ids.length}곡 · 발매 후 하루 스트리밍이 낮던 곡의 인접권을 인수해 직접 마케팅<br>유튜브뮤직 기준 · 인수(${md(ACQ)})부터 ${md(yest)}까지 · 아티스트·곡명은 가명</div>
+${v.intro}
 <div class="tiles">
 ${tile("인수 전 하루 평균 (전곡)", nf.format(Math.round(beforeTotal)) + "회", "발매~인수 기간 평균")}
 ${tile(`${md(r30)}~${md(yest)} 하루 평균 (전곡)`, nf.format(Math.round(recent30)) + "회", `${md(r30)}~${md(yest)} · 광고일 제외`)}
@@ -197,12 +198,12 @@ ${tile("인수 후 늘어난 조회수", "+" + nf.format(gained) + "회", `${md(
 <div class="card"><h2>날짜별 하루 조회수 (전곡 합계)</h2><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="날짜별 하루 조회수">${svg}</svg><div id="tip"></div></div>
 <h3>곡별 변화 (${md(r30)}~${md(yest)} 하루 평균이 높은 순)</h3>
 <div class="sgrid">${cards}</div>
-${moneyCard}
+${v.money}
 <div class="note">· 하루 조회수 = 유튜브 아트트랙 조회수의 하루 증가분(그날 0시 → 다음날 0시).<br>
 · <b>광고를 집행한 날의 조회수는 그 곡에서 전부 뺐습니다.</b> 유료 노출이 섞여 있어서, 광고 없이 늘어난 조회수만 셉니다.<br>
 · 인수 전 평균 = 발매일부터 인수 시점까지의 누적 조회수 ÷ 일수. 인수 직전 실제 하루 조회수는 이보다 더 낮았습니다(인수 직전 하루 측정값: 전곡 ${nf.format(byDate["2026-08-28"] && byDate["2026-08-29"] ? ids.reduce((a, id) => a + ((byDate["2026-08-29"].stats[id]?.views ?? 0) - (byDate["2026-08-28"].stats[id]?.views ?? byDate["2026-08-29"].stats[id]?.views ?? 0)), 0) : 0)}회).<br>
 · 날짜별 그래프에서 막대가 없는 날은 집계 기록이 빠진 날입니다.<br>
-· 수익 = 하루 조회수 × 30일 × 스트림당 단가(인접권 ${RATE_NB}원${RATE_CP ? ` · 실연권+저작권 ${RATE_CP.toFixed(2)}원` : ""}).<br>· 실연권+저작권 금액은 국내 음원 스트리밍 배분 비율(제작자 48.25% · 저작권자 10.5% · 실연자 6.25%)로 인접권 단가에서 환산한 <b>추정치</b>입니다. 유튜브뮤직은 별도 계약으로 정산돼 실제 금액은 다를 수 있습니다.</div>
+${v.moneyNote}</div>
 </div>
 <script>
 (() => { const tip = document.getElementById('tip'), card = tip.parentElement;
@@ -216,8 +217,41 @@ ${moneyCard}
 </script>
 </body></html>
 `;
-const out = join(ROOT, DIR);
-if (!existsSync(out)) mkdirSync(out);
-writeFileSync(join(out, "index.html"), html, "utf8");
-console.log(`[완료] ${DIR}/index.html — 인수전 ${Math.round(beforeTotal)}/일 → 최근30일 ${Math.round(recent30)}/일 (${mult(recent30, beforeTotal)}배), 인수후 +${gained}`);
-for (const p of periods) console.log(p.l, Math.round(p.v));
+// ── 두 가지 버전 (2026-10-27 민우님: "유통사 대상 PR 자료 / 아티스트한테 인접권 팔고 저작권+실연권+인지도 얻어라")
+const cumNow = atAcqTotal + gained;
+const box = (title, items) => `<div class="card"><h2>${title}</h2><div class="pgrid">${items.map(([h, b]) => `<div class="pbox"><div class="ph">${h}</div><div class="pb">${b}</div></div>`).join("")}</div></div>`;
+const PAGES = [
+  { dir: DIR, // 아티스트용
+    title: "제안 · 인접권 인수 + 마케팅",
+    h1: "🎤 인접권은 넘기고, 저작권·실연권 수입과 인지도를 키우세요",
+    intro: box("제안 구조", [
+      ["아티스트가 가져가는 것", `<b>저작권 + 실연권 수입</b>은 그대로 아티스트 몫<br>스트리밍이 늘어난 만큼 함께 늘어납니다`],
+      ["인지도", `누적 조회수 <b>${nf.format(atAcqTotal)}회 → ${nf.format(cumNow)}회</b><br>${md(yest)} 기준 · 광고일 제외`],
+      ["저희가 하는 것", `인접권 인수 후<br><b>마케팅 기획·집행·비용</b>을 직접 맡습니다`],
+    ]),
+    money: moneyCard,
+    moneyNote: `· 수익 = 하루 조회수 × 30일 × 스트림당 단가(인수 전 인접권 ${RATE_NB}원 · 실연권+저작권 ${RATE_CP.toFixed(2)}원).<br>· 실연권+저작권 금액은 국내 음원 스트리밍 배분 비율(제작자 48.25% · 저작권자 10.5% · 실연자 6.25%)로 환산한 <b>추정치</b>입니다. 유튜브뮤직은 별도 계약으로 정산돼 실제 금액은 다를 수 있습니다.` },
+  { dir: "case-b-r7m4k1", // 유통사용
+    title: "사례 · 저활성 카탈로그 재활성화",
+    h1: "📈 발매 후 묻혀 있던 곡, 다시 살린 사례",
+    intro: box("어떻게 했나", [
+      ["대상", `발매 후 하루 스트리밍이<br><b>곡당 수십 회</b> 수준이던 기존 발매곡 ${ids.length}곡`],
+      ["방법", `인접권을 인수해<br><b>직접 마케팅</b>으로 다시 노출`],
+      ["결과", `하루 스트리밍 <b>${nf.format(Math.round(beforeTotal))}회 → ${nf.format(Math.round(recent30))}회</b><br>약 ${mult(recent30, beforeTotal)}배 · 광고일 제외`],
+    ]),
+    money: `<h3>💰 유통 매출로 보면 (한 달 기준)</h3>
+<div class="tiles">
+${tile("인수 전 음원 매출 (제작자 정산분)", "월 " + man(monBefore * RATE_NB), "인수 전 하루 평균 × 30일")}
+${tile("지금 음원 매출 (제작자 정산분)", "월 " + man(monAfter * RATE_NB), `${md(r30)}~${md(yest)} 하루 평균 × 30일 · 약 ${mult(monAfter, monBefore)}배`, "up")}
+${tile("인수 전 한 달 스트리밍", nf.format(Math.round(monBefore)) + "회", "인수 전 하루 평균 × 30일")}
+${tile("지금 한 달 스트리밍", nf.format(Math.round(monAfter)) + "회", `${md(r30)}~${md(yest)} 하루 평균 × 30일`, "up")}
+</div>`,
+    moneyNote: `· 음원 매출 = 하루 조회수 × 30일 × 스트림당 ${RATE_NB}원(유튜브뮤직 제작자 정산 단가 기준 추정). 유통 수수료는 이 매출에 비례해 함께 늘어납니다.` },
+];
+for (const p of PAGES) {
+  const out = join(ROOT, p.dir);
+  if (!existsSync(out)) mkdirSync(out);
+  writeFileSync(join(out, "index.html"), page(p).replace("</style>", "  .pgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:8px; } .pbox { background:#11151c; border:1px solid var(--line); border-radius:10px; padding:12px 14px; } .ph { color:var(--muted); font-size:12px; margin-bottom:6px; } .pb { font-size:14px; line-height:1.6; }\n</style>"), "utf8");
+  console.log(`[완료] ${p.dir}/index.html`);
+}
+console.log(`인수전 ${Math.round(beforeTotal)}/일 → ${Math.round(recent30)}/일 (${mult(recent30, beforeTotal)}배), 인수후 +${gained}, 누적 ${atAcqTotal}→${cumNow}`);
