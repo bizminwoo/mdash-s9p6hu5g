@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 
 const DIR = "case-a-p3x8v2";
 const ACQ = "2026-09-01";   // 인접권 정리(8/31) 다음 날 = 마케팅 시작
+const END = "2026-10-21";   // 2026-10-27 민우님: "가파르게 떨어지는 건 빼고 10/21까지만" — 이 날짜까지만 보여준다
 // 가명: 원래 곡 → 표시 이름 (순서 = 카드 순서)
 const ALIAS = [
   ["-rFw4j4aqg0", "Track A"], ["GAYhdUa2-q4", "Track B"], ["HC61q5FWciY", "Track C"], ["xZKpKdsJO2k", "Track D"],
@@ -36,7 +37,7 @@ const updated = DB.current?.time || "";
 const isAd = (id, d) => { const g = meta(id); return g.adFrom && d >= g.adFrom && (!g.adTo || d <= g.adTo); };
 // 하루 증가분 (어제까지만, 광고일은 null)
 const daily = (id, d) => {
-  if (d >= today || isAd(id, d)) return null;
+  if (d >= today || d > END || isAd(id, d)) return null;
   const a = byDate[d]?.stats?.[id]?.views, b = byDate[nextDay(d)]?.stats?.[id]?.views;
   return a == null || b == null ? null : Math.max(0, b - a);
 };
@@ -54,7 +55,7 @@ const avgOver = (id, from, to) => {
   for (let d = from; d <= to; d = nextDay(d)) { const v = daily(id, d); if (v != null) { s += v; n++; } }
   return n ? s / n : null;
 };
-const yest = addDays(today, -1);
+const yest = END < today ? END : addDays(today, -1);
 const r30 = addDays(yest, -29), r7 = addDays(yest, -6);
 
 // 기간별 전곡 하루 평균 (광고일·빈 날 제외 → 곡마다 평균 낸 뒤 더함)
@@ -64,7 +65,7 @@ const periods = [
   { l: "인수 전", sub: "발매~인수 평균", v: beforeTotal, pre: true },
   { l: "9월", sub: "인수 첫 달", v: sumAvg("2026-09-01", "2026-09-30") },
   { l: "10월", sub: `10/1~${md(yest)}`, v: sumAvg("2026-10-01", yest) },
-  { l: "최근 7일", sub: `${md(r7)}~${md(yest)}`, v: sumAvg(r7, yest) },
+  { l: "마지막 7일", sub: `${md(r7)}~${md(yest)}`, v: sumAvg(r7, yest) },
 ];
 const recent30 = sumAvg(r30, yest);
 const atAcqTotal = ids.reduce((a, id) => a + before(id).atAcq, 0);
@@ -83,7 +84,7 @@ periods.forEach((p, i) => {
 });
 
 // ── 일별 막대 (전곡 합계, 광고일은 그 곡만 빠짐)
-const days = []; for (let d = allDates.find((d) => ids.some((id) => byDate[d].stats?.[id])); d < today; d = nextDay(d)) days.push(d);
+const days = []; for (let d = allDates.find((d) => ids.some((id) => byDate[d].stats?.[id])); d < today && d <= END; d = nextDay(d)) days.push(d);
 const series = days.map((d) => { let v = 0, any = false; for (const id of ids) { const n = daily(id, d); if (n != null) { v += n; any = true; } } return { d, v: any ? v : null }; });
 const W = 960, H = 280, PL = 56, PR = 12, PT = 22, PB = 34;
 const maxV = Math.max(1, ...series.map((x) => x.v || 0));
@@ -116,7 +117,7 @@ const cards = ALIAS.map(([id, nm]) => ({ id, nm, b: before(id).v, a: avgOver(id,
     m += `</svg>`;
     const x = mult(a, b);
     return `<div class="scard"><div class="sh">${esc(nm)} <span class="ar">${esc(ARTIST)}</span></div>
-<div class="sk"><div><div class="kl">인수 전 하루</div><div class="kv dim">${nf.format(Math.round(b))}</div></div><div><div class="kl">최근 30일 하루</div><div class="kv">${nf.format(Math.round(a))}</div></div><div><div class="kl">변화</div><div class="kv up">${x == null ? "—" : x + "배"}</div></div></div>
+<div class="sk"><div><div class="kl">인수 전 하루</div><div class="kv dim">${nf.format(Math.round(b))}</div></div><div><div class="kl">${md(r30)}~${md(yest)} 하루</div><div class="kv">${nf.format(Math.round(a))}</div></div><div><div class="kl">변화</div><div class="kv up">${x == null ? "—" : x + "배"}</div></div></div>
 ${m}<div class="ml">하루 조회수 · 점선 = 인수 전 평균 · 세로선 = 인수 시점</div></div>`;
   }).join("");
 
@@ -156,16 +157,16 @@ const html = `<!doctype html>
   .note { color:var(--muted); font-size:12px; margin-top:14px; line-height:1.8; }
 </style></head><body><div class="page">
 <h1>📈 사례 A — 인접권 인수 후 스트리밍 변화</h1>
-<div class="sub">${esc(ARTIST)} 기존 발매곡 ${ids.length}곡 · 발매 후 하루 스트리밍이 낮던 곡의 인접권을 인수해 직접 마케팅<br>유튜브뮤직 기준 · ${esc(updated.slice(0, 16))} (KST) 집계 · 아티스트·곡명은 가명</div>
+<div class="sub">${esc(ARTIST)} 기존 발매곡 ${ids.length}곡 · 발매 후 하루 스트리밍이 낮던 곡의 인접권을 인수해 직접 마케팅<br>유튜브뮤직 기준 · 인수(${md(ACQ)})부터 ${md(yest)}까지 · 아티스트·곡명은 가명</div>
 <div class="tiles">
 ${tile("인수 전 하루 평균 (전곡)", nf.format(Math.round(beforeTotal)) + "회", "발매~인수 기간 평균")}
-${tile("최근 30일 하루 평균 (전곡)", nf.format(Math.round(recent30)) + "회", `${md(r30)}~${md(yest)} · 광고일 제외`)}
-${tile("변화", mult(recent30, beforeTotal) + "배", "인수 전 대비 최근 30일", "up")}
-${tile("인수 후 늘어난 조회수", "+" + nf.format(gained) + "회", `인수 시점 누적 ${nf.format(atAcqTotal)}회 · 광고일 제외`)}
+${tile(`${md(r30)}~${md(yest)} 하루 평균 (전곡)`, nf.format(Math.round(recent30)) + "회", `${md(r30)}~${md(yest)} · 광고일 제외`)}
+${tile("변화", mult(recent30, beforeTotal) + "배", `인수 전 대비 ${md(r30)}~${md(yest)}`, "up")}
+${tile("인수 후 늘어난 조회수", "+" + nf.format(gained) + "회", `${md(yest)}까지 · 인수 시점 누적 ${nf.format(atAcqTotal)}회 · 광고일 제외`)}
 </div>
 <div class="card"><h2>기간별 하루 평균 조회수 (전곡 합계)</h2><svg viewBox="0 0 ${PW} ${PH}">${psvg}</svg></div>
 <div class="card"><h2>날짜별 하루 조회수 (전곡 합계)</h2><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="날짜별 하루 조회수">${svg}</svg><div id="tip"></div></div>
-<h3>곡별 변화 (최근 30일 하루 평균이 높은 순)</h3>
+<h3>곡별 변화 (${md(r30)}~${md(yest)} 하루 평균이 높은 순)</h3>
 <div class="sgrid">${cards}</div>
 <div class="note">· 하루 조회수 = 유튜브 아트트랙 조회수의 하루 증가분(그날 0시 → 다음날 0시).<br>
 · <b>광고를 집행한 날의 조회수는 그 곡에서 전부 뺐습니다.</b> 유료 노출이 섞여 있어서, 광고 없이 늘어난 조회수만 셉니다.<br>
