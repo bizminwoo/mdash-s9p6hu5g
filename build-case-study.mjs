@@ -257,6 +257,11 @@ ${tile("신곡 실연권+저작권", "월 " + man(newAvg * 30 * RATE_CP), "아�
 ${tile(`신곡 인접권 ${ART_NB * 100}%`, "월 " + man(newAvg * 30 * RATE_NB * ART_NB), `신곡 인접권은 저희 ${(1 - ART_NB) * 10} : 아티스트 ${ART_NB * 10}`)}
 ${tile("신곡 1곡으로 아티스트가 받는 돈", "월 " + man(newAvg * 30 * (RATE_CP + RATE_NB * ART_NB)), "실연권+저작권 + 인접권 30% · 추정", "up")}
 </div>
+<div class="card"><h2>📅 신곡 인접권 30%, 이렇게 나눠 드립니다</h2><div class="pgrid">
+<div class="pbox"><div class="ph">1~5년차</div><div class="pb">신곡 인접권 수익의 <b>30%를 5년 동안</b> 아티스트에게 배분합니다</div></div>
+<div class="pbox"><div class="ph">5년 이후</div><div class="pb">아티스트 몫(30%)이 <b>월 10만 원 미만</b>으로 줄어들면<br>그 30%를 저희가 <b>매입</b>합니다</div></div>
+<div class="pbox"><div class="ph">아티스트가 얻는 것</div><div class="pb">5년간 꾸준한 배분 수익 +<br>이후 <b>매각 대금이라는 추가 수익</b></div></div>
+</div></div>
 <div class="card"><h2>${NEW_NAME} 하루 조회수</h2>${newChart}${newNote}</div>`;
 const catFee = { b: monBefore * RATE_NB * FEE, a: monAfter * RATE_NB * FEE }, newFee = newAvg * 30 * RATE_NB * FEE;
 const newDist = `${newHead}
@@ -307,7 +312,7 @@ const PAGES = [
       ["인지도", `누적 조회수 <b>${nf.format(atAcqTotal)}회 → ${nf.format(cumNow)}회</b><br>${md(yest)} 기준`],
       ["저희가 하는 것", `인접권 인수 후<br><b>마케팅 기획·집행·비용</b>을 직접 맡습니다`],
       // 2026-10-27 민우님: "이후 추가 발매 건에 대한 인접권을 내가 7 너가 3으로 나눈다"
-      ["그다음", `<b>신곡 추가 발매</b>까지 함께<br>신곡은 저작권·실연권 + <b>인접권 30%</b>도 아티스트 몫`],
+      ["그다음", `<b>신곡 추가 발매</b>까지 함께<br>신곡은 저작권·실연권 + <b>인접권 30%(5년)</b>도 아티스트 몫`],   // 2026-10-27 민우님: 30%는 5년 배분, 5년 뒤 월 10만 원 미만이면 매입
     ]),
     money: moneyCard + newArtist,
     moneyNote: `· 수익 = 하루 조회수 × 30일 × 스트림당 단가(인수 전 인접권 ${RATE_NB}원 · 실연권+저작권 ${RATE_CP.toFixed(2)}원).<br>· 실연권+저작권 금액은 국내 음원 스트리밍 배분 비율(제작자 48.25% · 저작권자 10.5% · 실연자 6.25%)로 환산한 <b>추정치</b>입니다. 유튜브뮤직은 별도 계약으로 정산돼 실제 금액은 다를 수 있습니다.` },
