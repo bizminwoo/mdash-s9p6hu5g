@@ -130,7 +130,7 @@ const monBefore = beforeTotal * 30, monAfter = recent30 * 30;
 const moneyRows = [
   ["인수 전 · 인접권", man(monBefore * RATE_NB), `하루 ${nf.format(Math.round(beforeTotal))}회 기준`, "pre"],
   ...(RATE_CP ? [["인수 후 · 저작권만", man(monAfter * RATE_CP), `하루 ${nf.format(Math.round(recent30))}회 기준`, "cp"]] : []),
-  ["인수 후 · 인접권", man(monAfter * RATE_NB), `하루 ${nf.format(Math.round(recent30))}회 기준 (${md(r30)}~${md(yest)})`, "bar"],
+  // 2026-10-27 민우님 "인접권 수익은 빼, 인접권은 내가 가지고 있는 거니까" — 인수 후 인접권 수입은 보여주지 않는다
 ];
 const mmax = Math.max(...moneyRows.map((r) => parseFloat(r[1].replace(/[^\d.]/g, "")) * (r[1].includes("만") ? 10000 : 1)));
 const wonOf = (s) => parseFloat(s.replace(/[^\d.]/g, "")) * (s.includes("만") ? 10000 : 1);
@@ -144,10 +144,10 @@ const moneyCard = `<h3>💰 수익으로 보면 (한 달 기준)</h3>
 <div class="tiles">
 ${tile("인수 전 인접권 수입", "월 " + man(monBefore * RATE_NB), "인수 전 하루 평균 × 30일")}
 ${RATE_CP ? tile("지금 저작권 수입만", "월 " + man(monAfter * RATE_CP), `${md(r30)}~${md(yest)} 하루 평균 × 30일`, "up") : ""}
-${tile("지금 인접권 수입", "월 " + man(monAfter * RATE_NB), `${md(r30)}~${md(yest)} 하루 평균 × 30일`, "up")}
-${tile("인수 후 번 인접권 (누적)", man(gained * RATE_NB), `${md(ACQ)}~${md(yest)} · 광고일 제외`)}
+${tile("인수 전 한 달 스트리밍", nf.format(Math.round(monBefore)) + "회", "인수 전 하루 평균 × 30일")}
+${tile("지금 한 달 스트리밍", nf.format(Math.round(monAfter)) + "회", `${md(r30)}~${md(yest)} 하루 평균 × 30일`, "up")}
 </div>
-<div class="card"><h2>한 달 수입 비교</h2><svg viewBox="0 0 ${PW} ${MH2}">${msvg}</svg></div>`;
+${RATE_CP ? `<div class="card"><h2>한 달 수입 비교</h2><svg viewBox="0 0 ${PW} ${MH2}">${msvg}</svg></div>` : ""}`;
 
 const html = `<!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
@@ -200,7 +200,7 @@ ${moneyCard}
 · <b>광고를 집행한 날의 조회수는 그 곡에서 전부 뺐습니다.</b> 유료 노출이 섞여 있어서, 광고 없이 늘어난 조회수만 셉니다.<br>
 · 인수 전 평균 = 발매일부터 인수 시점까지의 누적 조회수 ÷ 일수. 인수 직전 실제 하루 조회수는 이보다 더 낮았습니다(인수 직전 하루 측정값: 전곡 ${nf.format(byDate["2026-08-28"] && byDate["2026-08-29"] ? ids.reduce((a, id) => a + ((byDate["2026-08-29"].stats[id]?.views ?? 0) - (byDate["2026-08-28"].stats[id]?.views ?? byDate["2026-08-29"].stats[id]?.views ?? 0)), 0) : 0)}회).<br>
 · 날짜별 그래프에서 막대가 없는 날은 집계 기록이 빠진 날입니다.<br>
-· 수익 = 하루 조회수 × 30일 × 스트림당 단가(인접권 ${RATE_NB}원${RATE_CP ? ` · 저작권 ${RATE_CP}원` : ""}). 실제 정산액은 유통사·월별로 조금씩 다를 수 있습니다.</div>
+· 수익 = 하루 조회수 × 30일 × 스트림당 단가(${RATE_CP ? `저작권 ${RATE_CP}원 · ` : ""}인수 전 인접권 ${RATE_NB}원). 실제 정산액은 월별로 조금씩 다를 수 있습니다.</div>
 </div>
 <script>
 (() => { const tip = document.getElementById('tip'), card = tip.parentElement;
