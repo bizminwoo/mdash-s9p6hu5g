@@ -237,7 +237,8 @@ const CONS_END = "2026-10-26";
 const consVals = []; for (let d = newOrg[0]?.d || newRel; d <= CONS_END; d = nextDay(d)) {
   if (isAd(NEW_ID, d)) continue; const a = byDate[d]?.stats?.[NEW_ID]?.views, b = byDate[nextDay(d)]?.stats?.[NEW_ID]?.views;
   if (a != null && b != null) consVals.push(Math.max(0, b - a)); }
-const newCons = consVals.length ? consVals.reduce((a, v) => a + v, 0) / consVals.length : newAvg;
+// 2026-10-27 민우님 "신곡 트랙을 10000으로 잡아줘" → 보수적 기준은 하루 10,000회 고정 (위 평균은 참고용)
+const newCons = 10000;
 const newChart = (() => {
   const NW = 960, NH = 200, L = 56, Rr = 12, T = 16, B = 30, mx = Math.max(1, ...newSer.map((x) => x.v || 0));
   const st = (() => { const raw = mx / 4, p = 10 ** Math.floor(Math.log10(raw)); return [1, 2, 2.5, 5, 10].map((k) => k * p).find((s) => s >= raw); })();
