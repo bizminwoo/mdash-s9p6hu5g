@@ -928,8 +928,10 @@ function renderPending(snaps, songs, pIds, latest){
 
 // 광고 곡 조회수 구분 (2026-10-19 민우님: "총/광고/실제로 나눠서 곡별 현황에 같이") —
 //   songs[id].adTrueviewByDay = 구글 광고 TrueView 날짜별(수집기가 매시간 기록). 실제 = 총 − 광고. 합계·수익 계산엔 안 씀.
-function adTv(songs, id, d){ const m = songs[id] && songs[id].adTrueviewByDay; return m && d && m[d] != null ? m[d] : null; }
-function adTvTotal(songs, id){ const m = songs[id] && songs[id].adTrueviewByDay; if(!m) return null; let t = 0; for(const k in m) t += m[k]; return t; }
+// 2026-10-27: 광고분 = 노출(adImprByDay) 우선 — 실측상 공개 조회수 광고분과 거의 같음(0.95~1.01). 없으면 TrueView.
+function adMap(songs, id){ const g = songs[id]; return g && (g.adImprByDay || g.adTrueviewByDay); }
+function adTv(songs, id, d){ const m = adMap(songs, id); return m && d && m[d] != null ? m[d] : null; }
+function adTvTotal(songs, id){ const m = adMap(songs, id); if(!m) return null; let t = 0; for(const k in m) t += m[k]; return t; }
 // 누적 "실제" = 광고 기간(adFrom~adTo) 날짜에 늘어난 조회수는 통째로 빼고 나머지 날만 더한 값 (2026-10-27 민우님 "ㄲ")
 //   구글 TrueView만 빼면 공개 조회수의 광고분(약 1.8배)이 덜 빠져 실제가 부풀었음 → 수익 계산과 같은 기준으로.
 function realCum(songs, snaps, id, totalNow){
@@ -947,8 +949,10 @@ function realCum(songs, snaps, id, totalNow){
   return Math.min(real, totalNow ?? real);
 }
 function adSplitCell(total, ad, prefix){
-  const real = total - ad;
-  return `<span class="exval">${prefix}${nf.format(total)}</span><div class="extag">📣 ${prefix.trim() === "총" ? "광고 기간" : "광고"} ${nf.format(ad)} · 실제 <b>${real >= 0 ? nf.format(real) : "집계 차이"}</b></div>`;
+  // 노출 기준(2026-10-27)이라 그날 노출이 늘어난 조회수보다 조금 많을 수 있음 → 광고분은 늘어난 만큼까지만, 실제는 0 아래로 안 내려감
+  if(prefix.trim() !== "총") ad = Math.min(ad, Math.max(0, total));
+  const real = Math.max(0, total - ad);
+  return `<span class="exval">${prefix}${nf.format(total)}</span><div class="extag">📣 ${prefix.trim() === "총" ? "광고 기간" : "광고"} ${nf.format(ad)} · 실제 <b>${nf.format(real)}</b></div>`;
 }
 
 // 유통사별 추정 정산 — 입금월 기준 (2026-09-29 민우님: "서비스월 말고 정산받는 월로")
