@@ -220,7 +220,47 @@ ${v.moneyNote}</div>
 `;
 // ── 두 가지 버전 (2026-10-27 민우님: "유통사 대상 PR 자료 / 아티스트한테 인접권 팔고 저작권+실연권+인지도 얻어라")
 const cumNow = atAcqTotal + gained;
-const box = (title, items) => `<div class="card"><h2>${title}</h2><div class="pgrid">${items.map(([h, b]) => `<div class="pbox"><div class="ph">${h}</div><div class="pb">${b}</div></div>`).join("")}</div></div>`;
+// ── 인수 후 추가 발매 (2026-10-27 민우님: "핵심은 인접권 구매 후 계속 추가 발매 — 바보야 사례 넣어줘")
+//   같은 아티스트 신곡. 광고일(adFrom~adTo)은 위와 똑같이 빼고, 광고 끝난 뒤 ~END 까지만 센다.
+const NEW_ID = "lBfysK-tSrU", NEW_NAME = "신곡 Track N";
+const FEE = 0.2;   // 유통 수수료 가정 20% (민우님 "대충 20%")
+const newRel = meta(NEW_ID).release;
+const newSer = []; for (let d = newRel; d <= yest; d = nextDay(d)) newSer.push({ d, v: daily(NEW_ID, d), ad: isAd(NEW_ID, d) });
+const newOrg = newSer.filter((x) => x.v != null);
+const newAvg = newOrg.length ? newOrg.reduce((a, x) => a + x.v, 0) / newOrg.length : 0;
+const newSum = newOrg.reduce((a, x) => a + x.v, 0);
+const newChart = (() => {
+  const NW = 960, NH = 200, L = 56, Rr = 12, T = 16, B = 30, mx = Math.max(1, ...newSer.map((x) => x.v || 0));
+  const st = (() => { const raw = mx / 4, p = 10 ** Math.floor(Math.log10(raw)); return [1, 2, 2.5, 5, 10].map((k) => k * p).find((s) => s >= raw); })();
+  const tp = Math.ceil(mx / st) * st, bw2 = (NW - L - Rr) / newSer.length, yy = (v) => T + (NH - T - B) * (1 - v / tp);
+  let s = "";
+  for (let t = 0; t <= tp; t += st) s += `<line x1="${L}" x2="${NW - Rr}" y1="${yy(t)}" y2="${yy(t)}" class="grid"/><text x="${L - 8}" y="${yy(t) + 4}" class="ax" text-anchor="end">${nf.format(t)}</text>`;
+  newSer.forEach((x, i) => {
+    const x0 = L + i * bw2 + 2, w = Math.max(1, bw2 - 4);
+    if (x.ad) s += `<rect x="${x0}" y="${T}" width="${w}" height="${yy(0) - T}" rx="4" class="adz"/><text x="${x0 + w / 2}" y="${yy(0) - 8}" class="ax" text-anchor="middle">광고</text>`;
+    else if (x.v > 0) s += `<rect x="${x0}" y="${yy(x.v)}" width="${w}" height="${yy(0) - yy(x.v)}" rx="4" class="cp"><title>${md(x.d)} ${nf.format(x.v)}회</title></rect><text x="${x0 + w / 2}" y="${yy(x.v) - 5}" class="ax" text-anchor="middle">${nf.format(Math.round(x.v / 1000))}천</text>`;
+    s += `<text x="${x0 + w / 2}" y="${NH - 10}" class="ax" text-anchor="middle">${md(x.d)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${NW} ${NH}">${s}<line x1="${L}" x2="${NW - Rr}" y1="${yy(0)}" y2="${yy(0)}" class="base"/></svg>`;
+})();
+const newHead = `<h3>➕ 인수 후 추가 발매 — 같은 아티스트 신곡</h3>`;
+const newNote = `<div class="ml" style="margin:4px 0 0">하루 조회수 · 회색 = 광고 기간(숫자에서 제외) · ${md(newRel)} 발매</div>`;
+const newArtist = `${newHead}
+<div class="tiles">
+${tile(NEW_NAME + " 하루 평균", nf.format(Math.round(newAvg)) + "회", `광고 끝난 뒤 ${md(newOrg[0]?.d || yest)}~${md(yest)}`, "up")}
+${tile("광고 없이 쌓인 조회수", nf.format(newSum) + "회", `${md(yest)}까지 · 광고일 제외`)}
+${tile("신곡 실연권+저작권 (아티스트 몫)", "월 " + man(newAvg * 30 * RATE_CP), "하루 평균 × 30일 · 추정")}
+</div>
+<div class="card"><h2>${NEW_NAME} 하루 조회수</h2>${newChart}${newNote}</div>`;
+const catFee = { b: monBefore * RATE_NB * FEE, a: monAfter * RATE_NB * FEE }, newFee = newAvg * 30 * RATE_NB * FEE;
+const newDist = `${newHead}
+<div class="tiles">
+${tile(NEW_NAME + " 하루 평균", nf.format(Math.round(newAvg)) + "회", `광고 끝난 뒤 ${md(newOrg[0]?.d || yest)}~${md(yest)}`, "up")}
+${tile("신곡 음원 매출", "월 " + man(newAvg * 30 * RATE_NB), "하루 평균 × 30일")}
+${tile("신곡 유통사 수익", "월 " + man(newFee), `수수료 ${FEE * 100}% 가정`, "up")}
+</div>
+<div class="card"><h2>${NEW_NAME} 하루 조회수</h2>${newChart}${newNote}</div>`;
+const box =(title, items) => `<div class="card"><h2>${title}</h2><div class="pgrid">${items.map(([h, b]) => `<div class="pbox"><div class="ph">${h}</div><div class="pb">${b}</div></div>`).join("")}</div></div>`;
 const PAGES = [
   { dir: DIR, // 아티스트용
     title: "제안 · 인접권 인수 + 마케팅",
@@ -229,9 +269,10 @@ const PAGES = [
       ["아티스트가 가져가는 것", `<b>저작권 + 실연권 수입</b>은 그대로 아티스트 몫<br>스트리밍이 늘어난 만큼 함께 늘어납니다`],
       ["인지도", `누적 조회수 <b>${nf.format(atAcqTotal)}회 → ${nf.format(cumNow)}회</b><br>${md(yest)} 기준 · 광고일 제외`],
       ["저희가 하는 것", `인접권 인수 후<br><b>마케팅 기획·집행·비용</b>을 직접 맡습니다`],
+      ["그다음", `<b>신곡 추가 발매</b>까지 함께<br>신곡의 저작권·실연권도 아티스트 몫`],
     ]),
-    money: moneyCard,
-    moneyNote: `· 수익 = 하루 조회수 × 30일 × 스트림당 단가(인수 전 인접권 ${RATE_NB}원 · 실연권+저작권 ${RATE_CP.toFixed(2)}원).<br>· 실연권+저작권 금액은 국내 음원 스트리밍 배분 비율(제작자 48.25% · 저작권자 10.5% · 실연자 6.25%)로 환산한 <b>추정치</b>입니다. 유튜브뮤직은 별도 계약으로 정산돼 실제 금액은 다를 수 있습니다.` },
+    money: moneyCard + newArtist,
+    moneyNote: `· 수익 = 하루 조회수 × 30일 × 스트림당 단가(인수 전 인접권 ${RATE_NB}원 · 실연권+저작권 ${RATE_CP.toFixed(2)}원).<br>· 실연권+저작권 금액은 국내 음원 스트리밍 배분 비율(제작자 48.25% · 저작권자 10.5% · 실연자 6.25%)로 환산한 <b>추정치</b>입니다. 유튜브뮤직은 별도 계약으로 정산돼 실제 금액은 다를 수 있습니다.<br>· 신곡은 발매 직후 광고 기간 조회수를 빼고, 광고가 끝난 뒤 ${md(yest)}까지만 셉니다.` },
   { dir: "case-b-r7m4k1", // 유통사용
     title: "사례 · 저활성 카탈로그 재활성화",
     h1: "📈 발매 후 묻혀 있던 곡, 다시 살린 사례",
@@ -239,20 +280,27 @@ const PAGES = [
       ["대상", `발매 후 하루 스트리밍이<br><b>곡당 수십 회</b> 수준이던 기존 발매곡 ${ids.length}곡`],
       ["방법", `인접권을 인수해<br><b>직접 마케팅</b>으로 다시 노출`],
       ["결과", `하루 스트리밍 <b>${nf.format(Math.round(beforeTotal))}회 → ${nf.format(Math.round(recent30))}회</b><br>약 ${mult(recent30, beforeTotal)}배 · 광고일 제외`],
+      ["그다음", `같은 아티스트 <b>신곡 추가 발매</b><br>발매할 때마다 유통 매출이 더해집니다`],
     ]),
-    money: `<h3>💰 유통 매출로 보면 (한 달 기준)</h3>
+    money: `<h3>💰 유통 매출로 보면 (한 달 기준 · 기존 발매곡 ${ids.length}곡)</h3>
 <div class="tiles">
-${tile("인수 전 음원 매출 (제작자 정산분)", "월 " + man(monBefore * RATE_NB), "인수 전 하루 평균 × 30일")}
-${tile("지금 음원 매출 (제작자 정산분)", "월 " + man(monAfter * RATE_NB), `${md(r30)}~${md(yest)} 하루 평균 × 30일 · 약 ${mult(monAfter, monBefore)}배`, "up")}
-${tile("인수 전 한 달 스트리밍", nf.format(Math.round(monBefore)) + "회", "인수 전 하루 평균 × 30일")}
-${tile("지금 한 달 스트리밍", nf.format(Math.round(monAfter)) + "회", `${md(r30)}~${md(yest)} 하루 평균 × 30일`, "up")}
+${tile("인수 전 음원 매출", "월 " + man(monBefore * RATE_NB), "인수 전 하루 평균 × 30일")}
+${tile("지금 음원 매출", "월 " + man(monAfter * RATE_NB), `${md(r30)}~${md(yest)} 하루 평균 × 30일 · 약 ${mult(monAfter, monBefore)}배`, "up")}
+${tile("인수 전 유통사 수익", "월 " + man(catFee.b), `수수료 ${FEE * 100}% 가정`)}
+${tile("지금 유통사 수익", "월 " + man(catFee.a), `수수료 ${FEE * 100}% 가정`, "up")}
+</div>` + newDist + `
+<h3>📦 합치면 (유통사 수익, 한 달 기준)</h3>
+<div class="tiles">
+${tile("인수 전", "월 " + man(catFee.b), `기존 발매곡 ${ids.length}곡`)}
+${tile("지금 — 기존곡 + 신곡 1곡", "월 " + man(catFee.a + newFee), `기존곡 ${man(catFee.a)} + 신곡 ${man(newFee)}`, "up")}
+${tile("추가 발매 1곡당 더해진 수익", "월 +" + man(newFee), "신곡이 나올 때마다 쌓입니다")}
 </div>`,
-    moneyNote: `· 음원 매출 = 하루 조회수 × 30일 × 스트림당 ${RATE_NB}원(유튜브뮤직 제작자 정산 단가 기준 추정). 유통 수수료는 이 매출에 비례해 함께 늘어납니다.` },
+    moneyNote: `· 음원 매출 = 하루 조회수 × 30일 × 스트림당 ${RATE_NB}원(유튜브뮤직 제작자 정산 단가 기준 추정). 유통사 수익 = 음원 매출 × 수수료 ${FEE * 100}%(가정). 실제 수수료율은 계약마다 다릅니다.<br>· 신곡은 발매 직후 광고 기간 조회수를 빼고, 광고가 끝난 뒤 ${md(yest)}까지만 셉니다.` },
 ];
 for (const p of PAGES) {
   const out = join(ROOT, p.dir);
   if (!existsSync(out)) mkdirSync(out);
-  writeFileSync(join(out, "index.html"), page(p).replace("</style>", "  .pgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:8px; } .pbox { background:#11151c; border:1px solid var(--line); border-radius:10px; padding:12px 14px; } .ph { color:var(--muted); font-size:12px; margin-bottom:6px; } .pb { font-size:14px; line-height:1.6; }\n</style>"), "utf8");
+  writeFileSync(join(out, "index.html"), page(p).replace("</style>", "  .pgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:8px; } .pbox { background:#11151c; border:1px solid var(--line); border-radius:10px; padding:12px 14px; } .ph { color:var(--muted); font-size:12px; margin-bottom:6px; } .pb { font-size:14px; line-height:1.6; } .adz { fill:#2a303c; }\n</style>"), "utf8");
   console.log(`[완료] ${p.dir}/index.html`);
 }
 console.log(`인수전 ${Math.round(beforeTotal)}/일 → ${Math.round(recent30)}/일 (${mult(recent30, beforeTotal)}배), 인수후 +${gained}, 누적 ${atAcqTotal}→${cumNow}`);
