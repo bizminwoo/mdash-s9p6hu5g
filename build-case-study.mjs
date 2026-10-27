@@ -121,7 +121,34 @@ const cards = ALIAS.map(([id, nm]) => ({ id, nm, b: before(id).v, a: avgOver(id,
 ${m}<div class="ml">하루 조회수 · 점선 = 인수 전 평균 · 세로선 = 인수 시점</div></div>`;
   }).join("");
 
+// ── 수익으로 보면 (2026-10-27 민우님: "원래 인접권이 얼마 나왔는데, 이제는 저작권만으로 그보다 훨씬 많이 번다")
+// 인접권 단가 = 내 대시보드 다날 기본 단가(스트림당 6.0원). 저작권 단가는 확인된 값이 들어오기 전엔 비워 둔다(추측 금지).
+const RATE_NB = 6.0, RATE_CP = null;
 const tile = (l, v, d, cls = "") => `<div class="tile"><div class="tl">${l}</div><div class="tv ${cls}">${v}</div>${d ? `<div class="td">${d}</div>` : ""}</div>`;
+const man = (won) => (won >= 10000 ? nf.format(Math.round(won / 10000)) + "만 원" : nf.format(Math.round(won / 1000) * 1000) + "원");
+const monBefore = beforeTotal * 30, monAfter = recent30 * 30;
+const moneyRows = [
+  ["인수 전 · 인접권", man(monBefore * RATE_NB), `하루 ${nf.format(Math.round(beforeTotal))}회 기준`, "pre"],
+  ...(RATE_CP ? [["인수 후 · 저작권만", man(monAfter * RATE_CP), `하루 ${nf.format(Math.round(recent30))}회 기준`, "cp"]] : []),
+  ["인수 후 · 인접권", man(monAfter * RATE_NB), `하루 ${nf.format(Math.round(recent30))}회 기준 (${md(r30)}~${md(yest)})`, "bar"],
+];
+const mmax = Math.max(...moneyRows.map((r) => parseFloat(r[1].replace(/[^\d.]/g, "")) * (r[1].includes("만") ? 10000 : 1)));
+const wonOf = (s) => parseFloat(s.replace(/[^\d.]/g, "")) * (s.includes("만") ? 10000 : 1);
+let msvg = ""; const MH2 = moneyRows.length * 52 + 8;
+moneyRows.forEach(([l, v, sub, cls], i) => {
+  const y0 = 6 + i * 52, w = Math.max(3, (PW - 190 - 150) * wonOf(v) / mmax);
+  msvg += `<text x="0" y="${y0 + 18}" class="pl">${l}</text><text x="0" y="${y0 + 35}" class="ax">${esc(sub)}</text>`;
+  msvg += `<rect x="190" y="${y0 + 8}" width="${w}" height="28" rx="5" class="${cls}"/><text x="${190 + w + 10}" y="${y0 + 28}" class="pv">월 ${v}</text>`;
+});
+const moneyCard = `<h3>💰 수익으로 보면 (한 달 기준)</h3>
+<div class="tiles">
+${tile("인수 전 인접권 수입", "월 " + man(monBefore * RATE_NB), "인수 전 하루 평균 × 30일")}
+${RATE_CP ? tile("지금 저작권 수입만", "월 " + man(monAfter * RATE_CP), `${md(r30)}~${md(yest)} 하루 평균 × 30일`, "up") : ""}
+${tile("지금 인접권 수입", "월 " + man(monAfter * RATE_NB), `${md(r30)}~${md(yest)} 하루 평균 × 30일`, "up")}
+${tile("인수 후 번 인접권 (누적)", man(gained * RATE_NB), `${md(ACQ)}~${md(yest)} · 광고일 제외`)}
+</div>
+<div class="card"><h2>한 달 수입 비교</h2><svg viewBox="0 0 ${PW} ${MH2}">${msvg}</svg></div>`;
+
 const html = `<!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -142,7 +169,7 @@ const html = `<!doctype html>
   .card h2 { font-size:14px; margin:0 0 10px; font-weight:600; }
   svg { width:100%; height:auto; display:block; }
   .grid { stroke:#232937; } .base { stroke:#3a4253; } .ax { fill:#8b93a3; font-size:11px; }
-  .bar { fill:var(--bar); } .pre { fill:var(--pre); } .hit { fill:transparent; } .hit:hover { fill:rgba(255,255,255,.05); }
+  .bar { fill:var(--bar); } .pre { fill:var(--pre); } .cp { fill:var(--up); } .hit { fill:transparent; } .hit:hover { fill:rgba(255,255,255,.05); }
   .mk { stroke:#e8b84a; stroke-width:1.5; stroke-dasharray:4 3; } .mkt { fill:#e8b84a; font-size:11.5px; font-weight:600; }
   .bl { stroke:#c9ced8; stroke-width:1.2; stroke-dasharray:3 3; }
   .pl { fill:var(--text); font-size:14px; font-weight:600; } .pv { fill:var(--text); font-size:14px; font-weight:700; } .px { fill:var(--up); }
@@ -168,10 +195,12 @@ ${tile("인수 후 늘어난 조회수", "+" + nf.format(gained) + "회", `${md(
 <div class="card"><h2>날짜별 하루 조회수 (전곡 합계)</h2><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="날짜별 하루 조회수">${svg}</svg><div id="tip"></div></div>
 <h3>곡별 변화 (${md(r30)}~${md(yest)} 하루 평균이 높은 순)</h3>
 <div class="sgrid">${cards}</div>
+${moneyCard}
 <div class="note">· 하루 조회수 = 유튜브 아트트랙 조회수의 하루 증가분(그날 0시 → 다음날 0시).<br>
 · <b>광고를 집행한 날의 조회수는 그 곡에서 전부 뺐습니다.</b> 유료 노출이 섞여 있어서, 광고 없이 늘어난 조회수만 셉니다.<br>
 · 인수 전 평균 = 발매일부터 인수 시점까지의 누적 조회수 ÷ 일수. 인수 직전 실제 하루 조회수는 이보다 더 낮았습니다(인수 직전 하루 측정값: 전곡 ${nf.format(byDate["2026-08-28"] && byDate["2026-08-29"] ? ids.reduce((a, id) => a + ((byDate["2026-08-29"].stats[id]?.views ?? 0) - (byDate["2026-08-28"].stats[id]?.views ?? byDate["2026-08-29"].stats[id]?.views ?? 0)), 0) : 0)}회).<br>
-· 날짜별 그래프에서 막대가 없는 날은 집계 기록이 빠진 날입니다.</div>
+· 날짜별 그래프에서 막대가 없는 날은 집계 기록이 빠진 날입니다.<br>
+· 수익 = 하루 조회수 × 30일 × 스트림당 단가(인접권 ${RATE_NB}원${RATE_CP ? ` · 저작권 ${RATE_CP}원` : ""}). 실제 정산액은 유통사·월별로 조금씩 다를 수 있습니다.</div>
 </div>
 <script>
 (() => { const tip = document.getElementById('tip'), card = tip.parentElement;
