@@ -12,8 +12,8 @@ const END = "2026-10-21";   // 2026-10-27 민우님: "가파르게 떨어지는 
 // 가명: 원래 곡 → 표시 이름 (순서 = 카드 순서)
 const ALIAS = [
   ["-rFw4j4aqg0", "Track A"], ["GAYhdUa2-q4", "Track B"], ["HC61q5FWciY", "Track C"], ["xZKpKdsJO2k", "Track D"],
-  ["FwQg1oq0ZwY", "Track E"], ["crsPCJTNIgE", "Track F"], ["VXGoK266B7A", "Track G"], ["mE-BhncAh6E", "Track H"],
-  ["Mmn_lwIf8xI", "Track I"], ["nUkXoDO8hIE", "Track J"], ["uxbCjFWcoGU", "Track K"],
+  ["FwQg1oq0ZwY", "Track E"], ["crsPCJTNIgE", "Track F"], ["VXGoK266B7A", "Track G"],
+  // 2026-10-27 민우님 "안 오른 4곡은 빼": 강아지풀·Suicide·Needy(Solo)·Walking on Frozen 제외
 ];
 const ARTIST = "아티스트 K";
 
