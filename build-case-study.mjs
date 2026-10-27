@@ -231,6 +231,13 @@ while (newSer.length && newSer[0].v == null) newSer.shift();
 const newOrg = newSer.filter((x) => x.v != null);
 const newAvg = newOrg.length ? newOrg.reduce((a, x) => a + x.v, 0) / newOrg.length : 0;
 const newSum = newOrg.reduce((a, x) => a + x.v, 0);
+// 보수적 (2026-10-27 민우님 "신곡 숫자가 좀 높게 잡혔으니 보수적인 것도 아래에") — 10/21 이후 내려온 날까지 포함한 평균.
+//   기간을 10/26으로 고정해 매시간 다시 만들어도 숫자가 안 바뀌게 한다.
+const CONS_END = "2026-10-26";
+const consVals = []; for (let d = newOrg[0]?.d || newRel; d <= CONS_END; d = nextDay(d)) {
+  if (isAd(NEW_ID, d)) continue; const a = byDate[d]?.stats?.[NEW_ID]?.views, b = byDate[nextDay(d)]?.stats?.[NEW_ID]?.views;
+  if (a != null && b != null) consVals.push(Math.max(0, b - a)); }
+const newCons = consVals.length ? consVals.reduce((a, v) => a + v, 0) / consVals.length : newAvg;
 const newChart = (() => {
   const NW = 960, NH = 200, L = 56, Rr = 12, T = 16, B = 30, mx = Math.max(1, ...newSer.map((x) => x.v || 0));
   const st = (() => { const raw = mx / 4, p = 10 ** Math.floor(Math.log10(raw)); return [1, 2, 2.5, 5, 10].map((k) => k * p).find((s) => s >= raw); })();
@@ -256,6 +263,12 @@ ${tile("쌓인 조회수", nf.format(newSum) + "회", `${md(newOrg[0]?.d || yest
 ${tile("신곡 실연권+저작권", "월 " + man(newAvg * 30 * RATE_CP), "아티스트 몫 · 하루 평균 × 30일")}
 ${tile(`신곡 인접권 ${ART_NB * 100}%`, "월 " + man(newAvg * 30 * RATE_NB * ART_NB), `신곡 인접권은 저희 ${(1 - ART_NB) * 10} : 아티스트 ${ART_NB * 10}`)}
 ${tile("신곡 1곡으로 아티스트가 받는 돈", "월 " + man(newAvg * 30 * (RATE_CP + RATE_NB * ART_NB)), "실연권+저작권 + 인접권 30% · 추정", "up")}
+</div>
+<div class="ml" style="margin:2px 0 8px">▼ 보수적으로 잡으면 — 신곡 하루 ${nf.format(Math.round(newCons))}회 기준</div>
+<div class="tiles">
+${tile("신곡 실연권+저작권 · 보수적", "월 " + man(newCons * 30 * RATE_CP), "아티스트 몫 · 하루 평균 × 30일")}
+${tile(`신곡 인접권 ${ART_NB * 100}% · 보수적`, "월 " + man(newCons * 30 * RATE_NB * ART_NB), `신곡 인접권은 저희 ${(1 - ART_NB) * 10} : 아티스트 ${ART_NB * 10}`)}
+${tile("신곡 1곡 아티스트 몫 · 보수적", "월 " + man(newCons * 30 * (RATE_CP + RATE_NB * ART_NB)), "실연권+저작권 + 인접권 30% · 추정", "up")}
 </div>
 <div class="card"><h2>📅 신곡 인접권 30%, 이렇게 나눠 드립니다</h2><div class="pgrid">
 <div class="pbox"><div class="ph">1~5년차</div><div class="pb">신곡 인접권 수익의 <b>30%를 5년 동안</b> 아티스트에게 배분합니다</div></div>
