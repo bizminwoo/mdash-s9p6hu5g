@@ -223,6 +223,7 @@ const cumNow = atAcqTotal + gained;
 //   같은 아티스트 신곡. 광고일(adFrom~adTo)은 위와 똑같이 빼고, 광고 끝난 뒤 ~END 까지만 센다.
 const NEW_ID = "lBfysK-tSrU", NEW_NAME = "신곡 Track N";
 const FEE = 0.2;   // 유통 수수료 가정 20% (민우님 "대충 20%")
+const ART_NB = 0.3;   // 신곡 인접권 아티스트 몫 30% (민우님 "내가 7 너가 3")
 const newRel = meta(NEW_ID).release;
 const newSer = []; for (let d = newRel; d <= yest; d = nextDay(d)) newSer.push({ d, v: daily(NEW_ID, d), ad: isAd(NEW_ID, d) });
 // 2026-10-27 민우님 "하루 조회수에서 광고라는 부분 다 빼줘" — 페이지에 광고 표시·문구를 안 쓰고, 신곡 그래프는 광고 끝난 날부터 그린다
@@ -250,7 +251,11 @@ const newArtist = `${newHead}
 <div class="tiles">
 ${tile(NEW_NAME + " 하루 평균", nf.format(Math.round(newAvg)) + "회", `${md(newOrg[0]?.d || yest)}~${md(yest)}`, "up")}
 ${tile("쌓인 조회수", nf.format(newSum) + "회", `${md(newOrg[0]?.d || yest)}~${md(yest)}`)}
-${tile("신곡 실연권+저작권 (아티스트 몫)", "월 " + man(newAvg * 30 * RATE_CP), "하루 평균 × 30일 · 추정")}
+</div>
+<div class="tiles">
+${tile("신곡 실연권+저작권", "월 " + man(newAvg * 30 * RATE_CP), "아티스트 몫 · 하루 평균 × 30일")}
+${tile(`신곡 인접권 ${ART_NB * 100}%`, "월 " + man(newAvg * 30 * RATE_NB * ART_NB), `신곡 인접권은 저희 ${(1 - ART_NB) * 10} : 아티스트 ${ART_NB * 10}`)}
+${tile("신곡 1곡으로 아티스트가 받는 돈", "월 " + man(newAvg * 30 * (RATE_CP + RATE_NB * ART_NB)), "실연권+저작권 + 인접권 30% · 추정", "up")}
 </div>
 <div class="card"><h2>${NEW_NAME} 하루 조회수</h2>${newChart}${newNote}</div>`;
 const catFee = { b: monBefore * RATE_NB * FEE, a: monAfter * RATE_NB * FEE }, newFee = newAvg * 30 * RATE_NB * FEE;
@@ -270,7 +275,8 @@ const PAGES = [
       ["아티스트가 가져가는 것", `<b>저작권 + 실연권 수입</b>은 그대로 아티스트 몫<br>스트리밍이 늘어난 만큼 함께 늘어납니다`],
       ["인지도", `누적 조회수 <b>${nf.format(atAcqTotal)}회 → ${nf.format(cumNow)}회</b><br>${md(yest)} 기준`],
       ["저희가 하는 것", `인접권 인수 후<br><b>마케팅 기획·집행·비용</b>을 직접 맡습니다`],
-      ["그다음", `<b>신곡 추가 발매</b>까지 함께<br>신곡의 저작권·실연권도 아티스트 몫`],
+      // 2026-10-27 민우님: "이후 추가 발매 건에 대한 인접권을 내가 7 너가 3으로 나눈다"
+      ["그다음", `<b>신곡 추가 발매</b>까지 함께<br>신곡은 저작권·실연권 + <b>인접권 30%</b>도 아티스트 몫`],
     ]),
     money: moneyCard + newArtist,
     moneyNote: `· 수익 = 하루 조회수 × 30일 × 스트림당 단가(인수 전 인접권 ${RATE_NB}원 · 실연권+저작권 ${RATE_CP.toFixed(2)}원).<br>· 실연권+저작권 금액은 국내 음원 스트리밍 배분 비율(제작자 48.25% · 저작권자 10.5% · 실연자 6.25%)로 환산한 <b>추정치</b>입니다. 유튜브뮤직은 별도 계약으로 정산돼 실제 금액은 다를 수 있습니다.` },
