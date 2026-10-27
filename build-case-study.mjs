@@ -1,0 +1,191 @@
+// 미팅용 사례 페이지 — 2026-10-27 민우님: "데일리 스밍이 낮은 곡을 인접권 구매해서 내가 마케팅해서 이렇게 올랐다"를 보여주기.
+// 카디코기 인접권 인수곡 11곡만(신곡 「바보야」는 인수곡이 아니라 제외). 아티스트·곡명은 가명으로만 표기, 유튜브 링크·발매일·수익·지분 절대 넣지 않음.
+// 광고 집행일(adFrom~adTo)의 조회수는 유료 노출이 섞이므로 그 곡의 그날 증가분을 통째로 뺀다 (가장 보수적인 계산).
+// 인수 전 = 발매일~첫 기록일 누적 조회수 ÷ 일수 (평생 평균 — 직전 실제 속도보다 높게 잡혀서 성과를 작게 보이는 보수적 기준).
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const DIR = "case-a-p3x8v2";
+const ACQ = "2026-09-01";   // 인접권 정리(8/31) 다음 날 = 마케팅 시작
+// 가명: 원래 곡 → 표시 이름 (순서 = 카드 순서)
+const ALIAS = [
+  ["-rFw4j4aqg0", "Track A"], ["GAYhdUa2-q4", "Track B"], ["HC61q5FWciY", "Track C"], ["xZKpKdsJO2k", "Track D"],
+  ["FwQg1oq0ZwY", "Track E"], ["crsPCJTNIgE", "Track F"], ["VXGoK266B7A", "Track G"], ["mE-BhncAh6E", "Track H"],
+  ["Mmn_lwIf8xI", "Track I"], ["nUkXoDO8hIE", "Track J"], ["uxbCjFWcoGU", "Track K"],
+];
+const ARTIST = "아티스트 K";
+
+const ROOT = dirname(fileURLToPath(import.meta.url));
+const DB = JSON.parse(readFileSync(join(ROOT, "data", "snapshots.json"), "utf8"));
+const songs = JSON.parse(readFileSync(join(ROOT, "songs.json"), "utf8"));
+const vidOf = (u) => { const m = String(u).match(/[?&]v=([\w-]{11})|youtu\.be\/([\w-]{11})/); return m ? (m[1] || m[2]) : null; };
+const meta = (id) => songs.find((s) => vidOf(s.url) === id) || {};
+const nf = new Intl.NumberFormat("ko-KR");
+const dstr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const nextDay = (d) => dstr(new Date(new Date(d + "T00:00:00").getTime() + 86400000));
+const addDays = (d, n) => dstr(new Date(new Date(d + "T00:00:00").getTime() + n * 86400000));
+const md = (s) => { const [, m, d] = s.split("-"); return Number(m) + "/" + Number(d); };
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const mult = (a, b) => (b > 0 ? (a / b >= 10 ? Math.round(a / b) : Math.round(a / b * 10) / 10) : null);
+
+const byDate = {};
+for (const s of Object.values(DB.snapshots || {})) if (!byDate[s.date] || s.time < byDate[s.date].time) byDate[s.date] = s;
+const today = (DB.current?.time || dstr(new Date())).slice(0, 10);
+const updated = DB.current?.time || "";
+const isAd = (id, d) => { const g = meta(id); return g.adFrom && d >= g.adFrom && (!g.adTo || d <= g.adTo); };
+// 하루 증가분 (어제까지만, 광고일은 null)
+const daily = (id, d) => {
+  if (d >= today || isAd(id, d)) return null;
+  const a = byDate[d]?.stats?.[id]?.views, b = byDate[nextDay(d)]?.stats?.[id]?.views;
+  return a == null || b == null ? null : Math.max(0, b - a);
+};
+const ids = ALIAS.map(([id]) => id);
+const name = Object.fromEntries(ALIAS);
+const allDates = Object.keys(byDate).sort();
+const firstOf = (id) => allDates.find((d) => byDate[d].stats?.[id]?.views != null);
+// 인수 전 하루 평균 (발매~첫 기록)
+const before = (id) => {
+  const f = firstOf(id), v = byDate[f].stats[id].views, rel = meta(id).release;
+  return { v: v / Math.max(1, (Date.parse(f) - Date.parse(rel)) / 864e5), atAcq: v, f };
+};
+const avgOver = (id, from, to) => {
+  let s = 0, n = 0;
+  for (let d = from; d <= to; d = nextDay(d)) { const v = daily(id, d); if (v != null) { s += v; n++; } }
+  return n ? s / n : null;
+};
+const yest = addDays(today, -1);
+const r30 = addDays(yest, -29), r7 = addDays(yest, -6);
+
+// 기간별 전곡 하루 평균 (광고일·빈 날 제외 → 곡마다 평균 낸 뒤 더함)
+const sumAvg = (from, to) => ids.reduce((a, id) => a + (avgOver(id, from, to) || 0), 0);
+const beforeTotal = ids.reduce((a, id) => a + before(id).v, 0);
+const periods = [
+  { l: "인수 전", sub: "발매~인수 평균", v: beforeTotal, pre: true },
+  { l: "9월", sub: "인수 첫 달", v: sumAvg("2026-09-01", "2026-09-30") },
+  { l: "10월", sub: `10/1~${md(yest)}`, v: sumAvg("2026-10-01", yest) },
+  { l: "최근 7일", sub: `${md(r7)}~${md(yest)}`, v: sumAvg(r7, yest) },
+];
+const recent30 = sumAvg(r30, yest);
+const atAcqTotal = ids.reduce((a, id) => a + before(id).atAcq, 0);
+// 인수 후 늘어난 실제 조회수 (광고일 제외) 합
+const gained = ids.reduce((a, id) => { let s = 0; for (let d = firstOf(id); d < today; d = nextDay(d)) s += daily(id, d) || 0; return a + s; }, 0);
+
+// ── 기간 비교 막대 (가로)
+const PW = 960, rowH = 46, PH = periods.length * rowH + 10, LBL = 150;
+const pmax = Math.max(...periods.map((p) => p.v));
+let psvg = "";
+periods.forEach((p, i) => {
+  const y = 6 + i * rowH, w = Math.max(3, (PW - LBL - 170) * p.v / pmax);
+  psvg += `<text x="0" y="${y + 18}" class="pl">${p.l}</text><text x="0" y="${y + 34}" class="ax">${esc(p.sub)}</text>`;
+  psvg += `<rect x="${LBL}" y="${y + 6}" width="${w}" height="26" rx="5" class="${p.pre ? "pre" : "bar"}"/>`;
+  psvg += `<text x="${LBL + w + 10}" y="${y + 25}" class="pv">${nf.format(Math.round(p.v))}회/일${p.pre ? "" : ` <tspan class="px">· ${mult(p.v, beforeTotal)}배</tspan>`}</text>`;
+});
+
+// ── 일별 막대 (전곡 합계, 광고일은 그 곡만 빠짐)
+const days = []; for (let d = allDates.find((d) => ids.some((id) => byDate[d].stats?.[id])); d < today; d = nextDay(d)) days.push(d);
+const series = days.map((d) => { let v = 0, any = false; for (const id of ids) { const n = daily(id, d); if (n != null) { v += n; any = true; } } return { d, v: any ? v : null }; });
+const W = 960, H = 280, PL = 56, PR = 12, PT = 22, PB = 34;
+const maxV = Math.max(1, ...series.map((x) => x.v || 0));
+const step = (() => { const raw = maxV / 4, p = 10 ** Math.floor(Math.log10(raw)); return [1, 2, 2.5, 5, 10].map((k) => k * p).find((s) => s >= raw); })();
+const top = Math.ceil(maxV / step) * step, bw = (W - PL - PR) / series.length, y = (v) => PT + (H - PT - PB) * (1 - v / top);
+let svg = "";
+for (let t = 0; t <= top; t += step) svg += `<line x1="${PL}" x2="${W - PR}" y1="${y(t)}" y2="${y(t)}" class="grid"/><text x="${PL - 8}" y="${y(t) + 4}" class="ax" text-anchor="end">${nf.format(t)}</text>`;
+const labelEvery = Math.ceil(series.length / 12);
+series.forEach((x, i) => {
+  const x0 = PL + i * bw + 1, w = Math.max(1, bw - 2);
+  if (x.v > 0) { const yy = y(x.v), h = y(0) - yy, r = Math.min(3, w / 2, h);
+    svg += `<path class="${x.d < ACQ ? "pre" : "bar"}" d="M${x0},${y(0)}V${yy + r}Q${x0},${yy} ${x0 + r},${yy}H${x0 + w - r}Q${x0 + w},${yy} ${x0 + w},${yy + r}V${y(0)}Z"/>`; }
+  svg += `<rect class="hit" x="${PL + i * bw}" y="${PT}" width="${bw}" height="${H - PT - PB}" data-d="${md(x.d)}" data-v="${x.v == null ? "기록 없음" : nf.format(x.v) + "회"}"/>`;
+  if (i % labelEvery === 0) svg += `<text x="${PL + i * bw + bw / 2}" y="${H - 12}" class="ax" text-anchor="middle">${md(x.d)}</text>`;
+  if (x.d === ACQ) svg += `<line x1="${PL + i * bw}" x2="${PL + i * bw}" y1="${PT - 8}" y2="${y(0)}" class="mk"/><text x="${PL + i * bw + 5}" y="${PT - 10}" class="mkt">인수·마케팅 시작</text>`;
+});
+svg += `<line x1="${PL}" x2="${W - PR}" y1="${y(0)}" y2="${y(0)}" class="base"/>`;
+
+// ── 곡별 카드
+const cards = ALIAS.map(([id, nm]) => ({ id, nm, b: before(id).v, a: avgOver(id, r30, yest) || 0 }))
+  .sort((p, q) => q.a - p.a).map(({ id, nm, b, a }) => {
+    const ser = days.map((d) => ({ d, v: daily(id, d) }));
+    const MW = 300, MH = 70, mx = Math.max(1, b, ...ser.map((x) => x.v || 0)), bb = MW / ser.length;
+    const ix = ser.findIndex((x) => x.d >= ACQ);
+    let m = `<svg viewBox="0 0 ${MW} ${MH + 2}" class="mini">`;
+    ser.forEach((x, i) => { if (x.v > 0) { const h = Math.max(1, MH * x.v / mx); m += `<rect class="bar" x="${i * bb + 0.5}" y="${MH - h}" width="${Math.max(1, bb - 1)}" height="${h}" rx="1"><title>${md(x.d)} ${nf.format(x.v)}회</title></rect>`; } });
+    const by = MH - Math.max(1, MH * b / mx);
+    m += `<line x1="0" x2="${MW}" y1="${by}" y2="${by}" class="bl"/>`;
+    if (ix > 0) m += `<line x1="${ix * bb}" x2="${ix * bb}" y1="0" y2="${MH}" class="mk"/>`;
+    m += `</svg>`;
+    const x = mult(a, b);
+    return `<div class="scard"><div class="sh">${esc(nm)} <span class="ar">${esc(ARTIST)}</span></div>
+<div class="sk"><div><div class="kl">인수 전 하루</div><div class="kv dim">${nf.format(Math.round(b))}</div></div><div><div class="kl">최근 30일 하루</div><div class="kv">${nf.format(Math.round(a))}</div></div><div><div class="kl">변화</div><div class="kv up">${x == null ? "—" : x + "배"}</div></div></div>
+${m}<div class="ml">하루 조회수 · 점선 = 인수 전 평균 · 세로선 = 인수 시점</div></div>`;
+  }).join("");
+
+const tile = (l, v, d, cls = "") => `<div class="tile"><div class="tl">${l}</div><div class="tv ${cls}">${v}</div>${d ? `<div class="td">${d}</div>` : ""}</div>`;
+const html = `<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>사례 A · 인접권 인수 후 스트리밍 변화</title>
+<style>
+  :root { --bg:#0f1115; --panel:#161a22; --line:#242a36; --text:#e8ebf1; --muted:#8b93a3; --bar:#3987e5; --pre:#5b6375; --up:#3ccf8e; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:28px 20px 60px; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif; }
+  .page { max-width:1000px; margin:0 auto; }
+  h1 { font-size:21px; margin:0 0 6px; }
+  .sub { color:var(--muted); font-size:13px; margin-bottom:18px; line-height:1.6; }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin-bottom:16px; }
+  .tile { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  .tl { color:var(--muted); font-size:12px; } .tv { font-size:26px; font-weight:700; margin-top:4px; } .td { color:var(--muted); font-size:11.5px; margin-top:3px; }
+  .tv.up, .kv.up { color:var(--up); } .kv.dim { color:var(--muted); }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 14px 8px; margin-bottom:16px; position:relative; }
+  .card h2 { font-size:14px; margin:0 0 10px; font-weight:600; }
+  svg { width:100%; height:auto; display:block; }
+  .grid { stroke:#232937; } .base { stroke:#3a4253; } .ax { fill:#8b93a3; font-size:11px; }
+  .bar { fill:var(--bar); } .pre { fill:var(--pre); } .hit { fill:transparent; } .hit:hover { fill:rgba(255,255,255,.05); }
+  .mk { stroke:#e8b84a; stroke-width:1.5; stroke-dasharray:4 3; } .mkt { fill:#e8b84a; font-size:11.5px; font-weight:600; }
+  .bl { stroke:#c9ced8; stroke-width:1.2; stroke-dasharray:3 3; }
+  .pl { fill:var(--text); font-size:14px; font-weight:600; } .pv { fill:var(--text); font-size:14px; font-weight:700; } .px { fill:var(--up); }
+  #tip { position:absolute; pointer-events:none; background:#0b0d12; border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-size:12px; display:none; white-space:nowrap; }
+  h3 { font-size:15px; margin:24px 0 10px; }
+  .sgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; margin-bottom:16px; }
+  .scard { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  .sh { font-weight:700; font-size:15px; margin-bottom:10px; } .ar { color:var(--muted); font-weight:500; font-size:12px; margin-left:4px; }
+  .sk { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:10px; }
+  .kl { color:var(--muted); font-size:11px; } .kv { font-size:18px; font-weight:700; margin-top:2px; }
+  .mini { width:100%; height:72px; } .ml { color:var(--muted); font-size:10.5px; margin-top:4px; }
+  .note { color:var(--muted); font-size:12px; margin-top:14px; line-height:1.8; }
+</style></head><body><div class="page">
+<h1>📈 사례 A — 인접권 인수 후 스트리밍 변화</h1>
+<div class="sub">${esc(ARTIST)} 기존 발매곡 ${ids.length}곡 · 발매 후 하루 스트리밍이 낮던 곡의 인접권을 인수해 직접 마케팅<br>유튜브뮤직 기준 · ${esc(updated.slice(0, 16))} (KST) 집계 · 아티스트·곡명은 가명</div>
+<div class="tiles">
+${tile("인수 전 하루 평균 (전곡)", nf.format(Math.round(beforeTotal)) + "회", "발매~인수 기간 평균")}
+${tile("최근 30일 하루 평균 (전곡)", nf.format(Math.round(recent30)) + "회", `${md(r30)}~${md(yest)} · 광고일 제외`)}
+${tile("변화", mult(recent30, beforeTotal) + "배", "인수 전 대비 최근 30일", "up")}
+${tile("인수 후 늘어난 조회수", "+" + nf.format(gained) + "회", `인수 시점 누적 ${nf.format(atAcqTotal)}회 · 광고일 제외`)}
+</div>
+<div class="card"><h2>기간별 하루 평균 조회수 (전곡 합계)</h2><svg viewBox="0 0 ${PW} ${PH}">${psvg}</svg></div>
+<div class="card"><h2>날짜별 하루 조회수 (전곡 합계)</h2><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="날짜별 하루 조회수">${svg}</svg><div id="tip"></div></div>
+<h3>곡별 변화 (최근 30일 하루 평균이 높은 순)</h3>
+<div class="sgrid">${cards}</div>
+<div class="note">· 하루 조회수 = 유튜브 아트트랙 조회수의 하루 증가분(그날 0시 → 다음날 0시).<br>
+· <b>광고를 집행한 날의 조회수는 그 곡에서 전부 뺐습니다.</b> 유료 노출이 섞여 있어서, 광고 없이 늘어난 조회수만 셉니다.<br>
+· 인수 전 평균 = 발매일부터 인수 시점까지의 누적 조회수 ÷ 일수. 인수 직전 실제 하루 조회수는 이보다 더 낮았습니다(인수 직전 하루 측정값: 전곡 ${nf.format(byDate["2026-08-28"] && byDate["2026-08-29"] ? ids.reduce((a, id) => a + ((byDate["2026-08-29"].stats[id]?.views ?? 0) - (byDate["2026-08-28"].stats[id]?.views ?? byDate["2026-08-29"].stats[id]?.views ?? 0)), 0) : 0)}회).<br>
+· 날짜별 그래프에서 막대가 없는 날은 집계 기록이 빠진 날입니다.</div>
+</div>
+<script>
+(() => { const tip = document.getElementById('tip'), card = tip.parentElement;
+  card.querySelectorAll('.hit').forEach((r) => {
+    r.addEventListener('mousemove', (e) => { const b = card.getBoundingClientRect();
+      tip.innerHTML = r.dataset.d + '<br><b>' + r.dataset.v + '</b>'; tip.style.display = 'block';
+      let x = e.clientX - b.left + 12; if (x + tip.offsetWidth > b.width) x = e.clientX - b.left - tip.offsetWidth - 12;
+      tip.style.left = x + 'px'; tip.style.top = (e.clientY - b.top - 10) + 'px'; });
+    r.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  }); })();
+</script>
+</body></html>
+`;
+const out = join(ROOT, DIR);
+if (!existsSync(out)) mkdirSync(out);
+writeFileSync(join(out, "index.html"), html, "utf8");
+console.log(`[완료] ${DIR}/index.html — 인수전 ${Math.round(beforeTotal)}/일 → 최근30일 ${Math.round(recent30)}/일 (${mult(recent30, beforeTotal)}배), 인수후 +${gained}`);
+for (const p of periods) console.log(p.l, Math.round(p.v));
