@@ -265,7 +265,7 @@ const box =(title, items) => `<div class="card"><h2>${title}</h2><div class="pgr
 const PAGES = [
   { dir: DIR, // 아티스트용
     title: "제안 · 인접권 인수 + 마케팅",
-    h1: "🎤 인접권은 넘기고, 저작권·실연권 수입과 인지도를 키우세요",
+    h1: "🎤 잠들어 있던 내 곡, 다시 깨워 드립니다 — 늘어난 저작권·실연권 수입과 인지도는 아티스트 몫",   // 2026-10-27 민우님: "넘기고" 단어 별로
     intro: box("제안 구조", [
       ["아티스트가 가져가는 것", `<b>저작권 + 실연권 수입</b>은 그대로 아티스트 몫<br>스트리밍이 늘어난 만큼 함께 늘어납니다`],
       ["인지도", `누적 조회수 <b>${nf.format(atAcqTotal)}회 → ${nf.format(cumNow)}회</b><br>${md(yest)} 기준`],
