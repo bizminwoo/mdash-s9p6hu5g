@@ -392,4 +392,14 @@ for (const p of PAGES) {
   writeFileSync(join(out, "index.html"), page(p).replace("</style>", "  .pgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-bottom:8px; } .pbox { background:#11151c; border:1px solid var(--line); border-radius:10px; padding:12px 14px; } .ph { color:var(--muted); font-size:12px; margin-bottom:6px; } .pb { font-size:14px; line-height:1.6; } .adz { fill:#2a303c; } table.pt { width:100%; border-collapse:collapse; font-size:13.5px; } .pt th, .pt td { text-align:right; padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap; } .pt th { color:var(--muted); font-weight:600; font-size:12px; } .pt th:first-child, .pt td.dt { text-align:left; } .upc { color:var(--up); } .calc { display:flex; flex-wrap:wrap; gap:14px 28px; align-items:center; margin:16px 0 8px; padding:14px; background:#11151c; border:1px solid var(--line); border-radius:10px; font-size:13.5px; } .calc input { vertical-align:middle; margin:0 8px; width:160px; } .cres { font-size:14px; } .cres b { font-size:20px; color:var(--up); }\n</style>"), "utf8");
   console.log(`[완료] ${p.dir}/index.html`);
 }
+// 내 대시보드 탭용 사본 (2026-10-27 민우님 "AI 음원 탭 날리고 거기에 아티스트 제안용 페이지") — 상단 탭만 붙인다
+{
+  const { navHtml } = await import("./nav.mjs");
+  const navCss = `#sitetabs { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 20px; } #sitetabs a { color:var(--muted); text-decoration:none; font-size:13.5px; font-weight:700; padding:8px 16px; border-radius:999px; border:1px solid var(--line); } #sitetabs a:hover { color:var(--text); } #sitetabs a.on { color:var(--text); background:#242a35; border-color:#3a4150; }\n</style>`;
+  const art = readFileSync(join(ROOT, DIR, "index.html"), "utf8")
+    .replace("</style>", navCss)
+    .replace('<body><div class="page">', '<body><div class="page">' + navHtml("proposal.html"));
+  writeFileSync(join(ROOT, "proposal.html"), art, "utf8");
+  console.log("[완료] proposal.html (대시보드 탭)");
+}
 console.log(`인수전 ${Math.round(beforeTotal)}/일 → ${Math.round(recent30)}/일 (${mult(recent30, beforeTotal)}배), 인수후 +${gained}, 누적 ${atAcqTotal}→${cumNow}`);

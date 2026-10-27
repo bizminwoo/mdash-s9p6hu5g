@@ -2,7 +2,8 @@
 // 각 템플릿은 <!--__NAV__--> 자리에 navHtml(현재파일명) 결과가 들어간다.
 export const TABS = [
   ["index.html", "🎵 음원 대시보드"],
-  ["ai.html", "🤖 AI 음원"],
+  // 2026-10-27 민우님: AI 음원 탭 삭제 → 그 자리에 아티스트 제안 페이지 (build-case-study.mjs 가 proposal.html 생성)
+  ["proposal.html", "🎤 아티스트 제안"],
   ["funds.html", "💼 자금 현황"],
   ["trending.html", "🎯 경쟁사 분석"],
   ["detail.html", "🔎 상세 추적"],
