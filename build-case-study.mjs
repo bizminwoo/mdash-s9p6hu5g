@@ -332,6 +332,22 @@ ${tile("곡당 유통사 수익 · 마케팅 후", "월 " + man(feeOf(perCons)) 
     document.getElementById('pdet').textContent = '지금(마케팅 전) 월 ' + man(fc.b * N) + ' → 1년 ' + man(lo * 12) + ' ~ ' + man(hi * 12) + ' · 신곡 1곡당 월 ' + man(fc.nw); };
   n.oninput = r.oninput = up; up(); })();
 </script></div>`;
+// 2026-10-27 민우님: 유통사 페이지에도 "대충 이렇게 가져간다" — 쿼터뮤직이 음원·수입 전달 → 검토 → 미팅 주선 → 인수 → 계속 발매
+const stepBox = (n, h, b) => `<div class="pbox"><div class="ph">STEP ${n}</div><div class="pb"><b>${h}</b><br>${b}</div></div>`;
+const distFlow = `<h3>🤝 진행 방식</h3>
+<div class="card"><h2>쿼터뮤직과 이렇게 진행합니다</h2><div class="pgrid">
+${stepBox(1, "음원 · 수입 자료 전달", "쿼터뮤직이 마케팅이 안 된 곡의 음원과 수입 자료를 정리해 전달")}
+${stepBox(2, "모니터링 · 검토", "저희가 곡을 모니터링하고 인수 여부를 판단")}
+${stepBox(3, "미팅 주선", "마케팅에 적합한 곡이면 쿼터뮤직이 아티스트와 미팅 자리 마련")}
+${stepBox(4, "미팅 · 인수", "저희가 자료를 준비해 미팅하고, 아티스트가 동의하면 인접권 인수")}
+${stepBox(5, "마케팅 · 계속 발매", "인수한 곡을 마케팅하고, 같은 아티스트와 신곡을 계속 발매")}
+</div></div>
+<div class="card"><h2>아티스트에게는 이렇게 제안합니다</h2><div class="pgrid">
+<div class="pbox"><div class="ph">아티스트 몫</div><div class="pb">저작권 · 실연권 수입은 그대로 아티스트에게<br>신곡은 인접권 30%(5년)도 배분</div></div>
+<div class="pbox"><div class="ph">마케팅비</div><div class="pb"><b>전액 저희 부담</b> · 제작비로 잡지 않고 바로 정산</div></div>
+<div class="pbox"><div class="ph">역할</div><div class="pb">곡 · 앨범 자켓은 아티스트<br>유통 실무 · 마케팅은 저희</div></div>
+</div></div>
+<div class="card" style="border-color:#2f6b52"><h2>결과 — 쿼터뮤직 · 아티스트 · 저희 모두 수익이 늘어나는 구조</h2><div class="pb" style="padding:2px 2px 8px">묻혀 있던 곡은 다시 살아나고, 신곡이 나올 때마다 쿼터뮤직의 유통 매출이 계속 쌓입니다.</div></div>`;
 const box =(title, items) => `<div class="card"><h2>${title}</h2><div class="pgrid">${items.map(([h, b]) => `<div class="pbox"><div class="ph">${h}</div><div class="pb">${b}</div></div>`).join("")}</div></div>`;
 const PAGES = [
   { dir: DIR, // 아티스트용
@@ -367,7 +383,7 @@ ${tile("지금 유통사 수익", "월 " + man(catFee.a), `수수료 ${FEE * 100
 ${tile("인수 전", "월 " + man(catFee.b), `기존 발매곡 ${ids.length}곡`)}
 ${tile("지금 — 기존곡 + 신곡 1곡", "월 " + man(catFee.a + newFee), `기존곡 ${man(catFee.a)} + 신곡 ${man(newFee)}`, "up")}
 ${tile("추가 발매 1곡당 더해진 수익", "월 +" + man(newFee), "신곡이 나올 때마다 쌓입니다")}
-</div>` + pie,
+</div>` + pie + distFlow,
     moneyNote: `· 음원 매출 = 하루 조회수 × 30일 × 스트림당 ${RATE_NB}원(유튜브뮤직 제작자 정산 단가 기준 추정). 유통사 수익 = 음원 매출 × 수수료 ${FEE * 100}%(가정). 실제 수수료율은 계약마다 다릅니다.` },
 ];
 for (const p of PAGES) {
