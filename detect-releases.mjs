@@ -45,7 +45,9 @@ const ARTISTS = [
 ];
 
 const vidOf = (u) => (u.match(/[?&]v=([\w-]{11})/) || u.match(/youtu\.be\/([\w-]{11})/) || [])[1];
-const isInst = (t) => /instrumental|\(inst\.?\)|\(mr\)|반주/i.test(t);   // 2026-10-30: MR도 반주로 보고 제외 (김결 Unexpected Day (MR))
+// 2026-10-30 민우님이 지우라고 한 곡 — 자동 감지가 다시 붙이지 않게 영구 제외 (도코 Destiny는 지운 직후 다시 붙었음)
+const BLOCK = new Set(["sOXceXmqsn4", "7vsmpusnnkw"]);
+const isInst = (t, id) => (id && BLOCK.has(id)) || /instrumental|\(inst\.?\)|\(mr\)|반주/i.test(t);   // 2026-10-30: MR도 반주로 보고 제외 (김결 Unexpected Day (MR))
 const localDate = (d = new Date()) => {
   const p = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
@@ -155,7 +157,7 @@ async function main() {
     try { vids = await feed(a.channelId); }
     catch (e) { fail(a.name, e); continue; }
     for (const v of vids) {
-      if (have.has(v.id) || isInst(v.title)) continue;
+      if (have.has(v.id) || isInst(v.title, v.id)) continue;
       const pub = Date.parse(v.published);
       if (Number.isFinite(pub) && pub < cutoff) continue; // 오래된 카탈로그 제외
       const entry = {
@@ -197,7 +199,7 @@ async function main() {
     const seenIds = new Set(seenCand.map((x) => x.id));
     const found = [];
     for (const v of results) {
-      if (!v.id || have2.has(v.id) || seenIds.has(v.id) || isInst(v.title)) continue;
+      if (!v.id || have2.has(v.id) || seenIds.has(v.id) || isInst(v.title, v.id)) continue;
       if (!v.title.includes(KEYWORD)) continue;   // 제목(또는 prod.)에 로코베리 포함
       if (!recencyOK(v.published)) continue;       // 최근 발행분만
       if (!/(-\s*topic|토픽)\s*$/i.test((v.ch || "").trim())) continue; // 아트트랙(Topic 채널)만 — 플레이리스트/믹스 제외
