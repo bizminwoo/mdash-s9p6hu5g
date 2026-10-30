@@ -39,6 +39,7 @@ const ARTISTS = [
   { name: "스트레이", channelId: "UCQuYI15KJscpcm9iuLOgRFg" },   // The Stray - Topic
   { name: "로코베리", channelId: "UCxSjpAHSqTXKaFoAazV09TA" },   // Rocoberry - Topic
   { name: "그믐달",   channelId: "UCC9QFzk4mXQNjHArqAem8OA" },   // Dark Moon - Topic
+  { name: "사적인 이야기", channelId: "UCDcDeL6SRxRAZ8U3D0I7W9Q" },   // Private Story - Topic, 2026-10-30 민우님 "앞으로 앨범 나오면 상세추적"
   // 2026-09-29 민우님 지시: 아래는 신곡이 나오면 경쟁사 분석에만 붙이고 상세추적(시간별 좋아요)은 안 함
   { name: "지진석",   channelId: "UCJxMzuB_DWzdynwxXoxTdWQ", detail: false },
 ];
