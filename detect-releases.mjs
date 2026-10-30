@@ -45,7 +45,7 @@ const ARTISTS = [
 ];
 
 const vidOf = (u) => (u.match(/[?&]v=([\w-]{11})/) || u.match(/youtu\.be\/([\w-]{11})/) || [])[1];
-const isInst = (t) => /instrumental|\(inst\.?\)/i.test(t);
+const isInst = (t) => /instrumental|\(inst\.?\)|\(mr\)|반주/i.test(t);   // 2026-10-30: MR도 반주로 보고 제외 (김결 Unexpected Day (MR))
 const localDate = (d = new Date()) => {
   const p = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
