@@ -966,6 +966,8 @@ const DIST_LAG = { "지니": 2, "지니(승률)": 2, "CJ": 4 };
 // 2026-10-20 민우님: CJ 11/30 입금(8월 서비스분 = 7월 유튜브분) = 913,189원 확정 (50% 반영된 내 몫). 단가 5.75원은 이 값으로 맞춘 것.
 // 2026-10-20 민우님: CJ 10/30 입금(6월 유튜브분 + 7월 국내) = 131,604원 확정 — 6월은 유튜브 스트리밍이 매우 낮았음.
 const DIST_ACTUAL = { "지니": { "2026-8": 2402165 }, "CJ": { "2026-6": 131604, "2026-7": 913189 } };
+// 2026-11-03 민우님: 쿼터(선급곡) 실제 정산 확정액 — 선급 회수에 들어가는 돈이라 내 몫 합계엔 안 넣고 "확정"으로만 표시. 10월 입금(7월분) 2,447,225 · 11월 입금(8월분) 4,420,205 (추정 5,517,384보다 20% 적음).
+const DIST_ACTUAL_ADV = { "쿼터": { "2026-7": 2447225, "2026-8": 4420205 } };
 const DIST_LAG_DEFAULT = 3;
 // 유통사를 옮긴 곡: distBefore = {until:"YYYY-MM-DD", dist:"이전 유통사"} — 그날까지는 이전 유통사로 정산 (2026-10-26 민우님: 카디코기·왕준협 9월분부터 다날)
 function distOn(songs, id, day){
@@ -1038,6 +1040,8 @@ function renderDistRevenue(snaps, songs, ids){
     if(before(cur, svc)) return { html: `<span class='muted'>—</span><div class="muted" style="font-size:10.5px">${svc.m}월분 (아직)</div>`, mine: 0 };
     const act = (DIST_ACTUAL[d] || {})[keyOf(svc)];
     if(act != null) return { html: `<b>${fmtWon(act)}</b> <span class="muted" style="font-size:10.5px;font-weight:400">확정</span>${tag}`, mine: act };
+    const adv = (DIST_ACTUAL_ADV[d] || {})[keyOf(svc)];
+    if(adv != null){ const est = (per[d] && per[d][keyOf(svc)] || {}).full; return { html: `<span class="muted">선급 회수</span> <b>${fmtWon(adv)}</b> <span class="muted" style="font-size:10.5px;font-weight:400">확정</span>${est ? `<div class="muted" style="font-size:10.5px">추정 ≈${fmtWon(est)} (${est > adv ? "−" : "+"}${Math.round(Math.abs(adv/est-1)*100)}%)</div>` : ""}${tag}`, mine: 0 }; }
     if(before(svc, fullFrom)) return { html: `<span class='muted'>수집 전</span><div class="muted" style="font-size:10.5px">${svc.m}월분</div>`, mine: 0 };
     const v = per[d][keyOf(svc)];
     if(!v || !v.full) return { html: `<span class='muted'>—</span>${tag}`, mine: 0 };
