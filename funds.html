@@ -121,7 +121,19 @@
   .hint{font-size:12px; color:var(--ink-soft); margin:0 0 14px; line-height:1.6}
   .foot{margin-top:24px; font-size:11.5px; color:var(--ink-faint); text-align:center; line-height:1.7}
 
+  /* v52: 약속 성적표 · 월별 표 */
+  .pl-row{display:grid; grid-template-columns:150px 1fr 150px; align-items:center; gap:12px; padding:7px 0}
+  .pl-row .lbl{font-size:13px; font-weight:600}
+  .pl-row .amt{text-align:right; font-size:13px; font-weight:700}
+  .mtbl{width:100%; border-collapse:collapse; font-size:12.5px}
+  .mtbl th,.mtbl td{padding:8px 10px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--line-soft)}
+  .mtbl th{font-size:11px; color:var(--ink-soft); font-weight:700; border-bottom:1px solid var(--line)}
+  .mtbl th:first-child,.mtbl td:first-child{text-align:left}
+  .mtbl tr.cur td{background:var(--surface-2); font-weight:800}
+  .mtbl tfoot td{font-weight:800; border-top:2px solid var(--line); border-bottom:0}
+
   @media(max-width:760px){
+    .pl-row{grid-template-columns:96px 1fr 116px}
     .grid{grid-template-columns:1fr}
     .form{grid-template-columns:repeat(2,1fr)}
     .addbtn{grid-column:span 2}
@@ -163,9 +175,9 @@
       <div class="sub" id="cardFixedSub">선투자형 — 회수는 발매 3개월 뒤부터</div>
     </div>
     <div class="card">
-      <div class="k">🙋 개인 지출 (법인통장)</div>
+      <div class="k">🙋 개인 지출 (전 계좌)</div>
       <div class="v num" id="cardBizNet">—</div>
-      <div class="sub" id="cardBizSub">법인통장에서 개인용도로 나간 돈</div>
+      <div class="sub" id="cardBizSub">법인·개인 계좌 합산 (내 계좌끼리 옮긴 돈 제외)</div>
     </div>
     <div class="card">
       <div class="k">💵 실제 통장 증감 (현금)</div>
@@ -206,6 +218,11 @@
   </div>
 
   <div class="section">
+    <h2>지출 약속 성적표 <span class="rule"></span></h2>
+    <div class="bars" id="pledgeBox"></div>
+  </div>
+
+  <div class="section">
     <h2>법인 인출 자금 추적 <span class="rule"></span></h2>
     <div class="bars">
       <div style="font-size:12px;color:var(--ink-soft);line-height:1.6;margin-bottom:12px">법인에서 빼낸 돈(대표 인출)이 <b>날짜순으로 어디 쓰였는지</b> 누적 추적해요. 월에 상관없이 전체 타임라인 — 1월에 뺀 돈이 3월에 쓰여도 잔액으로 따라가요. (월 선택과 무관하게 항상 전체 표시)</div>
@@ -222,6 +239,17 @@
   <div class="section">
     <h2>월별 흐름 추이 <span class="rule"></span></h2>
     <div class="bars" id="trendBox"></div>
+  </div>
+
+  <div class="section">
+    <h2>사업부별 월 손익 <span class="rule"></span></h2>
+    <div class="bars">
+      <div style="font-size:12px;color:var(--ink-soft);line-height:1.6;margin-bottom:10px">사업부마다 그 달 번 돈 − 쓴 돈 (단위 만원). 개인지출은 빠진 숫자예요. 고른 달은 진하게 표시.</div>
+      <div style="overflow-x:auto"><table class="mtbl">
+        <thead><tr><th>월</th><th>레이벡스</th><th>엔터사업부</th><th>틱톡</th><th>화장품</th><th>공통</th><th>사업 합계</th></tr></thead>
+        <tbody id="bizMonthBody"></tbody>
+      </table></div>
+    </div>
   </div>
 
   <div class="section">
@@ -306,7 +334,7 @@
 <script>
 (function(){
   "use strict";
-  const KEY_TX="finance_transactions_v51", KEY_FIX="finance_fixedcosts_v51";
+  const KEY_TX="finance_transactions_v52", KEY_FIX="finance_fixedcosts_v52";
   const won=n=>(n<0?"-":"")+"₩"+Math.abs(Math.round(n)).toLocaleString("ko-KR");
   const man=n=>{const a=Math.abs(n); if(a>=100000000)return (n/100000000).toFixed(a%100000000?1:0)+"억"; if(a>=10000)return Math.round(n/10000).toLocaleString("ko-KR")+"만"; return Math.round(n).toLocaleString("ko-KR");};
   const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -857,7 +885,7 @@
     ["2026-07-10","지출","개인","쇼핑",45645,"네이버페이 3건(109)"],
   ];
   const SEED_AUG=[
-    // ※ 8월 = 법인통장 마감 (클로브 319건, 2026-09-01 반영, 입출 검산 0원) · 개인계좌 3종 미반영
+    // ※ 8월 = 법인통장 마감 (클로브 319건, 2026-09-01 반영, 입출 검산 0원) · 개인계좌 3종은 9/2 v41에서 반영
     // ※ 이민우 명의 입금 17건 774.6만 = 대표 반납(자금이동, 클로브가 뮤즈플랫폼으로 오라벨) · 을밀대 4.5만은 동규 정산 수령으로 식비 포함+상계 확인
     // ── 수입 (부가세 제외) ──
     ["2026-08-14","수입","사업","레이벡스",5000000,"레이벡스 월급(부가세 제외)"],
@@ -1043,7 +1071,7 @@
     // ── 미확정 (확인되면 재분류) ──
   ];
   const SEED_OCT=[
-    // ※ 10월 = 전 계좌 마감(법인+개인 4종) — 법인통장 (클로브 308건, 2026-11-01 수집·반영, 잔액체인·입출 대조 0원) · 개인계좌 4종 미반영
+    // ※ 10월 = 전 계좌 마감(법인+개인 4종) — 법인통장 (클로브 308건, 2026-11-01 수집·반영, 잔액체인·입출 대조 0원) · 개인계좌 4종은 아래 11/3 블록
     ["2026-10-01","수입","사업","음원",371142,"뮤즈플랫폼 음원매출(부가세 제외)"],
     ["2026-10-06","수입","사업","틱톡",3306483,"PIPO 틱톡(영세율)"],
     ["2026-10-12","수입","사업","엔터",501595,"엔터 해외정산(PAYONEER $379.35 10/7 → 외화통장 환전 10/12, 영세율)"],
@@ -1114,7 +1142,8 @@
     ["2026-10-12","지출","개인","상환",600000,"개인회생 변제금(개인KB→토스 이민우 10/12 13:59, 60만)"],
     ["2026-10-03","지출","개인","가족",400000,"아빠 건강검진 40만(카카오페이 10/3 — 법인 인출 40만과 같은 돈, 한 번만 계상)"],
     ["2026-10-15","지출","개인","술",-517300,"술 친구 정산 상계 — 받은 돈 963,800(효일·경식·동규·지환·세영·병록·상진, 카카오페이 12건) − 낸 돈 446,500(동규 송금 5.7만·32.45만, 공보배 6만, 디스트릭트 5천) — 민우님 11/3 확인"],
-    ["2026-10-13","지출","개인","교통",82540,"교통카드 충전(티머니 10,190×6, 109)+동규 택시비 21,400(카카오페이 10/25)"],
+    ["2026-10-13","지출","개인","교통",61140,"교통카드 충전(티머니 10,190×6, 109)"],
+    ["2026-10-25","지출","개인","교통",21400,"동규 택시비 21,400(카카오페이 10/25 21:27)"],
     ["2026-10-17","지출","개인","생활",200000,"토스페이 충전 10만×2(10/17, 토스페이로 쓴 곳 기록 없음)"],
     ["2026-10-22","지출","개인","의료",14000,"마포공덕바로본정형 126,290+신영약국 4,000 − 메리츠 보험금 116,290(10/26)"],
     ["2026-10-15","지출","개인","보험",83320,"메리츠·KB손 2건·카카오손보(토스)"],
@@ -1186,7 +1215,7 @@
     document.getElementById("cardPersonal").textContent=won(c.cashNet);
 
     renderPnl(); renderSplit(c); renderCatBars(); renderInsights(c); renderTrail();
-    renderTrend(); renderRadar(); renderUnconf(); renderVat();
+    renderTrend(); renderRadar(); renderUnconf(); renderVat(); renderPledge(); renderBizMonth();
     renderFixedList(); renderTxList();
   }
 
@@ -1231,10 +1260,10 @@
       row("화장품","var(--c-cosme)",i,e);
       subItems("화장품");}
     // 공통
-    const commonExp=sumEx("공통");
-    if(commonExp>0){tE+=commonExp;
-      row("사업 공통","var(--c-common)",0,commonExp);
-      subItems("공통");}
+    const commonInc=sumIn("공통"), commonExp=sumEx("공통");
+    if(commonInc||commonExp){tI+=commonInc; tE+=commonExp;
+      row("사업 공통","var(--c-common)",commonInc,commonExp,commonInc?{note:"수입 = 카드 캐시백·세금 환급·이자 등"}:{});
+      if(commonExp>0) subItems("공통");}
     function subItems(area){
       const items=m.filter(t=>t.kind==="지출"&&t.scope==="사업"&&t.area===area)
         .sort((a,b)=>b.amount-a.amount);
@@ -1320,7 +1349,7 @@
       const m=monthTx(); const pm={};
       m.filter(t=>t.kind==="지출"&&t.scope==="개인").forEach(t=>{const l=(AREA["개인"].find(x=>x[0]===t.area)||[,t.area])[1]; pm[l]=(pm[l]||0)+t.amount;});
       const top=Object.entries(pm).sort((a,b)=>b[1]-a[1])[0];
-      add("",`법인통장에서 개인용도로 <b>${won(c.personal)}</b>.${top?` 1위 <b>${top[0]} ${won(top[1])}</b>.`:""}`);
+      add("",`개인용도로 나간 돈 <b>${won(c.personal)}</b>.${top?` 1위 <b>${top[0]} ${won(top[1])}</b>.`:""}`);
     }
     if(c.cashNet<0) add("",`투자금·차입금 제외 시 실제 통장은 <b>${won(-c.cashNet)} 감소</b>.`);
   }
@@ -1331,7 +1360,7 @@
     body.innerHTML=""; foot.innerHTML="";
     let bal=0, totIn=0, totOut=0;
     const fmtD=d=>d.slice(5).replace("-",".");
-    TRAIL_TL.forEach(([date,label,type,amt])=>{
+    TRAIL_TL.map((r,i)=>[r,i]).sort((a,b)=>a[0][0]<b[0][0]?-1:a[0][0]>b[0][0]?1:a[1]-b[1]).map(x=>x[0]).forEach(([date,label,type,amt])=>{
       if(type==="in"){
         bal+=amt; totIn+=amt;
         body.insertAdjacentHTML("beforeend",
@@ -1350,14 +1379,15 @@
     foot.innerHTML=`<tr><td>누적 인출 ${won(totIn)} · 추적된 사용 ${won(totOut)}</td>
       <td class="num" style="font-weight:700">미추적 잔액 ${won(totIn-totOut)}</td>
       <td class="num" style="color:var(--ink-faint)">생활비/통장잔액</td></tr>
+      ${totIn-totOut<0?`<tr><td colspan="3" style="font-size:12px;color:var(--ink-soft);line-height:1.6">ℹ️ 잔액이 마이너스 = 법인에 다시 넣은 돈(빗썸·주식에서 회수한 돈 등)이 빼낸 돈보다 많다는 뜻이에요. 회수한 돈 자체는 이 표의 '인출'에 안 잡혀요.</td></tr>`:""}
       <tr><td colspan="3" style="padding-top:14px;border-top:2px solid var(--line);font-size:12px;color:var(--ink-soft);line-height:1.6">
       🪙 <b>빗썸(BTC) 누적</b> — 넣은 돈 ${won(BTC_NET.inAmt)} · 뺀 돈 ${won(BTC_NET.outAmt)} · <b style="color:var(--warn)">아직 묶인 돈 ${won(BTC_NET.inAmt-BTC_NET.outAmt)}</b> (평가액 별도, 투자로 보유 중)</td></tr>`;
   }
 
   const FIXED_RADAR=[
     ["🏢 새 사무실 월세 (박영옥, 선불)",1000000,"보증금 1,000만 별도(자산)"],
-    ["⚖️ 개인회생 변제금",564792,"매달 (KB→토스)"],
-    ["4대보험",339500,"법인 (국민연금+건강)"],
+    ["⚖️ 개인회생 변제금",565000,"매달 (KB→토스) · 8·9월 565,000 · 10월은 60만 송금"],
+    ["4대보험",335600,"법인 (국민연금+건강) · 8~10월 실측"],
     ["기장료 (인덕회계)",220000,"월 기장 (결산·법인세는 별도)"],
     ["🏠 마포 오피스텔 관리비",200000,"직원 숙소/창고"],
     ["보험 3종 (메리츠·KB손·카카오손보)",84020,"42,920+31,000+10,100"],
@@ -1394,7 +1424,93 @@
     });
     svg+=`</svg>`;
     const tot=data.reduce((s,d)=>s+d.net,0);
-    box.innerHTML=svg+`<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">2026 누적 순현금흐름: <b style="color:${tot<0?'#C0504D':'#2E8B6F'}">${won(tot)}</b> · 10월까지 전 계좌 완전 마감</div>`;
+    box.innerHTML=svg+`<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">2026 누적 순현금흐름: <b style="color:${tot<0?'#C0504D':'#2E8B6F'}">${won(tot)}</b> · 10월까지 전 계좌 완전 마감</div>`+trendWarn(data,tot);
+  }
+
+  // ── v52: 지출 약속 (민우님 확정값 — budget-pledge 기록) ──
+  const PLEDGES={
+    "2026-07":{옷:0,술:500000,택시:120000,배달:150000},
+    "2026-08":{옷:0,술:1000000,택시:200000,배달:200000},
+    "2026-09":{옷:200000,술:1000000,택시:300000,배달:200000},
+    "2026-10":{옷:200000,술:1000000,택시:300000,배달:200000,note:"10월은 따로 안 정해서 9월 약속 기준으로 비교"},
+    "2026-11":{옷:200000,술:1000000,택시:400000,배달:200000,note:"목표: 술 마신 날 새벽 택시 줄이기"},
+  };
+  const PLEDGE_CATS=[["옷","옷"],["술","술 (돌려받은 돈 뺀 것)"],["택시","택시·대리"],["배달","배달 (배민·쿠팡이츠)"]];
+  const isTaxi=t=>t.area==="교통"&&/택시|대리/.test(t.memo||"");
+  function pledgeActual(rows){
+    const s=f=>rows.filter(t=>t.kind==="지출"&&t.scope==="개인"&&f(t)).reduce((a,t)=>a+t.amount,0);
+    return {옷:s(t=>t.area==="의류"),술:s(t=>t.area==="술"),택시:s(isTaxi),배달:s(t=>t.area==="배민"||t.area==="쿠팡이츠"),total:s(()=>true)};
+  }
+  const dataMonths=()=>[...new Set(tx.map(t=>ym(t.date)))].sort();
+  const nowYM=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");};
+
+  function renderPledge(){
+    const box=document.getElementById("pledgeBox"); if(!box)return;
+    let html="";
+    if(yearMode){
+      html+='<div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:10px">월을 고르면 그 달 약속 성적표가 떠요. 아래는 달마다 비교.</div>';
+    }else{
+      const mk=curYM(), P=PLEDGES[mk], mo=parseInt(mk.slice(5));
+      const rows=tx.filter(t=>ym(t.date)===mk), A=pledgeActual(rows);
+      if(!P){
+        html+=`<div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:10px">${mo}월은 지출 약속을 안 정했던 달이에요 (약속은 7월부터). 아래 표로 비교해 보세요.</div>`;
+      }else{
+        const noData=rows.length===0, live=mk===nowYM();
+        const status=noData?`⏳ 마감 전 — 아직 ${mo}월 거래가 안 들어왔어요 (${mo===12?1:mo+1}월 1일 마감 때 채워져요)`
+          :live?"🔄 진행 중 — 중간 숫자예요":"마감 완료";
+        let kept=0;
+        html+=`<div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:8px"><b style="color:var(--ink)">${mo}월 약속</b> · ${status}${P.note?` · ${P.note}`:""}</div>`;
+        PLEDGE_CATS.forEach(([k,label])=>{
+          const lim=P[k], v=A[k], ok=v<=lim; if(ok)kept++;
+          const pct=noData?0:(lim>0?Math.min(100,v/lim*100):(v>0?100:0));
+          const col=ok?"var(--pos)":"var(--neg)";
+          const amt=noData?`<span style="color:var(--ink-faint)">마감 전</span> / ${lim?man(lim):"0원"}`
+            :`<span style="color:${col}">${man(v)}</span> / ${lim?man(lim):"0원"} ${ok?"✅":"🔴"}`;
+          html+=`<div class="pl-row"><div class="lbl">${label}</div>
+            <div class="track"><div class="fill" style="width:${pct}%;background:${col}"></div></div>
+            <div class="amt num">${amt}</div></div>`;
+        });
+        if(!noData) html+=`<div style="font-size:12.5px;margin:6px 0 4px;font-weight:700;color:${kept===4?"var(--pos)":"var(--neg)"}">4개 중 ${kept}개 지킴${live?" (지금까지)":""}</div>`;
+      }
+    }
+    // 월별 비교표
+    const months=dataMonths().filter(mk=>mk.slice(0,4)===String(curYear())||!yearMode);
+    html+=`<div style="height:1px;background:var(--line-soft);margin:12px 0 10px"></div>
+      <div style="font-size:12px;color:var(--warn);font-weight:800;margin-bottom:4px">🙋 약속 4항목 월별 비교 (단위 만원)</div>
+      <div style="overflow-x:auto"><table class="mtbl"><thead><tr><th>월</th><th>옷</th><th>술</th><th>택시·대리</th><th>배달</th><th>개인지출 전체</th></tr></thead><tbody>`;
+    months.forEach(mk=>{
+      const A=pledgeActual(tx.filter(t=>ym(t.date)===mk)), P=PLEDGES[mk];
+      const cell=k=>{const v=A[k]; const c=!P?"var(--ink-soft)":(v<=P[k]?"var(--pos)":"var(--neg)"); return `<td class="num" style="color:${c}">${man(v)}</td>`;};
+      html+=`<tr class="${!yearMode&&mk===curYM()?"cur":""}"><td>${parseInt(mk.slice(5))}월${P?"":" <span style=\"color:var(--ink-faint);font-weight:400\">(약속 없음)</span>"}</td>${cell("옷")}${cell("술")}${cell("택시")}${cell("배달")}<td class="num">${man(A.total)}</td></tr>`;
+    });
+    html+=`</tbody></table></div>
+      <div style="font-size:11.5px;color:var(--ink-faint);margin-top:6px;line-height:1.6">초록 = 그 달 약속 지킴 · 빨강 = 넘음 · 회색 = 약속 없던 달. 택시·대리는 교통비 중 택시·대리운전 줄만 (KTX·교통카드 충전 제외). 술은 친구들한테 돌려받은 돈을 뺀 내 몫.</div>`;
+    box.innerHTML=html;
+  }
+
+  function renderBizMonth(){
+    const b=document.getElementById("bizMonthBody"); if(!b)return;
+    const cols=[["레이벡스",["레이벡스"],["레이벡스"]],["엔터사업부",["엔터","음원IP","음저협","음원"],["음원"]],["틱톡",["틱톡"],["틱톡"]],["화장품",["화장품"],["화장품"]],["공통",["공통"],["공통"]]];
+    const tot=cols.map(()=>0); let totAll=0;
+    const fmt=v=>`<td class="num" style="color:${v<0?"var(--neg)":v>0?"var(--pos)":"var(--ink-faint)"}">${v?man(v):"—"}</td>`;
+    let html="";
+    dataMonths().filter(mk=>!yearMode||mk.slice(0,4)===String(curYear())).forEach(mk=>{
+      const m=tx.filter(t=>ym(t.date)===mk&&t.scope==="사업");
+      const vals=cols.map(([,inA,exA])=>m.filter(t=>t.kind==="수입"&&inA.includes(t.area)).reduce((s,t)=>s+t.amount,0)
+                                     -m.filter(t=>t.kind==="지출"&&exA.includes(t.area)).reduce((s,t)=>s+t.amount,0));
+      const all=m.filter(t=>t.kind==="수입").reduce((s,t)=>s+t.amount,0)-m.filter(t=>t.kind==="지출").reduce((s,t)=>s+t.amount,0);
+      vals.forEach((v,i)=>tot[i]+=v); totAll+=all;
+      html+=`<tr class="${!yearMode&&mk===curYM()?"cur":""}"><td>${parseInt(mk.slice(5))}월</td>${vals.map(fmt).join("")}${fmt(all)}</tr>`;
+    });
+    b.innerHTML=html+`<tr><td style="font-weight:800;border-top:2px solid var(--line)">합계</td>${tot.map(v=>fmt(v).replace('<td class="num" style="','<td class="num" style="font-weight:800;border-top:2px solid var(--line);')).join("")}${fmt(totAll).replace('<td class="num" style="','<td class="num" style="font-weight:800;border-top:2px solid var(--line);')}</tr>`;
+  }
+
+  function trendWarn(data,tot){
+    const done=data.filter(d=>tx.some(t=>ym(t.date)===d.mk)); if(done.length<3)return "";
+    const last=done.slice(-3), avg=last.reduce((s,d)=>s+d.net,0)/3, lastMo=parseInt(last[2].mk.slice(5));
+    const a=parseInt(last[0].mk.slice(5)), proj=tot+avg*(12-lastMo);
+    if(avg>=0) return `<div class="ins good" style="margin-top:10px">👍 최근 3개월(${a}~${lastMo}월) 평균 한 달 <b>+${man(avg)}원</b> — 이 속도면 12월 말 누적 약 <b>${man(proj)}원</b>.</div>`;
+    return `<div class="ins bad" style="margin-top:10px">⚠️ 최근 3개월(${a}~${lastMo}월) 평균 한 달 <b>${man(avg)}원</b> 적자 — 이 속도면 12월 말 누적 약 <b>${man(proj)}원</b>. 적자를 멈추려면 한 달에 ${man(-avg)}원씩 더 벌거나 줄여야 해요.</div>`;
   }
 
   function renderRadar(){
@@ -1475,7 +1591,7 @@
           <span class="tag" style="background:${t.scope==='사업'?'#E3F0EE':'#FBF0DD'};color:${t.scope==='사업'?'var(--accent)':'var(--warn)'}">${t.scope}·${areaL}</span>
           <span class="desc">${t.memo||areaL}</span>
           <span class="meta num">${t.date.slice(5)}</span>
-          <span class="li-amt num" style="color:${isInc?'var(--pos)':'var(--neg)'}">${isInc?'+':'-'}${won(t.amount).replace('₩','₩')}</span>
+          <span class="li-amt num" style="color:${isInc!==(t.amount<0)?'var(--pos)':'var(--neg)'}">${isInc!==(t.amount<0)?'+':'-'}${won(Math.abs(t.amount))}${t.amount<0?' <span style="font-size:11px;color:var(--ink-faint)">(돌려받음)</span>':''}</span>
           <button class="del" data-del="${t.id}" title="삭제">✕</button>
         </div>`);
     });
