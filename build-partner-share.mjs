@@ -12,7 +12,7 @@ const SHARES = [
   // 2026-10-23 민우님: 최한솔 쪽 8곡(천성·나찬·투엣·귀울임·상혁·용대) + 왕준협
   // from: 왕준협 9/20~9/24 광고 기간은 날짜째 빼달라 (2026-10-23 민우님)
   { dir: "chs-stream-r4t8wz", title: "음원", from: "2026-09-25",
-    ids: ["blQPNauonCs", "GHrFZ1icrhg", "Cg_DLUay35I", "E7dgtMSboxg", "by6TSMwKpOs", "rlL4nsh-pz0", "a2H7UILaWmY", "4wUp5GIGHbM", "l8nG3iczo8s"] },
+    ids: ["blQPNauonCs", "GHrFZ1icrhg", "Cg_DLUay35I", "E7dgtMSboxg", "by6TSMwKpOs", "rlL4nsh-pz0", "a2H7UILaWmY", "4wUp5GIGHbM", "l8nG3iczo8s", "5P80lmi1dqQ"] },   // 2026-11-05 민우님: 제소윤 이별 모습도 최한솔 쪽
 ];
 
 const ROOT = dirname(fileURLToPath(import.meta.url));
