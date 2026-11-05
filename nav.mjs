@@ -5,6 +5,8 @@ export const TABS = [
   // 2026-10-27 민우님: AI 음원 탭 삭제 → 그 자리에 아티스트 제안 페이지 (build-case-study.mjs 가 proposal.html 생성)
   ["proposal.html", "🎤 아티스트 제안"],
   ["funds.html", "💼 자금 현황"],
+  // 2026-11-05 민우님: 시트 '음원정산' 대체 — 곡별 제작비·회수 (데이터 data/prodcost.json, 정적 페이지)
+  ["prodcost.html", "💿 음원 제작비 현황"],
   ["trending.html", "🎯 경쟁사 분석"],
   ["detail.html", "🔎 상세 추적"],
   // 마케팅 BEP 페이지는 2026-09-10 삭제됨 (민우님 지시, experiments.json 데이터는 보존).
