@@ -1,5 +1,6 @@
 // ================================================================
-// 자동 신곡 광고 스크립트 v2.19 — 이민우 비서 제작
+// 자동 신곡 광고 스크립트 v2.20 — 이민우 비서 제작
+// v2.20 (2026-11-10): 새 명령이면 같은 영상의 옛 광고를 재사용하지 않고 새 광고를 만든다(옛 광고는 일시중지, 생성 실패 시 되돌림). 명령에 "reuseOldAd": true 면 예전처럼 재사용.
 // v2.19 (2026-10-12): 민우님이 화면/앱에서 끈 광고를 스크립트가 매시간 다시 켜던 문제 수정(10/11 23:43 이든하 그룹을 끄셨는데 00:05에 다시 켬).
 //                    명령마다 처음 한 번만 켜고(광고그룹에 'auto-started-명령id' 라벨), 그 뒤로는 켜고 끄기를 건드리지 않는다.
 //                    예산·종료일은 명령대로 계속 맞추고, 기간이 끝나면 끄는 것은 그대로.
@@ -143,8 +144,18 @@ function runOne(cmd) {
   }
 
   // 2) 이 곡 광고가 이미 켜져 있으면 그대로 둔다 (영상으로 판별 — 화면에서 문구를 고쳐도 같은 광고로 인식)
-  var mine = null, adsIt = ag.videoAds().get(), adList = [];
+  var mine = null, adsIt = ag.videoAds().get(), adList = [], oldSame = [];
   while (adsIt.hasNext()) { var a = adsIt.next(); adList.push(a); if (a.getVideoId() === cmd.videoId && (!mine || a.isEnabled())) mine = a; }
+  // v2.20 (2026-11-10 민우님 지시): 새 명령(처음 시작)이면 같은 영상으로 만든 옛 광고를 재사용하지 않고 새 광고를 만든다.
+  //   (11/10 제이세라 「겨울비」: 자켓 교체로 옛 광고가 비승인 → 다시 걸어도 옛 광고를 다시 켜서 계속 노출 0)
+  //   옛 광고는 일시중지만(삭제 안 함). 새 광고 생성이 실패하면 옛 광고를 원래대로 다시 켠다.
+  if (!started && LABEL_OK && !cmd.reuseOldAd) {
+    for (var o = 0; o < adList.length; o++) {
+      if (adList[o].getVideoId() === cmd.videoId) { oldSame.push({ ad: adList[o], wasOn: adList[o].isEnabled() }); if (adList[o].isEnabled()) adList[o].pause(); }
+    }
+    if (oldSame.length) Logger.log('같은 영상 옛 광고 ' + oldSame.length + '개 일시중지 → 새 광고로 다시 심사: ' + marker);
+    mine = null;
+  }
   var isNew = !(mine && mine.isEnabled());
   if (isNew) {
     // 새 명령 시작: 종료일을 맞추고, 다른 곡 광고는 끈다
@@ -226,12 +237,17 @@ function runOne(cmd) {
     } catch (e) { mErr = '' + e; }
     if (!okMutate) {
       Logger.log('광고 생성 실패(API 직접): ' + mErr + ' / 영상자산 ' + videoAsset.getId() + ' / 로고 ' + logoAsset.getId() + ' / 그룹 ' + ag.getName());
+      for (var ob = 0; ob < oldSame.length; ob++) { if (oldSame[ob].wasOn) oldSame[ob].ad.enable(); }
+      if (oldSame.length) Logger.log('새 광고를 못 만들어 옛 광고를 원래대로 되돌림');
       // ③ 예산·기간은 맞춰뒀으니 광고만 화면에서: 이 캠페인 아무 그룹에 이 영상 광고를 만들면 다음 실행 때 자동으로 켬
       if (camp.isEnabled() && !mine) { /* 다른 곡 광고가 도는 중일 수 있으니 캠페인 상태는 건드리지 않음 */ }
       Logger.log('👉 광고만 화면에서 만들어주세요: 「' + tmpl + '」 캠페인에 영상 ' + cmd.videoId + ' 광고(비즈니스 이름 oowsound·로고) → 다음 정시 실행 때 자동으로 켜짐');
       return;
     }
     Logger.log('광고 생성: ' + marker + ' / 영상 ' + cmd.videoId);
+    // v2.20: 새 광고를 만들었으면 바로 '시작함' 표시 — 아래에서 중간에 멈춰도(go:false 등) 다음 회차에 또 새로 만들지 않게
+    //   (started 변수는 그대로 둬서 아래 캠페인 켜기는 이번 회차에 정상 진행)
+    if (oldSame.length && !AdsApp.getExecutionInfo().isPreview()) markStarted(ag, startedLbl);
   }
 
   // 3) 종료일·총예산 재확인 후 캠페인 켜기
@@ -258,15 +274,17 @@ function runOne(cmd) {
 }
 
 // v2.19: 명령별 '한 번 켰음' 표시 (광고그룹 라벨). 라벨 기능이 안 되면 예전처럼 동작(매번 켬)하고 로그만 남김.
+var LABEL_OK = true;   // v2.20: 라벨 확인이 안 되면 '새 광고 다시 만들기'를 하지 않는다(매시간 광고를 또 만드는 사고 방지)
 function hasLabel(ent, name) {
   try { return ent.labels().withCondition("label.name = '" + name + "'").get().hasNext(); }
-  catch (e) { Logger.log('라벨 확인 실패(예전 방식으로 진행): ' + e); return false; }
+  catch (e) { LABEL_OK = false; Logger.log('라벨 확인 실패(예전 방식으로 진행): ' + e); return false; }
 }
 function markStarted(ent, name) {
   try {
     if (!AdsApp.labels().withCondition("label.name = '" + name + "'").get().hasNext()) AdsApp.createLabel(name);
     ent.applyLabel(name);
-  } catch (e) { Logger.log('라벨 붙이기 실패(다음 실행에도 켜기 시도함): ' + e); }
+    return true;
+  } catch (e) { Logger.log('라벨 붙이기 실패(다음 실행에도 켜기 시도함): ' + e); return false; }
 }
 
 function manageEnd(camp, cmd) {
