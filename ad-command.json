@@ -1,15 +1,5 @@
 [
   {
-    "id": "20261109-sanghyuk",
-    "template": "자동광고템플릿",
-    "videoId": "4wUp5GIGHbM",
-    "title": "상혁 - 끝처럼",
-    "startDate": "2026-11-09",
-    "days": 3,
-    "totalBudgetWon": 200000,
-    "go": true
-  },
-  {
     "id": "20261109-cheonseong",
     "template": "자동광고템플릿 #2",
     "videoId": "Cg_DLUay35I",
@@ -27,6 +17,16 @@
     "startDate": "2026-11-12",
     "days": 3,
     "totalBudgetWon": 300000,
+    "go": true
+  },
+  {
+    "id": "20261112-kadikorgi-insta",
+    "template": "자동광고템플릿",
+    "videoId": "Nf9NiNUPisE",
+    "title": "카디코기 - 너가 인스타를 안해서",
+    "startDate": "2026-11-12",
+    "days": 2,
+    "totalBudgetWon": 50000,
     "go": true
   }
 ]
