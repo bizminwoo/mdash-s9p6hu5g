@@ -232,10 +232,12 @@ async function main() {
     if (adTrueviewByDay) db.songs[vid].adTrueviewByDay = adTrueviewByDay; else delete db.songs[vid].adTrueviewByDay;   // 그래프 광고 음영 전용 (합계·수익 계산엔 안 씀, 2026-10-05)
   }
   // 마케팅 트랙 반영 + marketing.json 에서 빠진 트랙은 목록에서 제거
-  for (const { url, title, start } of marketing) {
+  // hidden:true (2026-11-13 민우님: "추적은 계속하고 대시보드에서만 빼") — 수집·기록은 하고 화면에만 안 나온다
+  for (const { url, title, start, hidden } of marketing) {
     const vid = vidOf(url);
     db.songs[vid] = { ...(db.songs[vid] || {}), url, ...(title ? { title } : {}),
       marketing: true, ...(start ? { start } : {}) };
+    if (hidden) db.songs[vid].hidden = true; else delete db.songs[vid].hidden;
   }
   const mktVids = new Set(marketing.map((e) => vidOf(e.url)));
   for (const [vid, s] of Object.entries(db.songs)) {
@@ -266,6 +268,8 @@ async function main() {
     applyStats(db, stats);
     writeFileSync(DATA_FILE, JSON.stringify(db, null, 2), "utf8");
   }
+  // 화면에는 hidden 트랙을 빼고 그린다 (데이터 파일엔 그대로 남음)
+  for (const [vid, s] of Object.entries(db.songs)) if (s.hidden) delete db.songs[vid];
 
   // index.html (대시보드) 생성
   const SP_FILE = join(ROOT, "data", "spotify.json");
