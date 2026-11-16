@@ -10,13 +10,13 @@
     "adTo": "2026-11-17",
     "adTrueviewByDay": {
       "2026-11-14": 132634,
-      "2026-11-15": 134643,
-      "2026-11-16": 144198
+      "2026-11-15": 134642,
+      "2026-11-16": 144201
     },
     "adImprByDay": {
       "2026-11-14": 186079,
       "2026-11-15": 174757,
-      "2026-11-16": 185666
+      "2026-11-16": 185661
     }
   },
   {
@@ -672,7 +672,9 @@
     "share": 0.5,
     "release": "2026-07-02",
     "pendingUntil": "2026-10-22",
-    "dist": "다날"
+    "dist": "다날",
+    "adFrom": "2026-11-17",
+    "adTo": "2026-11-20"
   },
   {
     "url": "https://www.youtube.com/watch?v=E7dgtMSboxg",
@@ -728,7 +730,9 @@
     "share": 0.5,
     "release": "2025-02-25",
     "pendingUntil": "2026-10-22",
-    "dist": "다날"
+    "dist": "다날",
+    "adFrom": "2026-11-17",
+    "adTo": "2026-11-20"
   },
   {
     "url": "https://www.youtube.com/watch?v=a2H7UILaWmY",
@@ -736,7 +740,9 @@
     "share": 0.5,
     "release": "2025-02-24",
     "pendingUntil": "2026-10-22",
-    "dist": "다날"
+    "dist": "다날",
+    "adFrom": "2026-11-17",
+    "adTo": "2026-11-20"
   },
   {
     "url": "https://www.youtube.com/watch?v=4wUp5GIGHbM",
