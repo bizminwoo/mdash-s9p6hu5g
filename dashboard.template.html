@@ -982,6 +982,11 @@ function distOn(songs, id, day){
   if(b && b.until && day && day <= b.until) return b.dist || "미지정";
   return g.dist || "미지정";
 }
+// 2026-11-17 민우님: 다날은 ssf soundz(최한솔) 곡도 100% 우리한테 주고, 우리가 50%를 정산해 준다.
+//   recv = 유통사에서 실제로 받는 비율(없으면 share) · share×(1−payout) = 아티스트 정산 후 남는 내 몫 · payee = 정산받는 아티스트
+function recvOf(songs, id){ const g = songs[id] || {}; return g.recv != null ? g.recv : (g.share == null ? 1 : g.share); }
+function netOf(songs, id){ const g = songs[id] || {}; return (g.share == null ? 1 : g.share) * (1 - (g.payout || 0)); }
+function addPay(c, songs, id, inc){ const owe = inc * (recvOf(songs, id) - netOf(songs, id)); if(owe > 0.0001){ const who = (songs[id] || {}).payee || "기타 아티스트"; c.pay[who] = (c.pay[who] || 0) + owe; } }
 function renderDistRevenue(snaps, songs, ids){
   const wrap = document.getElementById("distWrap");
   const label = document.getElementById("distLabel");
@@ -1004,8 +1009,8 @@ function renderDistRevenue(snaps, songs, ids){
       const dist = distOn(songs, id, day);
       const inc = Math.max(0, b.views - a.views - adCut(songs, id, day)) * distRateOf(songs, id);
       const sh = songs[id].share == null ? 1 : songs[id].share;
-      const c = ((per[dist] = per[dist] || {})[key] = per[dist][key] || { full: 0, mine: 0 });
-      c.full += inc; c.mine += inc * sh;
+      const c = ((per[dist] = per[dist] || {})[key] = per[dist][key] || { full: 0, mine: 0, pay: {} });
+      c.full += inc; c.mine += inc * recvOf(songs, id); addPay(c, songs, id, inc);
     }
   }
   // 2026-10-19 민우님: "오늘치는 안 들어가는데 12시간 단위로" — 오늘 12시가 지났으면 오늘 0시→12시 분까지 넣는다.
@@ -1022,8 +1027,8 @@ function renderDistRevenue(snaps, songs, ids){
         const dist = distOn(songs, id, td);
         const inc = Math.max(0, b - a.views - adCut(songs, id, td)) * distRateOf(songs, id);
         const sh = songs[id].share == null ? 1 : songs[id].share;
-        const c = ((per[dist] = per[dist] || {})[key] = per[dist][key] || { full: 0, mine: 0 });
-        c.full += inc; c.mine += inc * sh;
+        const c = ((per[dist] = per[dist] || {})[key] = per[dist][key] || { full: 0, mine: 0, pay: {} });
+        c.full += inc; c.mine += inc * recvOf(songs, id); addPay(c, songs, id, inc);
       }
       partialLabel = "오늘 12시까지";
     }
@@ -1041,12 +1046,13 @@ function renderDistRevenue(snaps, songs, ids){
   const pays = []; for(let k=-1;k<=maxLag;k++) pays.push(addM(cy, cm, k)); // 2026-11-03 민우님: 지난달 입금분(얼마 받았는지)도 1개월 보여주기
   if(label) label.textContent = "— 입금월 기준 (지니: 서비스월+2개월 · CJ: 유튜브 기준 +4개월 · 그 외: +3개월)";
   const fmtWon = v => nf.format(Math.round(v)) + "원";
+  const scalePay = (v, act) => { const o = {}; if(v && v.mine > 0) for(const k in v.pay) o[k] = v.pay[k] * act / v.mine; return o; };
   const cellOf = (d, pay) => {
     const svc = addM(pay.y, pay.m, -lagOf(d));
     const tag = `<div class="muted" style="font-size:10.5px;font-weight:400">${svc.m}월분${keyOf(svc) === keyOf(cur) ? ` · 진행 중(${partialLabel})` : ""}</div>`;
     if(before(cur, svc)) return { html: `<span class='muted'>—</span><div class="muted" style="font-size:10.5px">${svc.m}월분 (아직)</div>`, mine: 0 };
     const act = (DIST_ACTUAL[d] || {})[keyOf(svc)];
-    if(act != null) return { html: `<b>${fmtWon(act)}</b> <span class="muted" style="font-size:10.5px;font-weight:400">확정</span>${tag}`, mine: act };
+    if(act != null) return { html: `<b>${fmtWon(act)}</b> <span class="muted" style="font-size:10.5px;font-weight:400">확정</span>${tag}`, mine: act, pay: scalePay((per[d] || {})[keyOf(svc)], act) };
     const adv = (DIST_ACTUAL_ADV[d] || {})[keyOf(svc)];
     if(adv != null){ const est = (per[d] && per[d][keyOf(svc)] || {}).full; return { html: `<span class="muted">선급 회수</span> <b>${fmtWon(adv)}</b> <span class="muted" style="font-size:10.5px;font-weight:400">확정</span>${est ? `<div class="muted" style="font-size:10.5px">추정 ≈${fmtWon(est)} (${est > adv ? "−" : "+"}${Math.round(Math.abs(adv/est-1)*100)}%)</div>` : ""}${tag}`, mine: 0 }; }
     if(before(svc, fullFrom)) return { html: `<span class='muted'>수집 전</span><div class="muted" style="font-size:10.5px">${svc.m}월분</div>`, mine: 0 };
@@ -1054,7 +1060,7 @@ function renderDistRevenue(snaps, songs, ids){
     if(!v || !v.full) return { html: `<span class='muted'>—</span>${tag}`, mine: 0 };
     if(Math.round(v.mine) === 0)
       return { html: `<span class="muted">선급 회수 중</span><div class="muted" style="font-size:11px">트랙 기준 ≈${fmtWon(v.full)}</div>${tag}`, mine: 0 };
-    return { html: `<b>${fmtWon(v.mine)}</b>${tag}`, mine: v.mine, partial: keyOf(svc) === keyOf(cur) };
+    return { html: `<b>${fmtWon(v.mine)}</b>${tag}`, mine: v.mine, pay: v.pay, partial: keyOf(svc) === keyOf(cur) };
   };
   // 정렬: 입금 빠른 유통사(지연 짧은 순) → 같은 지연이면 최근 서비스월 금액 큰 순
   const lastKey = keyOf(addM(cy, cm, -1));
@@ -1064,16 +1070,26 @@ function renderDistRevenue(snaps, songs, ids){
     pays.map((p, j) => `<th>${p.y !== cy ? p.y + "년 " : ""}${p.m}월 입금${j === 0 ? " (지난달)" : ""}</th>`).join("") + `</tr></thead><tbody>`;
   // 2026-11-17 민우님: 지니(승률) 정산금은 술값으로 쓰기로 함 → 줄은 보여주되 '합계 (내 몫)'에는 안 넣음
   const DIST_NO_TOTAL = ["지니(승률)"];
-  const totals = pays.map(() => ({ mine: 0, partial: false }));
+  const totals = pays.map(() => ({ mine: 0, partial: false, pay: {} }));
   for(const d of dists){
     const noteTag = `<div class="muted" style="font-size:10.5px;font-weight:400">${DIST_NOTES[d] || lagOf(d) + "개월 뒤 입금"}</div>`;
     html += `<tr><td class="song">${escapeHtml(d)}${noteTag}</td>` + pays.map((p, j) => {
-      const c = cellOf(d, p); if(!DIST_NO_TOTAL.includes(d)){ totals[j].mine += c.mine; if(c.partial) totals[j].partial = true; }
+      const c = cellOf(d, p); if(!DIST_NO_TOTAL.includes(d)){ totals[j].mine += c.mine; if(c.partial) totals[j].partial = true; for(const k in (c.pay || {})) totals[j].pay[k] = (totals[j].pay[k] || 0) + c.pay[k]; }
       return `<td class="delta money">${c.html}</td>`; }).join("") + `</tr>`;
   }
-  html += `<tr class="totalrow"><td class="song">합계 (내 몫)</td>` + totals.map(t =>
+  html += `<tr class="totalrow"><td class="song">합계 (받는 돈)<div class="muted" style="font-size:10.5px;font-weight:400">유통사에서 들어오는 돈 · ssf soundz 곡도 100%</div></td>` + totals.map(t =>
     t.mine ? `<td class="delta money"><b>${fmtWon(t.mine)}</b>${t.partial ? `<div class="muted" style="font-size:10.5px;font-weight:400">진행 중인 달 포함</div>` : ""}</td>`
            : `<td><span class='muted'>—</span></td>`).join("") + `</tr>`;
+  // 2026-11-17 민우님: 아티스트(ssf soundz 50% · 윤코기 바보야 30%)한테 정산해 주고 남는 돈
+  const payNames = [...new Set(totals.flatMap(x => Object.keys(x.pay)))];
+  if(payNames.length){
+    html += `<tr><td class="song">아티스트 정산 (줘야 할 돈)<div class="muted" style="font-size:10.5px;font-weight:400">ssf soundz 50% (사업자 — 부가세 10%는 별도로 더 줌) · 윤코기 「바보야」 30%</div></td>` + totals.map(x => {
+      const items = payNames.filter(k => Math.round(x.pay[k] || 0) > 0);
+      return items.length ? `<td class="delta money">${items.map(k => `<div><span class="muted" style="font-size:11px">${escapeHtml(k)}</span> −${fmtWon(x.pay[k])}</div>`).join("")}</td>` : `<td><span class='muted'>—</span></td>`; }).join("") + `</tr>`;
+    html += `<tr class="totalrow"><td class="song">정산 후 남는 돈 (내 몫)</td>` + totals.map(x => {
+      const owe = Object.values(x.pay).reduce((a, b) => a + b, 0);
+      return x.mine ? `<td class="delta money"><b>${fmtWon(x.mine - owe)}</b>${x.partial ? `<div class="muted" style="font-size:10.5px;font-weight:400">진행 중인 달 포함</div>` : ""}</td>` : `<td><span class='muted'>—</span></td>`; }).join("") + `</tr>`;
+  }
   wrap.innerHTML = html + `</tbody></table></div>`;
 }
 
