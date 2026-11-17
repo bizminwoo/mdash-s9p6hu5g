@@ -112,6 +112,12 @@
   <h1><!--__H1__--></h1>
   <div class="sub" id="updated"></div>
   <div class="cards" id="cards"></div>
+  <div class="panel" id="mktPanel" style="display:none">
+    <h2>📣 다른 프로젝트 모니터링 (최근 3개월) <span class="muted">— 내 음원 아님 · 감상 수치·증감만 표시, 합계·수익에는 절대 포함 안 됨</span></h2>
+    <div id="mktMatrixWrap" style="margin-bottom:18px"></div>
+    <div class="multigrid" id="mktGrid"></div>
+    <div class="note">🚀 = 마케팅 시작일. 표와 그래프의 파란 강조 구간이 마케팅 기간입니다 (시작 전 구간은 회색).<br>트랙을 빼려면 marketing.json 에서 해당 줄을 지우면 다음 수집 때 사라집니다.</div>
+  </div>
   <div class="panel">
     <h2>곡별 현황 <span class="muted" id="rangeLabel"></span></h2>
     <div class="togglerow" id="sortToggles"></div>
@@ -161,12 +167,6 @@
     <div class="togglerow" id="cmpMode"></div>
     <div class="chartbox"><canvas id="cmpChart"></canvas></div>
     <div class="note" id="cmpNote"></div>
-  </div>
-  <div class="panel" id="mktPanel" style="display:none">
-    <h2>📣 마케팅 트래킹 (최근 3개월) <span class="muted">— 감상 수치·증감만 표시, 수익/합계에는 포함 안 됨</span></h2>
-    <div id="mktMatrixWrap" style="margin-bottom:18px"></div>
-    <div class="multigrid" id="mktGrid"></div>
-    <div class="note">🚀 = 마케팅 시작일. 표와 그래프의 파란 강조 구간이 마케팅 기간입니다 (시작 전 구간은 회색).<br>트랙을 빼려면 marketing.json 에서 해당 줄을 지우면 다음 수집 때 사라집니다.</div>
   </div>
   <div class="panel" id="pendPanel" style="display:none">
     <h2>⏸ 인접권 정리 전 곡 <span class="muted">— 추적만 합니다. 위의 표·그래프·합계·수익에는 전혀 들어가지 않아요</span></h2>
