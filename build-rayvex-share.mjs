@@ -18,8 +18,9 @@ const fmt = (n) => (n == null ? "<span class='zero'>—</span>" : nf.format(n));
 const dstr = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
 const mdShort = (s) => { const [,m,d] = s.split("-"); return Number(m)+"/"+Number(d); };
 
-// -레이벡스 음원- 곡: competitors.json 의 group:"test" 순서 그대로
-const ids = comps.filter((e) => e.group === "test").map((e) => vidOf(e.url)).filter(Boolean);
+// -레이벡스 음원- 곡: competitors.json 의 group:"test" 순서 그대로 ("pinTop": true 곡은 맨 위, 2026-11-17 민우님)
+const testComps = comps.filter((e) => e.group === "test");
+const ids = [...testComps.filter((e) => e.pinTop), ...testComps.filter((e) => !e.pinTop)].map((e) => vidOf(e.url)).filter(Boolean);
 
 const byDate = Object.fromEntries((DB.snapshots || []).map((s) => [s.date, s]));
 
@@ -132,6 +133,26 @@ const rows = ids.map((id) => {
     "<td class='buys'>" + buyList + "</td></tr>";
 }).join("");
 
+// 시간별 표 — competitors.json "hourly": true 곡 (2026-11-17 민우님 "순순희 지환 시간단위로 체크해서 보여줘")
+// 매시간 그 시간의 첫 수집값(누적)을 쓰고, 바로 앞 기록과의 차이를 증가량으로 보여 준다. 최근 48개 시각, 최신이 위.
+const hourlyBox = testComps.filter((e) => e.hourly).map((e) => {
+  const id = vidOf(e.url); const v = DB.videos[id] || {};
+  const pts = [];
+  for (const d of Object.keys(DB.hourlyViews || {}).sort()) {
+    for (const h of Object.keys(DB.hourlyViews[d]).sort()) {
+      const views = DB.hourlyViews[d][h]?.[id];
+      if (views == null) continue;
+      pts.push({ at: mdShort(d) + " " + Number(h) + "시", views, likes: DB.hourlyLikes?.[d]?.[h]?.[id] ?? null, comments: DB.hourlyComments?.[d]?.[h]?.[id] ?? null });
+    }
+  }
+  const cur = DB.current?.stats?.[id];
+  if (cur && DB.current.time && (!pts.length || cur.views !== pts.at(-1).views)) pts.push({ at: mdShort(DB.current.time.slice(0, 10)) + " " + DB.current.time.slice(11) + " (현재)", views: cur.views, likes: cur.likes ?? null, comments: cur.comments ?? null });
+  const diff = (a, b) => (a == null || b == null ? "<span class='zero'>—</span>" : (a - b >= 0 ? "+" : "") + nf.format(a - b));
+  const trs = pts.map((p, i) => { const q = pts[i - 1] || {}; return "<tr><td class='song'>" + p.at + "</td><td><b>" + fmt(p.views) + "</b></td><td class='inc'>" + (i ? diff(p.views, q.views) : "<span class='zero'>첫 기록</span>") + "</td><td>" + fmt(p.likes) + "</td><td class='lkc'>" + (i ? diff(p.likes, q.likes) : "") + "</td><td>" + fmt(p.comments) + "</td></tr>"; }).slice(-48).reverse().join("");
+  return "<h2 class='hsec'>⏱ " + (v.title || id) + " — 시간별</h2><div class='sub'>매시간 자동 기록 · 숫자는 누적, 옆 칸은 직전 기록보다 늘어난 양 · 좋아요·댓글 시간별 기록은 11/17 18시부터</div>" +
+    "<div class='wrap hwrap'><table><thead><tr><th class='song'>시각</th><th>조회수</th><th>1시간 증가</th><th>좋아요</th><th>증가</th><th>댓글</th></tr></thead><tbody>" + trs + "</tbody></table></div>";
+}).join("");
+
 const updated = DB.current?.time || "";
 const html = `<!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
@@ -165,10 +186,15 @@ const html = `<!doctype html>
   th.pinend,td.pinend { border-right:2px dashed #3a4253; }
   .pintag { font-size:10.5px; color:#f5b83d; font-weight:700; }
   .pindate { display:block; font-size:10.5px; color:var(--muted); margin-bottom:2px; }
+  .hsec { font-size:17px; margin:26px 0 4px; }
+  .hwrap { max-width:640px; max-height:520px; overflow-y:auto; }
+  td.inc { color:#5fd38d; font-weight:700; } td.lkc { color:#e66790; font-size:12px; }
   .note { color:var(--muted); font-size:12px; margin-top:14px; line-height:1.7; }
 </style></head><body>
 <h1>🎵 레이벡스 음원 스트리밍 현황</h1>
 <div class="sub">유튜브뮤직 기준 · 마지막 갱신 ${updated} (KST) · 매시간 자동 갱신</div>
+${hourlyBox}
+<h2 class="hsec">전곡 일별</h2>
 <div class="wrap"><table><thead>${head}</thead><tbody>${totalRow}${rows}</tbody></table></div>
 <div class="note">숫자는 각 곡 유튜브 아트트랙의 일별 조회수 증가분, ♥는 그날 좋아요 증가분, <span style="color:#ff6b6b">▼</span>는 전곡 합계 행에서 그날 빠진 좋아요 합계입니다. "좋아요 감소(누적)" 열은 추적 시작 후 빠진 좋아요 총합입니다. "오늘(현재)" 칸은 오늘 0시부터 마지막 갱신 시각까지의 수치입니다. 맨 앞 "시작 1일차·2일차" 칸은 곡마다 추적을 처음 시작한 이틀(칸 안 작은 날짜)로 항상 고정되고, 그 뒤는 최근 14일입니다.<br>
 🛒 금색 표시 칸 = 좋아요 구매를 넣은 날짜(숫자는 구매 수량). 좋아요 수 집계는 2026-09-11부터 시작되어 이전 날짜에는 ♥ 표시가 없습니다.</div>

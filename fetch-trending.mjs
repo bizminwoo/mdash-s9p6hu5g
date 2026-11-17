@@ -190,7 +190,9 @@ async function main() {
       const v = db.videos[id] || {};
       const nv = { ...v, watch: true, order: i, ...(c.title ? { title: c.title } : {}),
         ...(c.likesTrack ? { likesTrack: true } : {}), ...(c.likes ? { likes: true } : {}),
-        ...(c.group ? { group: c.group } : {}), ...(c.addedAt ? { addedAt: c.addedAt } : {}) };
+        ...(c.group ? { group: c.group } : {}), ...(c.addedAt ? { addedAt: c.addedAt } : {}),
+        ...(c.hourly ? { hourly: true } : {}) };
+      if (!c.hourly) delete nv.hourly;         // "hourly": true 곡은 시간별 좋아요·댓글도 기록 (레이벡스 공유 페이지 시간별 표, 2026-11-17)
       if (!c.likesTrack) delete nv.likesTrack; // 상세 추적(시간/일 단위)은 competitors.json 의 "likesTrack": true 곡만
       if (!c.likes) delete nv.likes;           // 일 단위 좋아요만 볼 곡은 "likes": true (상세추적은 안 함)
       if (!c.group) delete nv.group;
@@ -260,8 +262,8 @@ async function main() {
     const lk = {}, hv = {}, cm = {};
     for (const [id, v] of Object.entries(db.videos)) {
       if (!v.likesTrack && !v.group) continue; // 상세추적 곡 + 그룹(트윗엔터) 곡은 시간별 조회수 기록
-      if (v.likesTrack && stats[id]?.likes != null) lk[id] = stats[id].likes;
-      if (v.likesTrack && stats[id]?.comments != null) cm[id] = stats[id].comments;
+      if ((v.likesTrack || v.hourly) && stats[id]?.likes != null) lk[id] = stats[id].likes;
+      if ((v.likesTrack || v.hourly) && stats[id]?.comments != null) cm[id] = stats[id].comments;
       if (stats[id]?.views != null) hv[id] = stats[id].views;
     }
     writeHourly("hourlyLikes", "hourlyLikesMin", lk);
