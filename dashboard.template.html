@@ -226,7 +226,10 @@ const RATE_DEFAULT = WON_PER_1000_DAILY / (1000 * 30); // 6.0원
 // 2026-10-19: "지니(승률)" = 지니 발매·계약 당사자는 승률이형 → 승률이형이 나한테 정산. 단가는 지니와 같게.
 // 2026-11-03 민우님: 쿼터 단가 5.3원 — 7·8월분 정산 합계 6,867,430 / 유튜브 조회 1,287,634회(광고일 빼지 않음) = 5.33원 (수수료 23% 반영된 값).
 const DIST_RATE = { "지니": 6.30, "CJ": 5.75, "지니(승률)": 6.30, "쿼터": 5.3 };
-function rateOf(songs, id){ const d = songs[id] && songs[id].dist; return (d && DIST_RATE[d]) || RATE_DEFAULT; }
+// 2026-11-17 민우님: 지니(승률) 정산금은 술값 → 수익(카드·마감보고·예상 수익)에서 전부 뺀다. 유통사별 정산표에는 참고로만 보인다(합계 제외).
+const NO_REVENUE_DISTS = ["지니(승률)"];
+function distRateOf(songs, id){ const d = songs[id] && songs[id].dist; return (d && DIST_RATE[d]) || RATE_DEFAULT; }
+function rateOf(songs, id){ const d = songs[id] && songs[id].dist; if(d && NO_REVENUE_DISTS.includes(d)) return 0; return distRateOf(songs, id); }
 // 곡 이름 밑 발매일 표시 (2026-09-15 민우님: 언제 나온 앨범인지 한눈에) — 30일 이내 신곡은 🆕
 function relDateTag(release){
   if(!release) return "";
@@ -999,7 +1002,7 @@ function renderDistRevenue(snaps, songs, ids){
       const a = snaps[i-1].stats[id], b = snaps[i].stats[id];
       if(!(a && b && a.views!=null && b.views!=null)) continue;
       const dist = distOn(songs, id, day);
-      const inc = Math.max(0, b.views - a.views - adCut(songs, id, day)) * rateOf(songs, id);
+      const inc = Math.max(0, b.views - a.views - adCut(songs, id, day)) * distRateOf(songs, id);
       const sh = songs[id].share == null ? 1 : songs[id].share;
       const c = ((per[dist] = per[dist] || {})[key] = per[dist][key] || { full: 0, mine: 0 });
       c.full += inc; c.mine += inc * sh;
@@ -1017,7 +1020,7 @@ function renderDistRevenue(snaps, songs, ids){
         const a = snaps[snaps.length-1].stats[id], b = h12[id];
         if(!(a && a.views != null && b != null)) continue;
         const dist = distOn(songs, id, td);
-        const inc = Math.max(0, b - a.views - adCut(songs, id, td)) * rateOf(songs, id);
+        const inc = Math.max(0, b - a.views - adCut(songs, id, td)) * distRateOf(songs, id);
         const sh = songs[id].share == null ? 1 : songs[id].share;
         const c = ((per[dist] = per[dist] || {})[key] = per[dist][key] || { full: 0, mine: 0 });
         c.full += inc; c.mine += inc * sh;
