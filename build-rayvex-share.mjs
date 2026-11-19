@@ -149,7 +149,8 @@ const hourlyBox = testComps.filter((e) => e.hourly).map((e) => {
   if (cur && DB.current.time && (!pts.length || cur.views !== pts.at(-1).views)) pts.push({ at: mdShort(DB.current.time.slice(0, 10)) + " " + DB.current.time.slice(11) + " (현재)", views: cur.views, likes: cur.likes ?? null, comments: cur.comments ?? null });
   const diff = (a, b) => (a == null || b == null ? "<span class='zero'>—</span>" : (a - b >= 0 ? "+" : "") + nf.format(a - b));
   const trs = pts.map((p, i) => { const q = pts[i - 1] || {}; return "<tr><td class='song'>" + p.at + "</td><td><b>" + fmt(p.views) + "</b></td><td class='inc'>" + (i ? diff(p.views, q.views) : "<span class='zero'>첫 기록</span>") + "</td><td>" + fmt(p.likes) + "</td><td class='lkc'>" + (i ? diff(p.likes, q.likes) : "") + "</td><td>" + fmt(p.comments) + "</td></tr>"; }).slice(-48).reverse().join("");
-  return "<h2 class='hsec'>⏱ " + (v.title || id) + " — 시간별</h2><div class='sub'>매시간 자동 기록 · 숫자는 누적, 옆 칸은 직전 기록보다 늘어난 양 · 좋아요·댓글 시간별 기록은 11/17 18시부터</div>" +
+  const lkFrom = pts.find((p) => p.likes != null && !p.at.includes("현재"))?.at; // 시간별 좋아요 첫 기록 시각 (곡마다 다름)
+  return "<h2 class='hsec'>⏱ " + (v.title || id) + " — 시간별</h2><div class='sub'>매시간 자동 기록 · 숫자는 누적, 옆 칸은 직전 기록보다 늘어난 양" + (lkFrom ? " · 좋아요·댓글 시간별 기록은 " + lkFrom + "부터" : "") + "</div>" +
     "<div class='wrap hwrap'><table><thead><tr><th class='song'>시각</th><th>조회수</th><th>1시간 증가</th><th>좋아요</th><th>증가</th><th>댓글</th></tr></thead><tbody>" + trs + "</tbody></table></div>";
 }).join("");
 

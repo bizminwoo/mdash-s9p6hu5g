@@ -920,6 +920,8 @@
     "title": "혜다 - 곰인형 (Feat. 고로켓)",
     "group": "test",
     "likes": true,
+    "hourly": true,
+    "hourlySince": "2026-11-19",
     "addedAt": "2026-11-13"
   },
   {
@@ -930,5 +932,14 @@
     "hourly": true,
     "pinTop": true,
     "addedAt": "2026-11-17"
+  },
+  {
+    "url": "https://www.youtube.com/watch?v=oGAzDVtifGo",
+    "title": "주호, 닐로 - 이별 편지",
+    "group": "test",
+    "likes": true,
+    "hourly": true,
+    "hourlySince": "2026-11-19",
+    "addedAt": "2026-11-19"
   }
 ]
