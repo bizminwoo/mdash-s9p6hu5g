@@ -206,10 +206,12 @@ async function main() {
   if (existsSync(DATA_FILE)) db = JSON.parse(readFileSync(DATA_FILE, "utf8"));
 
   // songs.json 의 제목/수익비율(share)/광고플래그(adViews)/보류플래그(pending)/광고기간(adFrom·adTo)을 항상 반영
-  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo, adViewsByDay, adVerificationPending, dist, distBefore, bottom, adShade, payout, recv, payee, adTrueviewByDay, adImprByDay } of songs) {
+  for (const { url, title, share, adViews, pending, pendingUntil, pinUntil, release, adFrom, adTo, adViewsByDay, adVerificationPending, dist, distBefore, bottom, adShade, payout, recv, payee, adTrueviewByDay, adImprByDay, hidden } of songs) {
     const vid = vidOf(url);
     db.songs[vid] = { ...(db.songs[vid] || {}), url,
       ...(title ? { title } : {}), share: share == null ? 1 : share };
+    // 내 곡도 hidden:true 면 수집은 계속하고 화면에서만 뺀다 (2026-11-19 카디코기 Needy 솔로·Walking on Frozen)
+    if (hidden) db.songs[vid].hidden = true; else delete db.songs[vid].hidden;
     if (adViews) db.songs[vid].adViews = true; else delete db.songs[vid].adViews;
     if (pending) db.songs[vid].pending = true; else delete db.songs[vid].pending;
     if (pendingUntil) db.songs[vid].pendingUntil = pendingUntil; else delete db.songs[vid].pendingUntil;
