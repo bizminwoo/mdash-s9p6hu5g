@@ -135,7 +135,7 @@ const rows = ids.map((id) => {
 
 // 시간별 표 — competitors.json "hourly": true 곡 (2026-11-17 민우님 "순순희 지환 시간단위로 체크해서 보여줘")
 // 매시간 그 시간의 첫 수집값(누적)을 쓰고, 바로 앞 기록과의 차이를 증가량으로 보여 준다. 최근 48개 시각, 최신이 위.
-const hourlyBox = testComps.filter((e) => e.hourly).map((e) => {
+const hourlyBox = [...testComps.filter((e) => e.hourly && e.pinTop), ...testComps.filter((e) => e.hourly && !e.pinTop)].map((e) => {
   const id = vidOf(e.url); const v = DB.videos[id] || {};
   const pts = [];
   for (const d of Object.keys(DB.hourlyViews || {}).sort()) {
