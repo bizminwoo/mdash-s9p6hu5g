@@ -6,8 +6,8 @@
 <!-- 데이터: data/prodcost.json (구글시트 '음원정산' 탭 구조 그대로 — 곡 한 줄 × 서비스월 칸).
      songs[]: 곡·아티스트·유통사·수수료·지분·발매일·앨범·순서·예정·선급·costs[{항목,금액}]·monthly{"YYYY-MM"(서비스월): 내 몫 금액}
      정산이 들어오면 해당 곡 monthly 에 서비스월 키로 금액만 추가하면 표·합계·손익이 자동 반영된다.
-     새 곡은 songs 에 한 줄 추가(순서 = 마지막+1). 입금월 = 서비스월 + settleLag[유통사](지니 2, CJ·쿼터·레이벡스·기타 3)개월.
-     monthly 키 = 각 유통사 사이트의 서비스월: 지니 '서비스월', CJ '서비스월표기'(= CJ 정산월 − 2), 쿼터 '국내 판매월'(= 쿼터 정산월 − 2).
+     새 곡은 songs 에 한 줄 추가(순서 = 마지막+1). 입금월 = 서비스월 + settleLag[유통사](지니 2, CJ 4, 쿼터·레이벡스·기타 3)개월.
+     monthly 키 = 각 유통사 사이트의 서비스월: 지니 '서비스월', CJ = 실제 들은 달(= CJ '서비스월표기' − 1 = CJ 정산월 − 3, 대시보드와 같음), 쿼터 '국내 판매월'(= 쿼터 정산월 − 2).
      (대시보드 DIST_ACTUAL 의 CJ·쿼터 키는 정산월 − 3 이라 이 표보다 한 달 앞 — 같은 금액이 한 달 다른 키에 있음) -->
 <style>
   :root { --bg:#0f1115; --panel:#161a22; --line:#242a36; --text:#e8ebf1; --muted:#8b93a3; --bar:#3987e5; --adv:#e8b84a; --up:#3ccf8e; --down:#ef6b6b;
@@ -146,7 +146,7 @@
   const curYM = today.slice(0,7);
   const OFF = D.settleOffset ?? 3;
   // 유통사별 입금 지연(서비스월 → 입금월 개월 수). data/prodcost.json 의 settleLag 로 바꿀 수 있음
-  const LAG = Object.assign({ "지니":2, "CJ":3, "쿼터":3, "레이벡스":3, "기본":3 }, D.settleLag || {});
+  const LAG = Object.assign({ "지니":2, "CJ":4, "쿼터":3, "레이벡스":3, "기본":3 }, D.settleLag || {});
   const distKey = d => /지니/.test(d||"") ? "지니" : /CJ/i.test(d||"") ? "CJ" : /쿼터/.test(d||"") ? "쿼터" : /레이벡스|다날/.test(d||"") ? "레이벡스" : "기본";
   const lagOf = s => { const k = distKey(s.유통사); return LAG[k] ?? LAG.기본 ?? OFF; };
   const payNote = (s, m) => {
