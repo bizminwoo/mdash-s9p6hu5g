@@ -6,7 +6,9 @@
 <!-- 데이터: data/prodcost.json (구글시트 '음원정산' 탭 구조 그대로 — 곡 한 줄 × 서비스월 칸).
      songs[]: 곡·아티스트·유통사·수수료·지분·발매일·앨범·순서·예정·선급·costs[{항목,금액}]·monthly{"YYYY-MM"(서비스월): 내 몫 금액}
      정산이 들어오면 해당 곡 monthly 에 서비스월 키로 금액만 추가하면 표·합계·손익이 자동 반영된다.
-     새 곡은 songs 에 한 줄 추가(순서 = 마지막+1). 정산월 = 서비스월 + settleOffset(3)개월. -->
+     새 곡은 songs 에 한 줄 추가(순서 = 마지막+1). 입금월 = 서비스월 + settleLag[유통사](지니 2, CJ·쿼터·레이벡스·기타 3)개월.
+     monthly 키 = 각 유통사 사이트의 서비스월: 지니 '서비스월', CJ '서비스월표기'(= CJ 정산월 − 2), 쿼터 '국내 판매월'(= 쿼터 정산월 − 2).
+     (대시보드 DIST_ACTUAL 의 CJ·쿼터 키는 정산월 − 3 이라 이 표보다 한 달 앞 — 같은 금액이 한 달 다른 키에 있음) -->
 <style>
   :root { --bg:#0f1115; --panel:#161a22; --line:#242a36; --text:#e8ebf1; --muted:#8b93a3; --bar:#3987e5; --adv:#e8b84a; --up:#3ccf8e; --down:#ef6b6b;
           --advbg:#3a3017; --advtx:#f3d58a; --prebg:#1d2027; --hover:#1b202a; }
@@ -50,6 +52,21 @@
   #sheet tr.pre td { background:var(--prebg); color:#6f7889; }
   #sheet tr.pre td.song { font-weight:400; }
   #sheet td.pl { font-weight:700; }
+  /* 칸 구분: 발매 전(막힘) · 정산 대기(아직 나올 때 아님) · 빈칸(나올 때 지났는데 기록 없음) */
+  #sheet td.m.blk { background:repeating-linear-gradient(135deg, #0c0e12 0 5px, #151922 5px 10px); }
+  #sheet tbody tr.s:hover td.m.blk { background:repeating-linear-gradient(135deg, #0c0e12 0 5px, #1a1f29 5px 10px); }
+  #sheet td.m.wait { background:#141a24; color:#4f5a6e; font-size:10.5px; text-align:center; }
+  #sheet tbody tr.s:hover td.m.wait { background:#18202c; }
+  #sheet td.m.wait::after { content:"대기"; }
+  #sheet td.m.due { box-shadow:inset 0 0 0 1px #1f2532; }
+  #sheet td.c-dist .lag { color:#6f7889; font-size:10px; margin-left:4px; }
+  #sheet td.c-dist .lag.g { color:#7fb3ff; }
+  #sheet tfoot td.m.part { color:#aab2c0; }
+  #sheet tfoot td.m.part::after { content:"*"; color:#6f7889; margin-left:1px; }
+  #sheet tfoot td.m.allwait { color:#4f5a6e; font-weight:400; font-size:10.5px; text-align:center; }
+  .lagbox { display:flex; flex-wrap:wrap; gap:6px 10px; align-items:center; font-size:12.5px; color:var(--muted); background:#12161d; border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:0 0 10px; line-height:1.6; }
+  .lagbox b { color:var(--text); font-weight:600; } .lagbox .g { color:#7fb3ff; }
+  #tip { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); max-width:min(92vw,420px); background:#222936; color:var(--text); border:1px solid #3a4150; border-radius:10px; padding:9px 14px; font-size:12.5px; line-height:1.6; box-shadow:0 6px 24px rgba(0,0,0,.45); z-index:50; display:none; }
   #sheet .nm { color:#6f7889; font-weight:400; font-style:italic; }
   #sheet .tag { display:inline-block; font-size:10px; padding:0 5px; border-radius:999px; border:1px solid var(--line); color:var(--muted); margin-left:5px; font-weight:400; vertical-align:1px; }
   #sheet .tag.adv { color:var(--adv); border-color:#5a4a20; }
@@ -89,12 +106,17 @@
 <div class="card"><h2>곡별 월 정산 <span class="dim" style="font-weight:400;font-size:12px">— 구글시트 '음원정산'과 같은 표 · 곡을 누르면 제작비 내역</span></h2>
   <div class="legend">
     <span><i style="background:var(--advbg);border-color:#5a4a20"></i>쿼터 선급에서 차감된 금액(현금 입금 아님)</span>
+    <span><i style="background:repeating-linear-gradient(135deg,#0c0e12 0 3px,#1f2430 3px 6px)"></i>발매 전 (정산 없음)</span>
+    <span><i style="background:#141a24"></i>정산 대기 (아직 나올 때 아님)</span>
+    <span><i style="background:var(--panel);box-shadow:inset 0 0 0 1px #2a3140"></i>빈칸 = 나올 때 지났는데 기록 없음</span>
     <span><i style="background:var(--prebg)"></i>발매 예정</span>
     <span>손익 <b class="up">+초록</b> 본전 넘음 · <b class="down">−빨강</b> 아직 못 찾음</span>
   </div>
+  <div class="lagbox" id="lagbox"></div>
   <div class="opts"><label><input type="checkbox" id="showPre" checked>발매 예정·곡명 미정 줄 보기</label><span id="cnt"></span></div>
   <div class="tw" id="tw"><table id="sheet"></table></div>
-  <div class="note">• 금액은 모두 유통 수수료·지분을 뺀 <b>내 몫 확정 정산금</b>입니다. 아래 줄(서비스월)은 몇 월분인지, 위 줄(정산월)은 시트와 같이 서비스월 + 3개월로 적었습니다(실제 입금 시기는 유통사마다 조금씩 다릅니다).<br>
+  <div class="note">• 금액은 모두 유통 수수료·지분을 뺀 <b>내 몫 확정 정산금</b>입니다. 아래 줄(서비스월)은 몇 월분인지, 위 줄(입금월)은 기본 +3개월 기준입니다. <b>지니 곡은 한 달 빠른 +2개월</b>에 들어오니, 칸에 마우스를 올리거나 누르면 그 곡 기준 입금월이 보입니다.<br>
+  • 월 합계 옆 <b>*</b> 표시는 그 달에 아직 정산이 안 나온(대기) 곡이 있어 더 늘어날 수 있다는 뜻입니다.<br>
   • 손익 = 지금까지 들어온 확정 정산금 합계 − 그 곡 제작비. 공동제작 곡은 제작비도 내 부담분(절반)만 들어갑니다(시트 수식 그대로).<br>
   • 정산이 확인되면 해당 칸이 자동으로 채워지고 합계·손익도 같이 바뀝니다.</div>
 </div>
@@ -105,6 +127,7 @@
   <div class="note">최근 달은 아직 정산이 다 안 들어온 유통사가 있어 낮게 보일 수 있습니다.</div>
 </div>
 </div>
+<div id="tip"></div>
 <script>
 (async function(){
   const won = n => (n<0?"-":"") + Math.abs(Math.round(n)).toLocaleString("ko-KR") + "원";
@@ -122,6 +145,18 @@
   const today = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
   const curYM = today.slice(0,7);
   const OFF = D.settleOffset ?? 3;
+  // 유통사별 입금 지연(서비스월 → 입금월 개월 수). data/prodcost.json 의 settleLag 로 바꿀 수 있음
+  const LAG = Object.assign({ "지니":2, "CJ":3, "쿼터":3, "레이벡스":3, "기본":3 }, D.settleLag || {});
+  const distKey = d => /지니/.test(d||"") ? "지니" : /CJ/i.test(d||"") ? "CJ" : /쿼터/.test(d||"") ? "쿼터" : /레이벡스|다날/.test(d||"") ? "레이벡스" : "기본";
+  const lagOf = s => { const k = distKey(s.유통사); return LAG[k] ?? LAG.기본 ?? OFF; };
+  const payNote = (s, m) => {
+    const k = distKey(s.유통사), L = lagOf(s), p = addM(m, L);
+    let t = `${ymLabel(m)}분 → ${ymLabel(p)} 말 입금 (${esc(s.유통사 || "유통사 미정")} +${L}개월)`;
+    if(s.선급) t = `${ymLabel(m)}분 → ${ymLabel(addM(m, L-1))} 정산서 · 쿼터 선급에서 차감 (현금 입금 없음)`;
+    if(k === "CJ" || k === "쿼터") t += ` · 해외분 일부는 한 달 늦게 섞여 들어옴`;
+    if(k === "레이벡스") t += ` · 다날 첫 정산 전이라 규칙 확인 중`;
+    return t;
+  };
 
   const rows = D.songs.map((s, i) => {
     const cost = (s.costs||[]).reduce((a,c) => a + c.금액, 0);
@@ -135,7 +170,8 @@
     const left = cost - rec;
     let est = null, estN = null;
     if(left > 0 && avg3 > 0){ estN = Math.ceil(left / avg3); est = addM(keys[keys.length-1], estN); }
-    return { i, s, cost, rec, pl: rec - cost, keys, avg3, n3: last3.length, est, estN, pre, gray: !!s.예정, blank, ord: s.순서 ?? 900 + i };
+    const relM = s.발매일 && /^\d{4}-\d{2}/.test(s.발매일) ? s.발매일.slice(0,7) : null;
+    return { i, s, cost, rec, pl: rec - cost, keys, avg3, n3: last3.length, est, estN, pre, gray: !!s.예정, blank, relM, lag: lagOf(s), ord: s.순서 ?? 900 + i };
   }).sort((a,b) => a.ord - b.ord);
 
   // 월 칸: 첫 정산 달 ~ (마지막 정산 달, 이번 달 중 늦은 쪽)
@@ -162,7 +198,7 @@
 
   // 표
   const INFO = [ // [클래스, 머리글, 값]
-    ["c-dist l", "유통사", r => esc(r.s.유통사 || "")],
+    ["c-dist l", "유통사", r => r.s.유통사 ? `${esc(r.s.유통사)}<span class="lag${r.lag !== OFF ? " g" : ""}" title="입금 = 서비스월 + ${r.lag}개월">+${r.lag}</span>` : ""],
     ["c-fee", "수수료", r => r.s.수수료 != null ? pct(r.s.수수료) : ""],
     ["c-share", "지분", r => r.s.지분 != null ? pct(r.s.지분) : ""],
     ["c-art l art", "아티스트", r => esc(r.s.아티스트 || "")],
@@ -209,22 +245,43 @@
       ${r.est ? `<div style="font-size:11.5px">본전 예상 = 남은 금액 ÷ 최근 3개월(정산된 달) 평균. 곡은 보통 시간이 갈수록 줄어 실제로는 더 늦어질 수 있습니다.</div>` : ""}
     </div></td></tr>`;
   }
+  // 칸 상태: blk=발매 전, wait=아직 정산 나올 때 아님, due=나올 때 지남, ""=판단 불가(발매 예정 줄·발매일 미정)
+  function cellState(r, m){
+    if(r.gray || r.blank || !r.relM) return "";
+    if(m < r.relM) return "blk";
+    return addM(m, r.lag) > curYM ? "wait" : "due";
+  }
   function draw(){
     const vis = rows.filter(r => showPre.checked || !(r.gray || r.blank));
     document.getElementById("cnt").textContent = `${vis.length}줄 표시 (전체 ${rows.length}줄)`;
-    const r1 = INFO.map((c,k) => `<th class="stk k${k} ${c[0]}">${k===INFO.length-1 ? "정산월" : ""}</th>`).join("")
-      + months.map(m => `<th class="m num">${ymDot(addM(m, OFF))}</th>`).join("");
+    const r1 = INFO.map((c,k) => `<th class="stk k${k} ${c[0]}">${k===INFO.length-1 ? `입금월 <span style="font-size:10px">(기본 +${OFF} · 지니 +${LAG.지니})</span>` : ""}</th>`).join("")
+      + months.map(m => `<th class="m num" title="${ymLabel(m)}분 입금: 기본 ${ymLabel(addM(m, OFF))} 말 · 지니 ${ymLabel(addM(m, LAG.지니))} 말">${ymDot(addM(m, OFF))}</th>`).join("");
     const r2 = INFO.map((c,k) => `<th class="stk k${k} ${c[0]}">${k===INFO.length-1 ? "손익 / 서비스월" : c[1]}</th>`).join("")
       + months.map(m => `<th class="m num">${ymDot(m)}</th>`).join("");
     const body = vis.map(r => {
       const cls = ["s", r.gray ? "pre" : ""].join(" ");
       const info = INFO.map((c,k) => `<td class="stk k${k} ${c[0]}"${k===4 && r.s.곡 ? ` title="${esc(r.s.곡)}"` : ""}>${k===4 ? songCell(r) : k===6 ? plCell(r) : c[2](r)}</td>`).join("");
-      const mc = months.map(m => { const v = r.s.monthly?.[m]; return v == null ? `<td class="m num"></td>` : `<td class="m num${r.s.선급?" adv":""}" title="${ymLabel(m)}분 · 정산월 ${ymLabel(addM(m,OFF))}">${cm(v)}</td>`; }).join("");
+      const mc = months.map(m => {
+        const v = r.s.monthly?.[m], st = cellState(r, m);
+        if(v != null) return `<td class="m num${r.s.선급?" adv":""}" data-m="${m}" title="${payNote(r.s, m)}${st === "wait" ? " (입금 예정)" : ""}">${cm(v)}</td>`;
+        if(st === "blk") return `<td class="m blk" data-m="${m}" data-st="blk" title="${ymLabel(m)}분 · 발매 전이라 정산 없음"></td>`;
+        if(st === "wait") return `<td class="m wait" data-m="${m}" data-st="wait" title="정산 대기 · ${payNote(r.s, m)}"></td>`;
+        if(st === "due") return `<td class="m num due" data-m="${m}" data-st="due" title="${ymLabel(m)}분 · 정산 나올 때(${ymLabel(addM(m, r.lag))})가 지났는데 기록 없음"></td>`;
+        return `<td class="m num"></td>`;
+      }).join("");
       return `<tr class="${cls}" data-i="${r.i}">${info}${mc}</tr>` + (open.has(r.i) ? detail(r) : "");
     }).join("");
     const mt = months.map(m => rows.reduce((a,r) => a + (r.s.monthly?.[m] || 0), 0));
     const foot = INFO.map((c,k) => `<td class="stk k${k} ${c[0]}">${k===4 ? "월 합계" : k===6 ? plCell({cost:T.cost, rec:T.rec, pl:T.rec-T.cost}) : ""}</td>`).join("")
-      + mt.map(v => `<td class="m num">${v ? cm(v) : ""}</td>`).join("");
+      + mt.map((v, j) => {
+        const m = months[j];
+        const waits = vis.filter(r => cellState(r, m) === "wait" && r.s.monthly?.[m] == null);
+        const byD = {}; waits.forEach(r => { const k = distKey(r.s.유통사); byD[k] = (byD[k]||0) + 1; });
+        const wTxt = Object.entries(byD).map(([k,n]) => `${k==="기본"?"기타":k} ${n}곡`).join(", ");
+        if(!v && waits.length) return `<td class="m allwait" title="${ymLabel(m)}분 · 아직 정산 대기 (${wTxt})">대기</td>`;
+        if(v && waits.length) return `<td class="m num part" title="${ymLabel(m)}분 · 아직 정산 대기인 곡 있음 (${wTxt}) — 더 늘어날 수 있음">${cm(v)}</td>`;
+        return `<td class="m num">${v ? cm(v) : ""}</td>`;
+      }).join("");
     document.getElementById("sheet").innerHTML = `<thead><tr class="r1">${r1}</tr><tr class="r2">${r2}</tr></thead><tbody>${body}</tbody><tfoot><tr>${foot}</tr></tfoot>`;
     layout();
   }
@@ -246,10 +303,17 @@
     t.querySelectorAll("thead tr.r2 th").forEach(el => el.style.top = h1 + "px");
     t.style.setProperty("--vw", (tw.clientWidth - 2) + "px");
   }
+  const tip = document.getElementById("tip"); let tipT;
+  const showTip = html => { tip.innerHTML = html; tip.style.display = "block"; clearTimeout(tipT); tipT = setTimeout(() => tip.style.display = "none", 4500); };
   document.getElementById("sheet").addEventListener("click", e => {
-    const tr = e.target.closest("tr.s"); if(!tr) return;
+    const td = e.target.closest("td.m"), tr = e.target.closest("tr.s");
+    if(td && tr && td.title){ const r = rows.find(x => x.i === +tr.dataset.i); showTip(`<b>${esc(r?.s.곡 || "(곡명 미정)")}</b><br>${esc(td.title)}`); return; }
+    if(!tr) return;
     const i = +tr.dataset.i; open.has(i) ? open.delete(i) : open.add(i); draw();
   });
+  document.getElementById("lagbox").innerHTML = `<span><b>입금월 = 서비스월 + 유통사별 개월</b></span>
+    <span>· <b class="g">지니 +${LAG.지니}</b></span><span>· <b>CJ +${LAG.CJ}</b></span><span>· <b>쿼터 +${LAG.쿼터}</b> (선급 차감)</span><span>· <b>레이벡스(다날)·기타 +${LAG.레이벡스}</b></span>
+    <span class="dim" style="font-size:11.5px">곡마다 유통사 옆 숫자가 그 곡의 개월 수 · 칸에 마우스를 올리거나 누르면 그 칸 금액의 입금월이 보입니다 · 이번 달 ${ymLabel(curYM)} 기준</span>`;
   showPre.addEventListener("change", draw);
   let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(layout, 80); });
   draw();
