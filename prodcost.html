@@ -98,6 +98,15 @@
     #sheet { font-size:11.5px; } #sheet th, #sheet td { padding:6px 6px; } #sheet td.song { max-width:118px; }
     .tw { max-height:72vh; }
   }
+.edrow { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:8px; }
+.edbtn { background:#1b2130; color:var(--text); border:1px solid #2f3747; border-radius:6px; padding:5px 11px; font-size:12.5px; cursor:pointer; }
+.edbtn:hover { border-color:#4a5670; } .edbtn.pri { background:#2b4f8a; border-color:#3d68b0; }
+.edform { margin-top:10px; padding:10px; border:1px solid #2a3140; border-radius:8px; background:#10141b; }
+.edgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:8px 12px; }
+.edgrid label, .edlogin { display:flex; flex-direction:column; gap:3px; font-size:12px; color:var(--muted); }
+.edlogin { margin-top:8px; flex-direction:row; flex-wrap:wrap; align-items:center; gap:6px; }
+.edform input { background:#0b0e13; color:var(--text); border:1px solid #2f3747; border-radius:5px; padding:5px 7px; font-size:13px; min-width:0; }
+.edgrid small { color:#6f7889; font-size:10.5px; } .edmsg { font-size:12px; color:#ffb86b; }
 </style></head><body><div class="page"><div id="sitetabs"><a href="index.html">🎵 음원 대시보드</a><a href="proposal.html">🎤 아티스트 제안</a><a href="funds.html">💼 자금 현황</a><a href="#" class="on">💿 음원 제작비 현황</a><a href="trending.html">🎯 경쟁사 분석</a><a href="detail.html">🔎 상세 추적</a></div>
 <h1>💿 음원 제작비 현황</h1>
 <div class="sub" id="sub">불러오는 중…</div>
@@ -141,6 +150,15 @@
   let D;
   try { D = await (await fetch("data/prodcost.json?t=" + Date.now())).json(); }
   catch(e){ document.getElementById("sub").textContent = "데이터를 불러오지 못했습니다."; return; }
+  // 곡 정보 직접 수정(11/21): 고친 값은 our label 데이터베이스(prodcost_edits)에 곡별로 저장, 원본 json 은 그대로. 쓰기는 our label 관리자 로그인 필요
+  const SB = "https://miwpjaolaychciighcbw.supabase.co", SBK = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pd3BqYW9sYXljaGNpaWdoY2J3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ5MDc3NjMsImV4cCI6MjExMDQ4Mzc2M30.2Ue6EcTiugzWFRr8UKvMu003WKVXlnF__Zfc7BY38Ws";
+  const EDF = ["유통사","수수료","지분","아티스트","곡"];
+  const seenK = {};
+  D.songs.forEach(s => { let k = `${s.아티스트||""}|${s.곡||""}|${s.발매일||""}`; seenK[k] = (seenK[k]||0) + 1; if(seenK[k] > 1) k += "#" + seenK[k]; s._key = k; s._orig = Object.fromEntries(EDF.map(f => [f, s[f]])); });
+  let EDITS = {};
+  try { (await (await fetch(`${SB}/rest/v1/prodcost_edits?select=song_key,fields`, { headers: { apikey: SBK } })).json()).forEach(e => EDITS[e.song_key] = e.fields || {}); } catch(e){}
+  const applyEdit = s => { EDF.forEach(f => s[f] = s._orig[f]); Object.assign(s, EDITS[s._key] || {}); };
+  D.songs.forEach(applyEdit);
   const now = new Date(); const pad = n => String(n).padStart(2,"0");
   const today = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
   const curYM = today.slice(0,7);
@@ -158,7 +176,7 @@
     return t;
   };
 
-  const rows = D.songs.map((s, i) => {
+  const mkRow = (s, i) => {
     const cost = (s.costs||[]).reduce((a,c) => a + c.금액, 0);
     const keys = Object.keys(s.monthly||{}).sort();
     const rec = keys.reduce((a,k) => a + s.monthly[k], 0);
@@ -172,7 +190,8 @@
     if(left > 0 && avg3 > 0){ estN = Math.ceil(left / avg3); est = addM(keys[keys.length-1], estN); }
     const relM = s.발매일 && /^\d{4}-\d{2}/.test(s.발매일) ? s.발매일.slice(0,7) : null;
     return { i, s, cost, rec, pl: rec - cost, keys, avg3, n3: last3.length, est, estN, pre, gray: !!s.예정, blank, relM, lag: lagOf(s), ord: s.순서 ?? 900 + i };
-  }).sort((a,b) => a.ord - b.ord);
+  };
+  const rows = D.songs.map(mkRow).sort((a,b) => a.ord - b.ord);
 
   // 월 칸: 첫 정산 달 ~ (마지막 정산 달, 이번 달 중 늦은 쪽)
   const allK = rows.flatMap(r => r.keys).sort();
@@ -242,8 +261,78 @@
       </div>
       <div style="margin-top:4px">유통사 ${esc(s.유통사||"—")} · 수수료 후 ${s.수수료!=null?pct(s.수수료):"—"} · 지분 ${s.지분!=null?pct(s.지분):"—"} · 발매일 ${esc(s.발매일||"미정")}${s.시트곡명 ? ` · 시트 표기 '${esc(s.시트곡명)}'` : ""}</div>
       ${s.메모 ? `<div>※ ${esc(s.메모)}</div>` : ""}
+      ${editBox(r)}
       ${r.est ? `<div style="font-size:11.5px">본전 예상 = 남은 금액 ÷ 최근 3개월(정산된 달) 평균. 곡은 보통 시간이 갈수록 줄어 실제로는 더 늦어질 수 있습니다.</div>` : ""}
     </div></td></tr>`;
+  }
+  // ── 곡 정보 수정 ──
+  const editing = new Set();
+  const AUTH_K = "prodcostAuth";
+  const getAuth = () => { try { return JSON.parse(localStorage.getItem(AUTH_K) || "null"); } catch(e){ return null; } };
+  const setAuth = a => { try { a ? localStorage.setItem(AUTH_K, JSON.stringify(a)) : localStorage.removeItem(AUTH_K); } catch(e){} };
+  async function authCall(grant, body){
+    const res = await fetch(`${SB}/auth/v1/token?grant_type=${grant}`, { method: "POST", headers: { apikey: SBK, "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const j = await res.json().catch(() => ({}));
+    if(!res.ok || !j.access_token) throw new Error(grant === "password" ? "로그인 실패 — 이메일·비밀번호를 확인해 주세요 (our label 관리자 계정)" : "로그인이 만료됐어요. 다시 로그인해 주세요");
+    const a = { at: j.access_token, rt: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000 - 60000 };
+    setAuth(a); return a;
+  }
+  async function token(){
+    let a = getAuth(); if(!a) return null;
+    if(Date.now() > a.exp){ try { a = await authCall("refresh_token", { refresh_token: a.rt }); } catch(e){ setAuth(null); return null; } }
+    return a.at;
+  }
+  const DISTS = [...new Set(D.songs.map(s => s._orig.유통사).filter(Boolean))];
+  function editBox(r){
+    const s = r.s, ed = EDITS[s._key];
+    if(!editing.has(r.i)) return `<div class="edrow"><button class="edbtn" data-act="edit" data-i="${r.i}">✏️ 곡 정보 수정</button>${ed ? `<span class="dim" style="font-size:11.5px">직접 고친 값 있음 (${Object.keys(ed).map(esc).join("·")})</span>` : ""}</div>`;
+    const o = s._orig, pv = v => v == null ? "" : Math.round(v * 1000) / 10;
+    const f = (k, label, val, orig, extra = "") => `<label>${label}<input data-f="${k}" value="${esc(val)}" ${extra}><small>원래 ${esc(orig === "" || orig == null ? "—" : orig)}</small></label>`;
+    const login = getAuth() ? "" : `<div class="edlogin">저장하려면 our label 관리자 계정으로 한 번 로그인해 주세요 (이 브라우저에 기억됩니다)
+        <input data-f="_email" type="email" placeholder="관리자 이메일" autocomplete="username"><input data-f="_pw" type="password" placeholder="비밀번호" autocomplete="current-password"></div>`;
+    return `<div class="edform" data-i="${r.i}">
+      <div class="edgrid">
+        ${f("곡", "곡명", s.곡 || "", o.곡)}
+        ${f("아티스트", "가수명", s.아티스트 || "", o.아티스트)}
+        ${f("유통사", "유통사", s.유통사 || "", o.유통사, `list="distlist"`)}
+        ${f("수수료", "수수료 후 몫 (%)", pv(s.수수료), o.수수료 != null ? pct(o.수수료) : "", `inputmode="decimal"`)}
+        ${f("지분", "지분율 (%)", pv(s.지분), o.지분 != null ? pct(o.지분) : "", `inputmode="decimal"`)}
+      </div>
+      <datalist id="distlist">${DISTS.map(d => `<option value="${esc(d)}">`).join("")}</datalist>
+      ${login}
+      <div class="edrow"><button class="edbtn pri" data-act="save" data-i="${r.i}">저장</button><button class="edbtn" data-act="cancel" data-i="${r.i}">취소</button>${ed ? `<button class="edbtn" data-act="reset" data-i="${r.i}">원래 값으로 되돌리기</button>` : ""}<span class="edmsg"></span></div>
+      <div class="dim" style="font-size:11.5px">표의 월별 금액은 이미 수수료·지분을 뺀 확정 정산금이라 수수료·지분을 바꿔도 금액은 그대로입니다. 유통사를 바꾸면 입금 시점(+개월)이 바뀝니다.</div>
+    </div>`;
+  }
+  async function saveEdit(i, reset){
+    const r = rows.find(x => x.i === i), s = r.s, box = document.querySelector(`.edform[data-i="${i}"]`), msg = box.querySelector(".edmsg");
+    const val = k => box.querySelector(`[data-f="${k}"]`)?.value.trim() ?? "";
+    let fields = {};
+    if(!reset){
+      for(const k of ["곡","아티스트","유통사"]){ const v = val(k); if(v !== (s._orig[k] || "")) fields[k] = v; }
+      for(const k of ["수수료","지분"]){
+        const t = val(k);
+        if(t === ""){ if(s._orig[k] != null) fields[k] = null; continue; }
+        const n = Number(t.replace("%","")); if(!(n >= 0 && n <= 100)){ msg.textContent = `${k === "지분" ? "지분율" : "수수료"}은 0~100 사이 숫자로 적어 주세요`; return; }
+        const v = Math.round(n * 10) / 1000; if(v !== s._orig[k]) fields[k] = v;
+      }
+    }
+    msg.textContent = "저장 중…";
+    try {
+      let at = await token();
+      if(!at){ const em = val("_email"), pw = box.querySelector('[data-f="_pw"]')?.value || ""; if(!em || !pw) throw new Error("관리자 이메일과 비밀번호를 넣어 주세요"); at = (await authCall("password", { email: em, password: pw })).at; }
+      const h = { apikey: SBK, Authorization: "Bearer " + at, "Content-Type": "application/json" };
+      const empty = !Object.keys(fields).length;
+      const res = empty
+        ? await fetch(`${SB}/rest/v1/prodcost_edits?song_key=eq.${encodeURIComponent(s._key)}`, { method: "DELETE", headers: { ...h, Prefer: "return=representation" } })
+        : await fetch(`${SB}/rest/v1/prodcost_edits?on_conflict=song_key`, { method: "POST", headers: { ...h, Prefer: "resolution=merge-duplicates,return=representation" }, body: JSON.stringify({ song_key: s._key, fields, updated_at: new Date().toISOString() }) });
+      const out = await res.json().catch(() => null);
+      if(!res.ok || (!empty && !(Array.isArray(out) && out.length))) throw new Error(res.status === 401 || res.status === 403 || (Array.isArray(out) && !out.length) ? "저장 권한이 없어요 — our label 관리자 계정으로 로그인해 주세요" : "저장 실패 (" + res.status + ")");
+      if(res.status === 401) setAuth(null);
+      empty ? delete EDITS[s._key] : EDITS[s._key] = fields;
+      applyEdit(s); Object.assign(r, mkRow(s, r.i), { ord: r.ord });
+      editing.delete(i); draw();
+    } catch(e){ if(/권한|만료/.test(e.message)) setAuth(null); msg.textContent = e.message; }
   }
   // 칸 상태: blk=발매 전, wait=아직 정산 나올 때 아님, due=나올 때 지남, ""=판단 불가(발매 예정 줄·발매일 미정)
   function cellState(r, m){
@@ -306,6 +395,12 @@
   const tip = document.getElementById("tip"); let tipT;
   const showTip = html => { tip.innerHTML = html; tip.style.display = "block"; clearTimeout(tipT); tipT = setTimeout(() => tip.style.display = "none", 4500); };
   document.getElementById("sheet").addEventListener("click", e => {
+    const b = e.target.closest("button[data-act]");
+    if(b){ const i = +b.dataset.i, a = b.dataset.act;
+      if(a === "edit"){ editing.add(i); draw(); } else if(a === "cancel"){ editing.delete(i); draw(); }
+      else if(a === "save") saveEdit(i, false); else if(a === "reset") saveEdit(i, true);
+      return; }
+    if(e.target.closest(".edform")) return;
     const td = e.target.closest("td.m"), tr = e.target.closest("tr.s");
     if(td && tr && td.title){ const r = rows.find(x => x.i === +tr.dataset.i); showTip(`<b>${esc(r?.s.곡 || "(곡명 미정)")}</b><br>${esc(td.title)}`); return; }
     if(!tr) return;
