@@ -25,6 +25,18 @@ function localTime(d = new Date()) {
 }
 
 // 차트 목록 (30곡: id, 순위, 제목, 아티스트, 발매일)
+// 2026-11-21: 유튜브 차트 API가 11/20 02시부터 403(권한 없음)으로 막혀, 실패하면 kworb 음악 인기 급상승 표로 대신 받는다
+// (kworb 는 유튜브 차트를 옮겨 오는 사이트라 몇십 분 늦음. 유튜브가 다시 열리면 자동으로 원래 방식 사용)
+async function fetchChartKworb() {
+  const html = await (await fetch("https://kworb.net/youtube/trending/kr.html", { headers: { "User-Agent": UA } })).text();
+  const k = html.indexOf('<div class="music"');
+  if (k < 0) throw new Error("kworb 음악 표를 찾지 못함");
+  const dec = (t) => t.replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+  const re = /<tr[^>]*><td>(\d+)<\/td><td>[^<]*<\/td><td class="text"><div><a href="https:\/\/(?:youtu\.be\/|www\.youtube\.com\/watch\?v=)([\w-]{11})"[^>]*>([^<]*)<\/a>/g;
+  const list = [...html.slice(k).matchAll(re)].map(([, pos, id, title]) => ({ id, pos: +pos, title: dec(title), artist: "", release: null, src: "kworb" }));
+  if (!list.length) throw new Error("kworb 음악 표가 비어 있음");
+  return list;
+}
 async function fetchChart() {
   const res = await fetch("https://charts.youtube.com/youtubei/v1/browse?alt=json", {
     method: "POST",
@@ -173,14 +185,17 @@ async function main() {
       catch (e) {
         console.log(`  ⚠️ 차트 수집 실패(${attempt}/3): ${e.message}`);
         if (attempt < 3) await new Promise((r) => setTimeout(r, 15000 * attempt));
-        else console.log("  → 차트는 이번 회차 건너뜀(이전 차트 유지), 경쟁사 곡 수집은 계속");
+        else {
+          try { chart = await fetchChartKworb(); console.log(`  ✓ 대신 kworb 음악 차트 ${chart.length}곡`); }
+          catch (e2) { console.log(`  ⚠️ kworb 도 실패: ${e2.message} → 차트는 이번 회차 건너뜀(이전 차트 유지), 경쟁사 곡 수집은 계속`); }
+        }
       }
     }
 
     // 곡 메타 갱신 (제목/아티스트/발매일, 차트 첫 진입일/마지막 목격일)
     for (const c of chart) {
       const v = db.videos[c.id] || {};
-      db.videos[c.id] = { ...v, title: c.title, artist: c.artist, release: c.release,
+      db.videos[c.id] = { ...v, title: c.src === "kworb" && v.title ? v.title : c.title, artist: c.artist || v.artist || "", release: c.release || v.release || null,
         firstSeen: v.firstSeen || today, lastSeen: today, lastPos: c.pos };
     }
     // 경쟁사 곡 반영: watch 표시 (기간 제한 없이 계속 추적) + 파일에서 빠진 곡은 watch 해제
