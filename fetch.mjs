@@ -235,16 +235,7 @@ async function main() {
     if (adImprByDay) db.songs[vid].adImprByDay = adImprByDay; else delete db.songs[vid].adImprByDay;
     if (adTrueviewByDay) db.songs[vid].adTrueviewByDay = adTrueviewByDay; else delete db.songs[vid].adTrueviewByDay;   // 그래프 광고 음영 전용 (합계·수익 계산엔 안 씀, 2026-10-05)
   }
-  // 광고 끝난 다음 날(adTo = 마지막 광고일 + 1)은 05시까지만 뺀다 (2026-11-23 민우님 "다음날 5시까지만 안 들어가게")
-  //   그날 00시 → 05시 사이 늘어난 조회수만 차감하고 나머지는 합계·수익에 넣는다. 05시 기록이 아직 없으면 하루 통째로 계속 뺀다.
-  for (const [vid, g] of Object.entries(db.songs)) {
-    delete g.adTail;
-    if (!g.adFrom || !g.adTo) continue;
-    const h5 = db.hourly?.[g.adTo]?.["05"]?.[vid];
-    const day0 = (db.snapshots || []).find((s) => s.date === g.adTo)?.stats?.[vid]?.views;
-    const start = day0 != null ? day0 : db.hourly?.[g.adTo]?.["00"]?.[vid];
-    if (h5 != null && start != null && h5 >= start) g.adTail = { date: g.adTo, cut: h5 - start };
-  }  // 마케팅 트랙 반영 + marketing.json 에서 빠진 트랙은 목록에서 제거
+  // 마케팅 트랙 반영 + marketing.json 에서 빠진 트랙은 목록에서 제거
   // hidden:true (2026-11-13 민우님: "추적은 계속하고 대시보드에서만 빼") — 수집·기록은 하고 화면에만 안 나온다
   for (const { url, title, start, hidden } of marketing) {
     const vid = vidOf(url);
