@@ -275,7 +275,8 @@ function exSumOn(songs, id, dateStr){
   if(g.pendingUntil && dateStr && dateStr <= g.pendingUntil) return true;
   // 광고 집행 기간(adFrom~adTo)에는 조회수가 광고로 부풀려지므로 그 날짜의 합계·수익에서 뺀다.
   // adTo 를 안 적으면 "광고 진행 중"으로 보고 계속 제외한다.
-  if(g.adFrom && dateStr && dateStr >= g.adFrom && (!g.adTo || dateStr <= g.adTo)) return true;
+  // 광고 끝난 다음 날(adTail)은 통째로 빼지 않고 05시까지 늘어난 만큼만 adCut 에서 뺀다 (2026-11-23 민우님)
+  if(g.adFrom && dateStr && dateStr >= g.adFrom && (!g.adTo || dateStr <= g.adTo) && !(g.adTail && dateStr === g.adTail.date)) return true;
   return false;
 }
 const todayStr = (() => { const n=new Date(), q=x=>String(x).padStart(2,"0");
@@ -285,8 +286,8 @@ function exSum(songs, id){ return exSumOn(songs, id, todayStr); }
 // songs[id].adViewsByDay = {"YYYY-MM-DD": 광고조회수}. 그날 증가분에서 광고분만 빼고
 // 합계·수익에 넣는다. 곡별 표·개별 그래프의 원본 수치는 그대로 둔다.
 function adCut(songs, id, dateStr){
-  const m = songs[id] && songs[id].adViewsByDay;
-  return (m && dateStr && m[dateStr]) ? m[dateStr] : 0;
+  const m = songs[id] && songs[id].adViewsByDay, t = songs[id] && songs[id].adTail;
+  return ((m && dateStr && m[dateStr]) ? m[dateStr] : 0) + ((t && dateStr === t.date) ? t.cut : 0);
 }
 function adCutRange(songs, id, from, to){
   const m = songs[id] && songs[id].adViewsByDay;
@@ -941,7 +942,7 @@ function adTvTotal(songs, id){ const m = adMap(songs, id); if(!m) return null; l
 // 누적 "실제" = 광고 기간(adFrom~adTo) 날짜에 늘어난 조회수는 통째로 빼고 나머지 날만 더한 값 (2026-10-27 민우님 "ㄲ")
 //   구글 TrueView만 빼면 공개 조회수의 광고분(약 1.8배)이 덜 빠져 실제가 부풀었음 → 수익 계산과 같은 기준으로.
 function realCum(songs, snaps, id, totalNow){
-  const g = songs[id] || {}, isAd = d => g.adFrom && d >= g.adFrom && (!g.adTo || d <= g.adTo);
+  const g = songs[id] || {}, isAd = d => g.adFrom && d >= g.adFrom && (!g.adTo || d <= g.adTo) && !(g.adTail && d === g.adTail.date);
   let real = null, first = null;
   for(let i=0;i<snaps.length;i++){
     const v = snaps[i].stats[id]; if(!v || v.views == null) continue;
