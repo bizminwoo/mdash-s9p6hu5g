@@ -6,7 +6,7 @@
 <!-- 데이터: data/prodcost.json (구글시트 '음원정산' 탭 구조 그대로 — 곡 한 줄 × 서비스월 칸).
      songs[]: 곡·아티스트·유통사·수수료·지분·발매일·앨범·순서·예정·선급·costs[{항목,금액}]·monthly{"YYYY-MM"(서비스월): 내 몫 금액}
      정산이 들어오면 해당 곡 monthly 에 서비스월 키로 금액만 추가하면 표·합계·손익이 자동 반영된다.
-     새 곡은 songs 에 한 줄 추가(순서 = 마지막+1). 입금월 = 서비스월 + settleLag[유통사](지니 2, CJ 4, 쿼터·레이벡스·기타 3)개월.
+     새 곡은 songs 에 한 줄 추가(순서 = 마지막+1). 입금월 = 서비스월 + settleLag[유통사](지니 2, CJ 4, 쿼터·다날(25일, 주말·공휴일이면 다음 영업일)·레이벡스·기타 3)개월.
      monthly 키 = 각 유통사 사이트의 서비스월: 지니 '서비스월', CJ = 실제 들은 달(= CJ '서비스월표기' − 1 = CJ 정산월 − 3, 대시보드와 같음), 쿼터 '국내 판매월'(= 쿼터 정산월 − 2).
      (대시보드 DIST_ACTUAL 의 CJ·쿼터 키는 정산월 − 3 이라 이 표보다 한 달 앞 — 같은 금액이 한 달 다른 키에 있음) -->
 <style>
@@ -164,15 +164,16 @@
   const curYM = today.slice(0,7);
   const OFF = D.settleOffset ?? 3;
   // 유통사별 입금 지연(서비스월 → 입금월 개월 수). data/prodcost.json 의 settleLag 로 바꿀 수 있음
-  const LAG = Object.assign({ "지니":2, "CJ":4, "쿼터":3, "레이벡스":3, "기본":3 }, D.settleLag || {});
-  const distKey = d => /지니/.test(d||"") ? "지니" : /CJ/i.test(d||"") ? "CJ" : /쿼터/.test(d||"") ? "쿼터" : /레이벡스|다날/.test(d||"") ? "레이벡스" : "기본";
+  const LAG = Object.assign({ "지니":2, "CJ":4, "쿼터":3, "다날":3, "레이벡스":3, "기본":3 }, D.settleLag || {});
+  const distKey = d => /지니/.test(d||"") ? "지니" : /CJ/i.test(d||"") ? "CJ" : /쿼터/.test(d||"") ? "쿼터" : /다날/.test(d||"") ? "다날" : /레이벡스/.test(d||"") ? "레이벡스" : "기본";
   const lagOf = s => { const k = distKey(s.유통사); return LAG[k] ?? LAG.기본 ?? OFF; };
   const payNote = (s, m) => {
     const k = distKey(s.유통사), L = lagOf(s), p = addM(m, L);
-    let t = `${ymLabel(m)}분 → ${ymLabel(p)} 말 입금 (${esc(s.유통사 || "유통사 미정")} +${L}개월)`;
+    let t = `${ymLabel(m)}분 → ${ymLabel(p)} ${k === "다날" ? "25일" : "말"} 입금 (${esc(s.유통사 || "유통사 미정")} +${L}개월)`;
     if(s.선급) t = `${ymLabel(m)}분 → ${ymLabel(addM(m, L-1))} 정산서 · 쿼터 선급에서 차감 (현금 입금 없음)`;
     if(k === "CJ" || k === "쿼터") t += ` · 해외분 일부는 한 달 늦게 섞여 들어옴`;
-    if(k === "레이벡스") t += ` · 다날 첫 정산 전이라 규칙 확인 중`;
+    // 2026-11-25 민우님 확인: 다날은 서비스월+2 정산서(25일 오픈) → 그다음 달 25일 입금, 25일이 주말·공휴일이면 다음 영업일
+    if(k === "다날") t += ` · 정산서는 한 달 전 25일, 25일이 주말·공휴일이면 다음 영업일 입금`;
     return t;
   };
 
@@ -407,7 +408,7 @@
     const i = +tr.dataset.i; open.has(i) ? open.delete(i) : open.add(i); draw();
   });
   document.getElementById("lagbox").innerHTML = `<span><b>입금월 = 서비스월 + 유통사별 개월</b></span>
-    <span>· <b class="g">지니 +${LAG.지니}</b></span><span>· <b>CJ +${LAG.CJ}</b></span><span>· <b>쿼터 +${LAG.쿼터}</b> (선급 차감)</span><span>· <b>레이벡스(다날)·기타 +${LAG.레이벡스}</b></span>
+    <span>· <b class="g">지니 +${LAG.지니}</b></span><span>· <b>CJ +${LAG.CJ}</b></span><span>· <b>쿼터 +${LAG.쿼터}</b> (선급 차감)</span><span>· <b>다날 +${LAG.다날}</b> (25일 입금 · 주말·공휴일이면 다음 영업일)</span><span>· <b>레이벡스·기타 +${LAG.레이벡스}</b></span>
     <span class="dim" style="font-size:11.5px">곡마다 유통사 옆 숫자가 그 곡의 개월 수 · 칸에 마우스를 올리거나 누르면 그 칸 금액의 입금월이 보입니다 · 이번 달 ${ymLabel(curYM)} 기준</span>`;
   showPre.addEventListener("change", draw);
   let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(layout, 80); });

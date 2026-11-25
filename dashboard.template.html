@@ -225,7 +225,8 @@ const RATE_DEFAULT = WON_PER_1000_DAILY / (1000 * 30); // 6.0원
 // 2026-10-19: CJ 7월분 실측 913,189원 / 추정 952,413원(6.0원) → 5.75원.
 // 2026-10-19: "지니(승률)" = 지니 발매·계약 당사자는 승률이형 → 승률이형이 나한테 정산. 단가는 지니와 같게.
 // 2026-11-03 민우님: 쿼터 단가 5.3원 — 7·8월분 정산 합계 6,867,430 / 유튜브 조회 1,287,634회(광고일 빼지 않음) = 5.33원 (수수료 23% 반영된 값).
-const DIST_RATE = { "지니": 6.30, "CJ": 5.75, "지니(승률)": 6.30, "쿼터": 5.3 };
+// 2026-11-25 민우님: 다날 6.7원 — 9월분 첫 정산 1,209,019원 / 대시보드 9월 다날 곡 조회 180,123회(광고 기간·보류 제외, 지금 계산과 같은 기준) = 6.71원. 6.0원 기준 추정 1,080,738원보다 +11.9%.
+const DIST_RATE = { "지니": 6.30, "CJ": 5.75, "지니(승률)": 6.30, "쿼터": 5.3, "다날": 6.7 };
 // 2026-11-17 민우님: 지니(승률) 정산금은 술값 → 수익(카드·마감보고·예상 수익)에서 전부 뺀다. 유통사별 정산표에는 참고로만 보인다(합계 제외).
 const NO_REVENUE_DISTS = ["지니(승률)"];
 function distRateOf(songs, id){ const d = songs[id] && songs[id].dist; return (d && DIST_RATE[d]) || RATE_DEFAULT; }
@@ -979,6 +980,10 @@ const DIST_ACTUAL = { "지니": { "2026-8": 2402165, "2026-9": 5439356 }, "CJ": 
 // 2026-11-23 제작비 표와 대조해 한 달 당김을 바로잡음: 2,447,225 = 8월분(가끔 1,727,617 + 흔한 이별 719,608 — 가끔은 7/28 발매라 7월분일 수 없음),
 //   4,420,206 = 9월분(쿼터 '국내 판매월' 기준, 곡별 합 원 단위).
 const DIST_ACTUAL_ADV = { "쿼터": { "2026-8": 2447225, "2026-9": 4420206 } };
+// 2026-11-25 민우님: 실제 정산서가 있는 달은 아티스트 정산(줘야 할 돈)도 정산서 곡별 금액으로 계산한 실제값을 쓴다(조회수 추정 대신).
+//   다날 9월분: ssf soundz 곡(왕준협 60,586 + 천성·나찬·투엣·귀울임·상혁·용대 3,008) 63,594원 × 50% = 31,797원. 「바보야」(윤코기 30%)는 10월 발매라 9월분 없음.
+//   새 달 정산서가 오면 DIST_ACTUAL 과 함께 여기에도 넣는다. 이 표에 없는 달은 예전처럼 추정 비율로 나눈다.
+const DIST_ACTUAL_PAY = { "다날": { "2026-9": { "ssf soundz": 31797 } } };
 const DIST_LAG_DEFAULT = 3;
 // 유통사를 옮긴 곡: distBefore = {until:"YYYY-MM-DD", dist:"이전 유통사"} — 그날까지는 이전 유통사로 정산 (2026-10-26 민우님: 카디코기·왕준협 9월분부터 다날)
 function distOn(songs, id, day){
@@ -1056,7 +1061,7 @@ function renderDistRevenue(snaps, songs, ids){
     const tag = `<div class="muted" style="font-size:10.5px;font-weight:400">${svc.m}월분${keyOf(svc) === keyOf(cur) ? ` · 진행 중(${partialLabel})` : ""}</div>`;
     if(before(cur, svc)) return { html: `<span class='muted'>—</span><div class="muted" style="font-size:10.5px">${svc.m}월분 (아직)</div>`, mine: 0 };
     const act = (DIST_ACTUAL[d] || {})[keyOf(svc)];
-    if(act != null) return { html: `<b>${fmtWon(act)}</b> <span class="muted" style="font-size:10.5px;font-weight:400">확정</span>${tag}`, mine: act, pay: scalePay((per[d] || {})[keyOf(svc)], act) };
+    if(act != null){ const ap = (DIST_ACTUAL_PAY[d] || {})[keyOf(svc)]; return { html: `<b>${fmtWon(act)}</b> <span class="muted" style="font-size:10.5px;font-weight:400">확정</span>${tag}`, mine: act, pay: ap ? { ...ap } : scalePay((per[d] || {})[keyOf(svc)], act) }; }
     const adv = (DIST_ACTUAL_ADV[d] || {})[keyOf(svc)];
     if(adv != null){ const est = (per[d] && per[d][keyOf(svc)] || {}).full; return { html: `<span class="muted">선급 회수</span> <b>${fmtWon(adv)}</b> <span class="muted" style="font-size:10.5px;font-weight:400">확정</span>${est ? `<div class="muted" style="font-size:10.5px">추정 ≈${fmtWon(est)} (${est > adv ? "−" : "+"}${Math.round(Math.abs(adv/est-1)*100)}%)</div>` : ""}${tag}`, mine: 0 }; }
     if(before(svc, fullFrom)) return { html: `<span class='muted'>수집 전</span><div class="muted" style="font-size:10.5px">${svc.m}월분</div>`, mine: 0 };
@@ -1069,7 +1074,7 @@ function renderDistRevenue(snaps, songs, ids){
   // 정렬: 입금 빠른 유통사(지연 짧은 순) → 같은 지연이면 최근 서비스월 금액 큰 순
   const lastKey = keyOf(addM(cy, cm, -1));
   dists.sort((a,b) => lagOf(a) - lagOf(b) || (((per[b][lastKey]||{}).full||0) - ((per[a][lastKey]||{}).full||0)));
-  const DIST_NOTES = { "지니": "단가 6.30원 (7~8월 실측 보정) · 2개월 뒤 입금", "지니(승률)": "🍺 술값 — 합계(내 몫)에서 제외 · 승률이형이 지니 정산 받는 대로 바로 정산 (2개월 뒤)", "다날": "서비스월 +2개월 정산 확인 → 그다음 달 25일 입금 (3개월 뒤)", "쿼터": "단가 5.3원 (7·8월 정산 실측, 수수료 23% 반영) · 선급 회수 중 · 3개월 뒤 입금", "CJ": "서비스월 +2개월 공지 → 그다음 달 30일 입금 · 유튜브는 1달 더 늦음 (유튜브 기준 4개월 뒤)" };
+  const DIST_NOTES = { "지니": "단가 6.30원 (7~8월 실측 보정) · 2개월 뒤 입금", "지니(승률)": "🍺 술값 — 합계(내 몫)에서 제외 · 승률이형이 지니 정산 받는 대로 바로 정산 (2개월 뒤)", "다날": "단가 6.7원 (9월분 정산 실측) · 서비스월 +2개월 25일 정산서 → 그다음 달 25일 입금(주말·공휴일이면 다음 영업일, 3개월 뒤)", "쿼터": "단가 5.3원 (7·8월 정산 실측, 수수료 23% 반영) · 선급 회수 중 · 3개월 뒤 입금", "CJ": "서비스월 +2개월 공지 → 그다음 달 30일 입금 · 유튜브는 1달 더 늦음 (유튜브 기준 4개월 뒤)" };
   let html = `<div style="overflow-x:auto"><table><thead><tr><th>유통사</th>` +
     pays.map((p, j) => `<th>${p.y !== cy ? p.y + "년 " : ""}${p.m}월 입금${j === 0 ? " (지난달)" : ""}</th>`).join("") + `</tr></thead><tbody>`;
   // 2026-11-17 민우님: 지니(승률) 정산금은 술값으로 쓰기로 함 → 줄은 보여주되 '합계 (내 몫)'에는 안 넣음
